@@ -3,7 +3,8 @@ import {
   registerGuardian,
   loginGuardian,
   logoutGuardian,
-  getProfile
+  getProfile,
+  updateProfile
 } from "../controllers/guardianController.js";
 
 import {protect} from "../middleware/authGuardianMiddleware.js";
@@ -14,5 +15,6 @@ router.post("/register", registerGuardian);
 router.post("/login", loginGuardian);
 router.post("/logout", logoutGuardian);
 router.get("/profile", protect, getProfile);
+router.put("/updateProfile", protect, updateProfile);
 
 export default router;
