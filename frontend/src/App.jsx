@@ -10,6 +10,7 @@ import Donations from './pages/Donations';
 import Events from './pages/Events';
 
 import Navbar from './components/Navbar';
+import MealPage from './pages/MealPage';
 
 
 const App = () => {
@@ -24,6 +25,7 @@ const App = () => {
         <Route path="/about" element={<AboutUs />} />
         <Route path="/donations" element={<Donations />} />
         <Route path="/events" element={<Events />} />
+        <Route path="/meals" element={<MealPage />} />
 
       </Routes>
       {/* <Footer /> */}
