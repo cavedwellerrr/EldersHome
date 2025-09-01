@@ -4,16 +4,20 @@ import 'dotenv/config';
 import cookieParser from "cookie-parser";
 
 import connectDB from "./config/mongodb.js";
+import guardianRoutes from "./routes/guardianRoutes.js";
 
-const app= express();
+const app = express();
+const port = process.env.PORT || 4000;
 
-const port= process.env.PORT || 4000
 connectDB();
 
 app.use(express.json());
 app.use(cookieParser());
-app.use(cors({credentials: true}))
+app.use(cors({ credentials: true, origin: "http://localhost:5173" })); // replace with frontend URL
 
-app.get('/', (req,res)=> res.send("API working now"));
+// Routes
+app.use("/api/guardians", guardianRoutes);
 
-app.listen(port, ()=> console.log(`Server started on port: ${port}`));
+app.get("/", (req, res) => res.send("API working"));
+
+app.listen(port, () => console.log(`Server started on port: ${port}`));
