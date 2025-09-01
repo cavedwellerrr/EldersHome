@@ -5,6 +5,7 @@ import cookieParser from "cookie-parser";
 
 import connectDB from "./config/mongodb.js";
 import guardianRoutes from "./routes/guardianRoutes.js";
+import mealRoutes from "./routes/mealRoutes.js"
 
 const app = express();
 const port = process.env.PORT || 4000;
@@ -17,6 +18,7 @@ app.use(cors({ credentials: true, origin: "http://localhost:5173" })); // replac
 
 // Routes
 app.use("/api/guardians", guardianRoutes);
+app.use("/api/meals", mealRoutes);//meal
 
 app.get("/", (req, res) => res.send("API working"));
 
