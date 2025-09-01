@@ -1,6 +1,6 @@
-import React, { useState } from "react";
-import axios from "axios";
+import { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import api from "../../api"; // your axios instance
 
 const StaffLogin = () => {
   const [username, setUsername] = useState("");
@@ -8,69 +8,82 @@ const StaffLogin = () => {
   const [error, setError] = useState("");
   const navigate = useNavigate();
 
-  const handleLogin = async (e) => {
-    e.preventDefault();
-    setError("");
+const handleSubmit = async (e) => {
+  e.preventDefault();
 
-    try {
-      const response = await axios.post(
-        `${import.meta.env.VITE_API_URL}/login`,
-        { username, password }
-      );
+  try {
+    const res = await api.post("/staff/login", { username, password });
 
-      const { token, role, name } = response.data;
+    // Save credentials
+    localStorage.setItem("token", res.data.token);
+    localStorage.setItem("role", res.data.role);
+    localStorage.setItem("username", res.data.username);
 
-      // Store token based on role
-      if (role === "Admin") {
-        localStorage.setItem("adminToken", token);
-        navigate("/admin-dashboard");
-      } else if (role === "Operator") {
-        localStorage.setItem("staffToken", token);
-        navigate("/operator-dashboard");
-      } else if (role === "Caretaker") {
-        localStorage.setItem("staffToken", token);
-        navigate("/caretaker-dashboard");
-      } else if (role === "Doctor") {
-        localStorage.setItem("staffToken", token);
-        navigate("/doctor-dashboard");
-      } else {
-        localStorage.setItem("staffToken", token);
-        navigate("/");
-      }
-
-      localStorage.setItem("staffRole", role);
-      localStorage.setItem("staffName", name);
-
-    } catch (err) {
-      console.error(err);
-      setError(err.response?.data?.message || "Login failed");
+    // ✅ Redirect by role
+    switch (res.data.role) {
+      case "admin":
+        navigate("/staff/admin-dashboard");
+        break;
+      case "operator":
+        navigate("/staff/operator-dashboard");
+        break;
+      case "caretaker":
+        navigate("/staff/caretaker-dashboard");
+        break;
+      case "doctor":
+        navigate("/staff/doctor-dashboard");
+        break;
+      default:
+        navigate("/login"); // fallback
     }
-  };
+  } catch (err) {
+    console.error(err);
+    setError(err.response?.data?.message || "Login failed");
+  }
+};
 
   return (
-    <div style={{ maxWidth: "400px", margin: "50px auto" }}>
-      <h2>Staff Login</h2>
-      {error && <p style={{ color: "red" }}>{error}</p>}
-      <form onSubmit={handleLogin}>
-        <div>
-          <label>Username:</label>
+    <div className="flex justify-center items-center h-screen">
+      <form
+        onSubmit={handleSubmit}
+        className="bg-white shadow-lg rounded-xl p-8 w-96"
+      >
+        <h2 className="text-2xl font-bold mb-6 text-center">Staff Login</h2>
+
+        {error && (
+          <div className="bg-red-100 text-red-700 p-2 rounded mb-4 text-sm">
+            {error}
+          </div>
+        )}
+
+        <div className="mb-4">
+          <label className="block mb-1 text-sm font-medium">Username</label>
           <input
             type="text"
             value={username}
             onChange={(e) => setUsername(e.target.value)}
             required
+            className="w-full border rounded-lg p-2 focus:ring-2 focus:ring-blue-500"
           />
         </div>
-        <div>
-          <label>Password:</label>
+
+        <div className="mb-6">
+          <label className="block mb-1 text-sm font-medium">Password</label>
           <input
             type="password"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
             required
+            className="w-full border rounded-lg p-2 focus:ring-2 focus:ring-blue-500"
           />
         </div>
-        <button type="submit">Login</button>
+
+        <button
+          type="submit"
+          className="w-full bg-blue-600 text-white py-2 rounded-lg hover:bg-blue-700 transition"
+        >
+          Login
+        </button>
       </form>
     </div>
   );
