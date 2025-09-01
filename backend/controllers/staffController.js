@@ -32,10 +32,21 @@ export const registerStaff = async (req, res) => {
     // If role is doctor, also create Doctor document
     if (role === "doctor") {
       await Doctor.create({
-        staff: staff._id, // reference staff
+        staff: staff._id,
         specialization,
       });
     }
+
+    // Generate token
+    const token = generateToken(staff._id);
+
+    // Set cookie
+    res.cookie("token", token, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      sameSite: "strict",
+      maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
+    });
 
     res.status(201).json({
       _id: staff._id,
@@ -45,6 +56,7 @@ export const registerStaff = async (req, res) => {
       phone: staff.phone,
       role: staff.role,
       specialization: role === "doctor" ? specialization : undefined,
+      token,
     });
   } catch (error) {
     console.error("Error registering staff:", error);
@@ -66,6 +78,17 @@ export const loginStaff = async (req, res) => {
         specialization = doctor?.specialization;
       }
 
+      // Generate token
+      const token = generateToken(staff._id);
+
+      // Set cookie
+      res.cookie("token", token, {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === "production",
+        sameSite: "strict",
+        maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
+      });
+
       res.json({
         _id: staff._id,
         name: staff.name,
@@ -74,7 +97,7 @@ export const loginStaff = async (req, res) => {
         phone: staff.phone,
         role: staff.role,
         specialization,
-        token: generateToken(staff),
+        token,
       });
     } else {
       res.status(401).json({ message: "Invalid username or password" });
@@ -83,6 +106,17 @@ export const loginStaff = async (req, res) => {
     console.error("Error during login:", error);
     res.status(500).json({ message: "Server error during login" });
   }
+};
+
+// Logout staff
+export const logoutStaff = async (req, res) => {
+  res.cookie("token", "", {
+    httpOnly: true,
+    expires: new Date(0),
+    sameSite: "strict",
+    secure: process.env.NODE_ENV === "production",
+  });
+  res.json({ message: "Logged out successfully" });
 };
 
 // Delete staff
@@ -94,7 +128,6 @@ export const deleteStaff = async (req, res) => {
       return res.status(404).json({ message: "Staff member not found" });
     }
 
-    // If doctor, remove doctor record as well
     if (staff.role === "doctor") {
       await Doctor.deleteOne({ staff: staff._id });
     }
