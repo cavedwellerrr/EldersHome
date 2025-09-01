@@ -127,3 +127,40 @@ export const getProfile = async (req, res) => {
     res.status(500).json({ message: error.message });
   }
 };
+
+// Update guardian profile
+export const updateProfile = async (req, res) => {
+  try {
+    const guardian = req.guardian; // comes from auth middleware
+
+    if (!guardian) {
+      return res.status(404).json({ message: "Guardian not found" });
+    }
+
+    // Update fields if provided
+    guardian.name = req.body.name || guardian.name;
+    guardian.email = req.body.email || guardian.email;
+    guardian.username = req.body.username || guardian.username;
+    guardian.phone = req.body.phone || guardian.phone;
+    guardian.address = req.body.address || guardian.address;
+
+    // Update password if provided
+    if (req.body.password) {
+      guardian.password = req.body.password; // make sure your pre-save hook hashes it
+    }
+
+    const updatedGuardian = await guardian.save();
+
+    res.json({
+      _id: updatedGuardian._id,
+      name: updatedGuardian.name,
+      email: updatedGuardian.email,
+      username: updatedGuardian.username,
+      phone: updatedGuardian.phone,
+      address: updatedGuardian.address,
+    });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
