@@ -6,28 +6,29 @@ const Mealheader = () => {
     const [open, setOpen] = useState(false);
 
     return (
-        <header className="bg-base-300 border-b border-base-content/10">
-            <div className="mx-auto max-w-6xl p-4">
-                <div className="flex items-center justify-between">
-                    <h1 className="text-3xl font-bold text-primary font-mono tracking-tighter">
-                        Meal Management
-                    </h1>
+        <>
+            {/* space below navbar */}
+            <div className="h-3 md:h-4" />
 
-                    <div className="flex items-center gap-4">
+            <header className="mx-auto max-w-6xl px-4">
+                <div className="rounded-xl bg-blue-50/5 backdrop-blur supports-[backdrop-filter]:bg-blue-50/10 border border-white/10 shadow-sm">
+                    <div className="flex items-center justify-between px-5 py-3">
+                        <h1 className="text-xl md:text-2xl font-semibold text-white/90 tracking-tight">
+                            Meal Management
+                        </h1>
                         <button
                             onClick={() => setOpen(true)}
-                            className="btn btn-primary flex items-center gap-2"
+                            className="inline-flex items-center gap-2 rounded-md bg-blue-600 hover:bg-blue-500 text-white px-3 py-2 text-sm font-medium transition"
                         >
                             <PlusIcon className="size-5" />
-                            <span>New Meal Type</span>
+                            <span>New Meal</span>
                         </button>
                     </div>
                 </div>
-            </div>
+            </header>
 
-            {/* Add Modal */}
             <AddMealModal open={open} onClose={() => setOpen(false)} />
-        </header>
+        </>
     );
 };
 

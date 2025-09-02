@@ -1,10 +1,10 @@
-import React, { useState } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import toast from "react-hot-toast";
 import api from "../api.js";
 
 const CATEGORIES = ["Breakfast", "Lunch", "Dinner", "Snack", "Other"];
 
-const AddMealModal = ({ open, onClose }) => {
+const EditMealModal = ({ open, onClose, meal, onUpdated }) => {
     const [name, setName] = useState("");
     const [description, setDescription] = useState("");
     const [category, setCategory] = useState("Other"); // NEW
@@ -13,6 +13,18 @@ const AddMealModal = ({ open, onClose }) => {
     const [currentInclude, setCurrentInclude] = useState("");
     const [currentAvoid, setCurrentAvoid] = useState("");
     const [loading, setLoading] = useState(false);
+
+    // Pre-fill state when opening or meal changes
+    useEffect(() => {
+        if (!open || !meal) return;
+        setName(meal.name || "");
+        setDescription(meal.description || "");
+        setCategory(meal.category || "Other"); // NEW
+        setToInclude(meal.restrictions?.toInclude || []);
+        setToAvoid(meal.restrictions?.toAvoid || []);
+        setCurrentInclude("");
+        setCurrentAvoid("");
+    }, [open, meal]);
 
     const addInclude = () => {
         const v = currentInclude.trim();
@@ -36,38 +48,39 @@ const AddMealModal = ({ open, onClose }) => {
         setToAvoid((prev) => prev.filter((_, idx) => idx !== i));
     };
 
+    const hasChanges = useMemo(() => {
+        if (!meal) return false;
+        const same =
+            (meal.name || "") === name &&
+            (meal.description || "") === description &&
+            (meal.category || "Other") === category &&
+            JSON.stringify((meal.restrictions?.toInclude || []).map(String)) ===
+            JSON.stringify(toInclude.map(String)) &&
+            JSON.stringify((meal.restrictions?.toAvoid || []).map(String)) ===
+            JSON.stringify(toAvoid.map(String));
+        return !same;
+    }, [meal, name, description, category, toInclude, toAvoid]);
+
     const handleSubmit = async (e) => {
         e.preventDefault();
-        setLoading(true);
+        if (!meal?._id) return;
 
+        setLoading(true);
         try {
             const payload = {
                 name,
                 description,
                 category, // NEW
-                restrictions: {
-                    toInclude,
-                    toAvoid,
-                },
+                restrictions: { toInclude, toAvoid },
             };
 
-            const { data } = await api.post("/meals", payload);
-            console.log("Meal added:", data);
-            toast.success("Meal added successfully!");
-
-            // reset
-            setName("");
-            setDescription("");
-            setCategory("Other"); // NEW
-            setToInclude([]);
-            setToAvoid([]);
-            setCurrentInclude("");
-            setCurrentAvoid("");
-
+            const { data } = await api.put(`/meals/${meal._id}`, payload);
+            toast.success("Meal updated successfully!");
+            onUpdated?.(data);
             onClose?.();
         } catch (error) {
             console.error(error);
-            toast.error(error?.response?.data?.message || "Failed to add meal");
+            toast.error(error?.response?.data?.message || "Failed to update meal");
         } finally {
             setLoading(false);
         }
@@ -82,7 +95,7 @@ const AddMealModal = ({ open, onClose }) => {
 
             {/* modal */}
             <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-                <div className="modal-box w-full max-w-2xl bg-base-100 relative">
+                <div className="modal-box w-full max-w-2xl bg-base-100 relative" onClick={(e) => e.stopPropagation()}>
                     <button
                         className="btn btn-sm btn-circle btn-ghost absolute right-2 top-2"
                         onClick={onClose}
@@ -91,7 +104,7 @@ const AddMealModal = ({ open, onClose }) => {
                         ✕
                     </button>
 
-                    <h3 className="font-bold text-2xl mb-6 text-primary">Add New Meal</h3>
+                    <h3 className="font-bold text-2xl mb-6 text-primary">Edit Meal</h3>
 
                     <form onSubmit={handleSubmit} className="space-y-6">
                         {/* Name */}
@@ -252,9 +265,10 @@ const AddMealModal = ({ open, onClose }) => {
                             <button
                                 type="submit"
                                 className={`btn btn-primary ${loading ? "loading" : ""}`}
-                                disabled={loading}
+                                disabled={loading || !hasChanges}
+                                title={!hasChanges ? "No changes to save" : "Update Meal"}
                             >
-                                {loading ? "Adding Meal..." : "Add Meal"}
+                                {loading ? "Updating..." : "Update Meal"}
                             </button>
                         </div>
                     </form>
@@ -264,4 +278,4 @@ const AddMealModal = ({ open, onClose }) => {
     );
 };
 
-export default AddMealModal;
+export default EditMealModal;

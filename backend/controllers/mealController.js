@@ -2,8 +2,6 @@
 import mongoose from "mongoose";
 import Meal from "../models/mealModel.js";
 
-
-
 // READ all meals
 export const getMeals = async (_req, res) => {
     try {
@@ -15,14 +13,13 @@ export const getMeals = async (_req, res) => {
     }
 };
 
-
-
 // ADD new meal
 export const addMeal = async (req, res) => {
     const {
         name,
         description,
         restrictions = {},
+        category, // new field
     } = req.body;
 
     if (!name || !description) {
@@ -30,7 +27,6 @@ export const addMeal = async (req, res) => {
             .status(400)
             .json({ success: false, message: "Please fill all fields" });
     }
-
 
     // Normalize arrays; allow sending string or array
     const toArray = (v) =>
@@ -45,6 +41,10 @@ export const addMeal = async (req, res) => {
         },
     };
 
+    if (category !== undefined) {
+        doc.category = String(category).trim();
+    }
+
     try {
         const newMeal = await Meal.create(doc);
         res.status(201).json({ success: true, data: newMeal });
@@ -53,8 +53,6 @@ export const addMeal = async (req, res) => {
         res.status(500).json({ success: false, message: "Server Error" });
     }
 };
-
-
 
 // DELETE a meal
 export const deleteMeal = async (req, res) => {
@@ -80,10 +78,6 @@ export const deleteMeal = async (req, res) => {
     }
 };
 
-
-
-
-
 // UPDATE a meal
 export const updateMeal = async (req, res) => {
     const { id } = req.params;
@@ -100,6 +94,8 @@ export const updateMeal = async (req, res) => {
     if (payload.name !== undefined) update.name = String(payload.name).trim();
     if (payload.description !== undefined)
         update.description = String(payload.description).trim();
+    if (payload.category !== undefined)
+        update.category = String(payload.category).trim();
 
     if (payload.restrictions) {
         const toArray = (v) =>
