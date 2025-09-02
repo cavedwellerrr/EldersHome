@@ -15,21 +15,12 @@ const operatorSchema = new mongoose.Schema(
       },
     ],
     processedPayments: [
-      {
-        elder: { type: mongoose.Schema.Types.ObjectId, ref: "Elder" },
-        status: {
-          type: String,
-          enum: ["pending", "success", "failed"],
-          default: "pending",
-        },
-        paymentDate: { type: Date },
-        amount: { type: Number },
-        processedBy: { type: mongoose.Schema.Types.ObjectId, ref: "Operator" }, // optional
-      },
+      { type: mongoose.Schema.Types.ObjectId, ref: "Payment" },
     ],
     notifications: [
       {
-        type: String,
+        message: { type: String },
+        date: { type: Date, default: Date.now },
       },
     ],
   },

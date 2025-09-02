@@ -11,6 +11,9 @@ import Events from "./pages/Events";
 import Login from "./pages/guardian/Login";
 import Register from "./pages/guardian/Register";
 import Profile from "./pages/guardian/Profile";
+import PaymentCheckout from "./pages/guardian/PaymentCheckout";
+import CreateElderRequest from "./pages/guardian/CreateElderRequest";
+
 
 // Staff pages
 import StaffLogin from "./pages/staff/StaffLogin";
@@ -37,6 +40,9 @@ import DoctorElders from "./pages/staff/DoctorElders";
 //Operator
 import ElderRequests from "./pages/staff/ElderRequests";
 import AssignCaretakers from "./pages/staff/AssignCaretakers";
+
+
+
 
 import Navbar from "./components/Navbar";
 import ProtectedRoute from "./components/ProtectedRoute";
@@ -65,6 +71,8 @@ const App = () => {
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
         <Route path="/profile" element={<Profile />} />
+        <Route path="/elder-request/create" element={<CreateElderRequest />} /> {/* or ElderRequestCreate */}
+        <Route path="/payment/:requestId" element={<PaymentCheckout />} />
 
         {/* Staff routes */}
         <Route path="/staff/login" element={<StaffLogin />} />

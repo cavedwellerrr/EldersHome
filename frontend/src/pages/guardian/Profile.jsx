@@ -1,6 +1,7 @@
 import React, { useContext, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate,Link } from "react-router-dom";
 import { AuthContext } from "../../context/AuthContext";
+import CreateElderRequest from "./CreateElderRequest";
 
 const Profile = () => {
   const { auth, logout, loading } = useContext(AuthContext);
@@ -22,12 +23,24 @@ const Profile = () => {
       <p>Email: {auth.email}</p>
       <p>Phone: {auth.phone}</p>
       <p>Address: {auth.address}</p>
-      <button
-        onClick={logout}
-        className="mt-4 bg-red-600 text-white p-2 rounded hover:bg-red-500"
-      >
-        Logout
-      </button>
+
+      <div className="mt-4 flex flex-col gap-2">
+        {/* Button to navigate to Create Elder Request page */}
+        <Link
+          to="/elder-request/create"
+          className="bg-blue-600 text-white p-2 rounded hover:bg-blue-500 text-center"
+        >
+          Create Elder Request
+        </Link>
+
+        {/* Logout button */}
+        <button
+          onClick={logout}
+          className="bg-red-600 text-white p-2 rounded hover:bg-red-500"
+        >
+          Logout
+        </button>
+      </div>
     </div>
   );
 };

@@ -20,21 +20,22 @@ const elderRequestSchema = new mongoose.Schema(
     },
     status: {
       type: String,
-      enum: ["pending", "approved", "rejected"],
+      enum: ["pending", "pending_payment", "rejected", "paid", "active"],
       default: "pending",
     },
-    paymentStatus: {
-      type: String,
-      enum: ["pending", "success", "failed"],
-      default: "pending",
+    payment: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Payment",
     },
+    rejectionReason: { type: String },
     assignedOperator: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "Operator",
     },
     notifications: [
       {
-        type: String,
+        message: { type: String },
+        date: { type: Date, default: Date.now },
       },
     ],
   },

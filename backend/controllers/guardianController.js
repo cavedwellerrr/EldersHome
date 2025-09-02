@@ -14,8 +14,8 @@ export const registerGuardian = async (req, res) => {
 
   try {
     // Check if email, username, or phone already exists
-    const existing = await Guardian.findOne({ 
-      $or: [{ email }, { username }, { phone }] 
+    const existing = await Guardian.findOne({
+      $or: [{ email }, { username }, { phone }],
     });
     if (existing) {
       return res.status(400).json({ message: "Guardian already exists" });
@@ -36,7 +36,7 @@ export const registerGuardian = async (req, res) => {
     res.cookie("token", token, {
       httpOnly: true,
       secure: process.env.NODE_ENV === "production",
-      sameSite: "strict",
+      sameSite: "none",
       maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
     });
 
@@ -77,7 +77,7 @@ export const loginGuardian = async (req, res) => {
     res.cookie("token", token, {
       httpOnly: true,
       secure: process.env.NODE_ENV === "production",
-      sameSite: "strict",
+      sameSite: "none",
       maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
     });
 
@@ -163,4 +163,3 @@ export const updateProfile = async (req, res) => {
     res.status(500).json({ message: error.message });
   }
 };
-
