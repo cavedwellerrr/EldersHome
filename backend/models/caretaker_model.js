@@ -13,11 +13,7 @@ const caretakerSchema = new mongoose.Schema(
         type: mongoose.Schema.Types.ObjectId,
         ref: "Elder",
       },
-    ],
-    shift: {
-      type: String,
-      default: "day",
-    },
+    ]
   },
   { timestamps: true }
 );
