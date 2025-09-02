@@ -1,5 +1,4 @@
 import React, { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
 import axios from "axios";
 
 const ViewStaff = () => {
@@ -16,13 +15,7 @@ const ViewStaff = () => {
   const [errorMsg, setErrorMsg] = useState("");
   const [saving, setSaving] = useState(false);
 
-  const navigate = useNavigate();
-  const token = localStorage.getItem("adminToken");
-
-  // Redirect if no token
-  useEffect(() => {
-    if (!token) navigate("/staff-login");
-  }, [token, navigate]);
+  const token = localStorage.getItem("token");
 
   // Fetch staff members
   const fetchStaff = async () => {
@@ -33,10 +26,6 @@ const ViewStaff = () => {
       setStaffList(response.data);
     } catch (error) {
       console.error("Error fetching staff:", error);
-      if (error.response?.status === 401) {
-        localStorage.removeItem("adminToken");
-        navigate("/staff-login");
-      }
     } finally {
       setLoading(false);
     }
@@ -56,10 +45,6 @@ const ViewStaff = () => {
       setStaffList(staffList.filter((s) => s._id !== id));
     } catch (error) {
       console.error("Error deleting staff:", error);
-      if (error.response?.status === 401) {
-        localStorage.removeItem("adminToken");
-        navigate("/staff-login");
-      }
     }
   };
 
@@ -89,9 +74,6 @@ const ViewStaff = () => {
     } catch (error) {
       if (error.response?.status === 400) {
         setErrorMsg(error.response.data.message);
-      } else if (error.response?.status === 401) {
-        localStorage.removeItem("adminToken");
-        navigate("/staff-login");
       } else {
         console.error("Error updating staff:", error);
       }
@@ -106,7 +88,8 @@ const ViewStaff = () => {
     <div>
       <h2>Staff Members</h2>
 
-      {/* Basic HTML table */}
+      {errorMsg && <p className="text-red-600">{errorMsg}</p>}
+
       <table border="1" cellPadding="10">
         <thead>
           <tr>
@@ -126,48 +109,36 @@ const ViewStaff = () => {
                   <td>
                     <input
                       value={form.name}
-                      onChange={(e) =>
-                        setForm({ ...form, name: e.target.value })
-                      }
+                      onChange={(e) => setForm({ ...form, name: e.target.value })}
                     />
                   </td>
                   <td>
                     <input
                       value={form.username}
-                      onChange={(e) =>
-                        setForm({ ...form, username: e.target.value })
-                      }
+                      onChange={(e) => setForm({ ...form, username: e.target.value })}
                     />
                   </td>
                   <td>
                     <input
                       value={form.email}
-                      onChange={(e) =>
-                        setForm({ ...form, email: e.target.value })
-                      }
+                      onChange={(e) => setForm({ ...form, email: e.target.value })}
                     />
                   </td>
                   <td>
                     <input
                       value={form.phone}
-                      onChange={(e) =>
-                        setForm({ ...form, phone: e.target.value })
-                      }
+                      onChange={(e) => setForm({ ...form, phone: e.target.value })}
                     />
                   </td>
                   <td>
                     <input
                       value={form.role}
-                      onChange={(e) =>
-                        setForm({ ...form, role: e.target.value })
-                      }
+                      onChange={(e) => setForm({ ...form, role: e.target.value })}
                     />
                   </td>
                   <td>
                     <button onClick={() => handleUpdate(s._id)}>Save</button>
-                    <button onClick={() => setEditingStaff(null)}>
-                      Cancel
-                    </button>
+                    <button onClick={() => setEditingStaff(null)}>Cancel</button>
                   </td>
                 </>
               ) : (

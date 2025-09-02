@@ -1,61 +1,76 @@
 import React from "react";
-import { Routes, Route } from "react-router-dom";
+import { Routes, Route, useLocation } from "react-router-dom";
 
+// Public pages
 import Home from "./pages/Home";
-import Login from "./pages/guardian/Login";
-import Register from "./pages/guardian/Register";
-import Profile from "./pages/guardian/Profile";
 import AboutUs from "./pages/AboutUs";
 import Donations from "./pages/Donations";
 import Events from "./pages/Events";
 
-import StaffLogin from "./pages/staff/StaffLogin";
-import StaffRegister from "./pages/staff/StaffRegister";
-import ViewStaff from "./pages/staff/ViewStaff";
+// Guardian pages
+import Login from "./pages/guardian/Login";
+import Register from "./pages/guardian/Register";
+import Profile from "./pages/guardian/Profile";
 
+// Staff pages
+import StaffLogin from "./pages/staff/StaffLogin";
 import AdminDashboard from "./pages/staff/AdminDashboard";
+import ViewStaff from "./pages/staff/ViewStaff";
+import StaffRegister from "./pages/staff/StaffRegister";
 import OperatorDashboard from "./pages/staff/OperatorDashboard";
 import CaretakerDashboard from "./pages/staff/CaretakerDashboard";
 import DoctorDashboard from "./pages/staff/DoctorDashboard";
+import AdminDonations from "./pages/staff/AdminDonations";
+import AdminEvents from "./pages/staff/AdminEvents";
 
 import Navbar from "./components/Navbar";
 import ProtectedRoute from "./components/ProtectedRoute";
+import AdminLayout from "./layout/AdminLayout";
 
 const App = () => {
+  const location = useLocation();
+
+  // Hide main site navbar for all staff routes
+  const showNavbar = !location.pathname.startsWith("/staff");
+
   return (
     <>
-      <Navbar />
+      {showNavbar && <Navbar />}
       <Routes>
         {/* Public routes */}
         <Route path="/" element={<Home />} />
-        <Route path="/login" element={<Login />} />
-        <Route path="/register" element={<Register />} />
         <Route path="/about" element={<AboutUs />} />
         <Route path="/donations" element={<Donations />} />
         <Route path="/events" element={<Events />} />
 
-        {/* Guardian protected routes */}
-        <Route
-          path="/profile"
-          element={
-            <ProtectedRoute allowedRoles={["guardian"]}>
-              <Profile />
-            </ProtectedRoute>
-          }
-        />
+        {/* Guardian routes */}
+        <Route path="/login" element={<Login />} />
+        <Route path="/register" element={<Register />} />
+        <Route path="/profile" element={<Profile />} />
 
         {/* Staff routes */}
         <Route path="/staff/login" element={<StaffLogin />} />
 
-        {/* Separate dashboards by role */}
+        {/* Admin routes with layout */}
         <Route
-          path="/staff/admin-dashboard"
+          path="/staff/admin-dashboard/*"
           element={
             <ProtectedRoute allowedRoles={["admin"]}>
-              <AdminDashboard />
+              <AdminLayout>
+                <Routes>
+                  <Route index element={<AdminDashboard />} />
+                  <Route path="view-staff" element={<ViewStaff />} />
+                  <Route path="staff-register" element={<StaffRegister />} />
+                  <Route path="donations" element={<AdminDonations />} />
+                  <Route path="events" element={<AdminEvents />} />
+                  {/* <Route path="donations" element={<AdminDonations />} /> */}
+                </Routes>
+              </AdminLayout>
             </ProtectedRoute>
           }
         />
+
+        {/* Operator / Caretaker / Doctor */}
         <Route
           path="/staff/operator-dashboard"
           element={
@@ -80,26 +95,7 @@ const App = () => {
             </ProtectedRoute>
           }
         />
-
-        {/* Staff management routes (only admin should access usually) */}
-        <Route
-          path="/staff/staff-register"
-          element={
-            <ProtectedRoute allowedRoles={["admin"]}>
-              <StaffRegister />
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="/staff/view-staff"
-          element={
-            <ProtectedRoute allowedRoles={["admin"]}>
-              <ViewStaff />
-            </ProtectedRoute>
-          }
-        />
       </Routes>
-      {/* <Footer /> */}
     </>
   );
 };
