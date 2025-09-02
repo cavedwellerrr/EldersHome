@@ -5,7 +5,7 @@ const ProtectedRoute = ({ children, allowedRoles }) => {
   const role = localStorage.getItem("role");
 
   if (!token) {
-    return <Navigate to="/login" />;
+    return <Navigate to="/staff/login" />;
   }
 
   if (!allowedRoles.includes(role)) {
@@ -20,7 +20,7 @@ const ProtectedRoute = ({ children, allowedRoles }) => {
       case "doctor":
         return <Navigate to="/staff/doctor-dashboard" />;
       default:
-        return <Navigate to="/login" />;
+        return <Navigate to="/staff/login" />;
     }
   }
 

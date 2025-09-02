@@ -2,38 +2,39 @@ import mongoose from "mongoose";
 
 const donationSchema = new mongoose.Schema({
   donorName: { type: String, required: true },
-  donorEmail: { type: String },
-  type: { 
-    type: String, 
-    enum: ["cash", "item"], 
-    required: true 
-  }, // type of donation
-  
+  donorEmail: { type: String, required: true },
+
+  donationType: {
+    type: String,
+    enum: ["cash", "item"],
+    required: true,
+  },
+
   // For cash donations
-  amount: { type: Number }, 
-  paymentId: { type: String }, 
-  
+  amount: { type: Number },
+
   // For item donations
-  itemDescription: { type: String }, // table or chair
-  quantity: { type: Number, default: 1 },
+  itemName: { type: String },
+  quantity: { type: Number },
 
-  acknowledgePublicly: { type: Boolean, default: false },
+  // Stripe payment id for cash donations
+  paymentId: { type: String },
+
+  // Status: pending (form filled, awaiting action) OR received (confirmed by admin)
+  status: {
+    type: String,
+    enum: ["pending", "received"],
+    default: "pending",
+  },
+
+  // Whether donor wants their name listed publicly
+  listAcknowledgment: {
+    type: Boolean,
+    default: false,
+  },
+
   createdAt: { type: Date, default: Date.now },
-
-  paymentId: { type: String }, // stores Stripe/PayPal ID for cash donation
-  status: { type: String, enum: ["pending", "received"], default: "pending" },
-
 });
 
-// Validation logic so at least one field makes sense
-donationSchema.pre("validate", function (next) {
-  if (this.type === "cash" && !this.amount) {
-    return next(new Error("Cash donation must have an amount."));
-  }
-  if (this.type === "item" && !this.itemDescription) {
-    return next(new Error("Item donation must have an item description."));
-  }
-  next();
-});
-
-export default mongoose.model("Donation", donationSchema);
+const Donation = mongoose.model("Donation", donationSchema);
+export default Donation;
