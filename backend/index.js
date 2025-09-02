@@ -2,6 +2,8 @@ import express from "express";
 import cors from "cors";
 import 'dotenv/config';
 import cookieParser from "cookie-parser";
+import Event from "./models/event.model.js";
+import eventRoutes from "./routes/event.route.js";
 
 import connectDB from "./config/mongodb.js";
 
@@ -13,6 +15,8 @@ connectDB();
 app.use(express.json());
 app.use(cookieParser());
 app.use(cors({credentials: true}))
+
+app.use("/api/events", eventRoutes)
 
 app.get('/', (req,res)=> res.send("API working now"));
 
