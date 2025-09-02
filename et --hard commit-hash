@@ -1,0 +1,18 @@
+[33mef63668[m[33m ([m[1;36mHEAD[m[33m -> [m[1;32mNewElderAcc[m[33m, [m[1;31morigin/NewElderAcc[m[33m)[m Elder Request Form done both backend & frontend in Guardian Acc
+[33m0dd8716[m[33m ([m[1;31morigin/paramee-new-branch[m[33m, [m[1;31morigin/main[m[33m, [m[1;31morigin/Shan-new-branch[m[33m, [m[1;31morigin/HEAD[m[33m, [m[1;32mmain[m[33m)[m removed shift attribute for caretaker
+[33m8a875f5[m[33m ([m[1;31morigin/test-staff-branch[m[33m)[m operator dashboard struct
+[33m5245799[m doctor dashboard struct
+[33mfa00b1a[m caretaker dashboard struct
+[33m4a11caa[m admin dashboard routing and basic structure done
+[33mc1bcf94[m[33m ([m[1;31morigin/TheekshanaD-branch[m[33m, [m[1;32mTheekshanaD-branch[m[33m)[m Staff logins to own dashboard
+[33mcf9e0c7[m merged main to TheekshanaD-branch
+[33m35015c7[m token error fixed & frontend staffLogin
+[33mb35bff7[m Merge branch 'lakkhana-branch'
+[33m3b3acf7[m frontend login,logout,view profile and backend update profile
+[33m943115d[m Token error
+[33m09ad6bb[m[33m ([m[1;31morigin/theekshana-branch[m[33m)[m lucide react installed in frontend
+[33mc1df677[m basic pages
+[33m0dc055e[m guardian login,logout,view profile, tokens, schema done
+[33m87e7a29[m[33m ([m[1;31morigin/shan-branch[m[33m, [m[1;32mTheekshana-branch[m[33m)[m daisyui installed and tailwind css too
+[33mbcb6870[m all folders with gitkeep in them
+[33mb0c51f3[m basic project struct and db connection

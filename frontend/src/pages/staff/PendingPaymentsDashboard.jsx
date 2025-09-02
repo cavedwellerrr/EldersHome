@@ -1,78 +1,63 @@
-// src/components/OperatorDashboard.jsx
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
+import { Navigate } from 'react-router-dom';
 
-const OperatorDashboard = () => {
-  const [requests, setRequests] = useState([]);
+const PendingPaymentsDashboard = () => {
+  const [elders, setElders] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [successMessage, setSuccessMessage] = useState('');
-  const [isModalOpen, setIsModalOpen] = useState(false);
-  const [selectedElderId, setSelectedElderId] = useState(null);
-  const [rejectionReason, setRejectionReason] = useState('');
+  const [sortColumn, setSortColumn] = useState('fullName');
+  const [sortDirection, setSortDirection] = useState('asc');
 
   // Base API URL (adjust to your backend URL)
   const API_URL = 'http://localhost:5000/api/elders';
+  const token = localStorage.getItem('token');
 
-  // Fetch pending elder requests
-  const fetchPendingRequests = async () => {
+  // Redirect to login if no token
+  if (!token) {
+    return <Navigate to="/login" replace />;
+  }
+
+  // Fetch elders with pending payments
+  const fetchPendingPayments = async () => {
     try {
       setLoading(true);
       setError('');
-      const token = localStorage.getItem('token'); // Adjust based on your auth setup
-      const response = await axios.get(`${API_URL}/pending`, {
+      const response = await axios.get(`${API_URL}/pending-payments`, {
         headers: { Authorization: `Bearer ${token}` },
       });
-      setRequests(response.data);
+      console.log('API Response:', response.data); // Debug log
+      setElders(response.data);
       setLoading(false);
     } catch (err) {
-      setError(err.response?.data?.message || 'Failed to fetch pending requests');
+      setError(
+        err.response?.status === 401
+          ? 'Unauthorized: Please log in again'
+          : err.response?.data?.message || 'Failed to fetch pending payments'
+      );
       setLoading(false);
     }
   };
 
-  // Approve elder request
-  const handleApprove = async (id) => {
+  // Send payment reminder
+  const handleSendReminder = async (id) => {
     try {
       setError('');
       setSuccessMessage('');
-      const token = localStorage.getItem('token');
       const response = await axios.patch(
-        `${API_URL}/${id}/approve`,
+        `${API_URL}/${id}/send-reminder`,
         {},
         { headers: { Authorization: `Bearer ${token}` } }
       );
-      setSuccessMessage(response.data.message || 'Request approved. Awaiting payment.');
-      fetchPendingRequests(); // Refresh the list
+      setSuccessMessage(response.data.message || 'Payment reminder sent.');
+      fetchPendingPayments(); // Refresh to update reminderSentAt
     } catch (err) {
-      setError(err.response?.data?.message || 'Failed to approve request');
-    }
-  };
-
-  // Open rejection modal
-  const openRejectModal = (id) => {
-    setSelectedElderId(id);
-    setRejectionReason('');
-    setIsModalOpen(true);
-  };
-
-  // Reject elder request
-  const handleReject = async () => {
-    try {
-      setError('');
-      setSuccessMessage('');
-      const token = localStorage.getItem('token');
-      const response = await axios.patch(
-        `${API_URL}/${selectedElderId}/reject`,
-        { reason: rejectionReason },
-        { headers: { Authorization: `Bearer ${token}` } }
+      setError(
+        err.response?.status === 401
+          ? 'Unauthorized: Please log in again'
+          : err.response?.data?.message || 'Failed to send reminder'
       );
-      setSuccessMessage(response.data.message || 'Request rejected.');
-      setIsModalOpen(false);
-      setRejectionReason('');
-      fetchPendingRequests(); // Refresh the list
-    } catch (err) {
-      setError(err.response?.data?.message || 'Failed to reject request');
     }
   };
 
@@ -81,18 +66,47 @@ const OperatorDashboard = () => {
     try {
       setError('');
       setSuccessMessage('');
-      const token = localStorage.getItem('token');
       const response = await axios.patch(
         `${API_URL}/${id}/activate`,
         {},
         { headers: { Authorization: `Bearer ${token}` } }
       );
       setSuccessMessage(response.data.message || 'Elder activated.');
-      fetchPendingRequests(); // Refresh the list
+      fetchPendingPayments();
     } catch (err) {
-      setError(err.response?.data?.message || 'Failed to activate elder');
+      setError(
+        err.response?.status === 401
+          ? 'Unauthorized: Please log in again'
+          : err.response?.data?.message || 'Failed to activate elder'
+      );
     }
   };
+
+  // Handle sorting
+  const handleSort = (column) => {
+    const direction = sortColumn === column && sortDirection === 'asc' ? 'desc' : 'asc';
+    setSortColumn(column);
+    setSortDirection(direction);
+  };
+
+  // Sort elders based on current sortColumn and sortDirection
+  const sortedElders = [...elders].sort((a, b) => {
+    let valA, valB;
+    if (sortColumn === 'dob') {
+      valA = new Date(a.dob).getTime();
+      valB = new Date(b.dob).getTime();
+    } else if (sortColumn === 'amount') {
+      valA = a.paymentId?.amount || 0;
+      valB = b.paymentId?.amount || 0;
+    } else {
+      valA = (a[sortColumn] || '').toString().toLowerCase();
+      valB = (b[sortColumn] || '').toString().toLowerCase();
+    }
+
+    if (valA < valB) return sortDirection === 'asc' ? -1 : 1;
+    if (valA > valB) return sortDirection === 'asc' ? 1 : -1;
+    return 0;
+  });
 
   // Clear success message after 5 seconds
   useEffect(() => {
@@ -102,14 +116,14 @@ const OperatorDashboard = () => {
     }
   }, [successMessage]);
 
-  // Fetch requests on component mount
+  // Fetch elders on component mount
   useEffect(() => {
-    fetchPendingRequests();
+    fetchPendingPayments();
   }, []);
 
   return (
     <div className="container mx-auto p-4">
-      <h1 className="text-2xl font-bold mb-4">Operator Dashboard</h1>
+      <h1 className="text-2xl font-bold mb-4">Pending Payments Dashboard</h1>
 
       {/* Error and Success Messages */}
       {error && (
@@ -158,16 +172,33 @@ const OperatorDashboard = () => {
           <table className="min-w-full bg-white border">
             <thead>
               <tr>
-                <th className="py-2 px-4 border">Full Name</th>
-                <th className="py-2 px-4 border">DOB</th>
+                <th
+                  className="py-2 px-4 border cursor-pointer"
+                  onClick={() => handleSort('fullName')}
+                >
+                  Full Name {sortColumn === 'fullName' && (sortDirection === 'asc' ? '↑' : '↓')}
+                </th>
+                <th
+                  className="py-2 px-4 border cursor-pointer"
+                  onClick={() => handleSort('dob')}
+                >
+                  DOB {sortColumn === 'dob' && (sortDirection === 'asc' ? '↑' : '↓')}
+                </th>
                 <th className="py-2 px-4 border">Medical Notes</th>
                 <th className="py-2 px-4 border">Guardian</th>
                 <th className="py-2 px-4 border">Status</th>
+                <th
+                  className="py-2 px-4 border cursor-pointer"
+                  onClick={() => handleSort('amount')}
+                >
+                  Payment Amount {sortColumn === 'amount' && (sortDirection === 'asc' ? '↑' : '↓')}
+                </th>
+                <th className="py-2 px-4 border">Reminder Sent</th>
                 <th className="py-2 px-4 border">Actions</th>
               </tr>
             </thead>
             <tbody>
-              {requests.map((elder) => (
+              {sortedElders.map((elder) => (
                 <tr key={elder._id}>
                   <td className="py-2 px-4 border">{elder.fullName}</td>
                   <td className="py-2 px-4 border">
@@ -178,22 +209,18 @@ const OperatorDashboard = () => {
                     {elder.guardian?.fullName || elder.guardian?.name || 'N/A'}
                   </td>
                   <td className="py-2 px-4 border">{elder.status}</td>
+                  <td className="py-2 px-4 border">{elder.paymentId?.amount || 'N/A'}</td>
+                  <td className="py-2 px-4 border text-center">
+                    {elder.paymentId?.reminderSentAt ? '✅' : '❌'}
+                  </td>
                   <td className="py-2 px-4 border space-x-2">
-                    {elder.status === 'DISABLED_PENDING_REVIEW' && (
-                      <>
-                        <button
-                          onClick={() => handleApprove(elder._id)}
-                          className="bg-green-500 text-white px-3 py-1 rounded hover:bg-green-600"
-                        >
-                          Approve
-                        </button>
-                        <button
-                          onClick={() => openRejectModal(elder._id)}
-                          className="bg-red-500 text-white px-3 py-1 rounded hover:bg-red-600"
-                        >
-                          Reject
-                        </button>
-                      </>
+                    {elder.status === 'APPROVED_AWAITING_PAYMENT' && (
+                      <button
+                        onClick={() => handleSendReminder(elder._id)}
+                        className="bg-yellow-500 text-white px-3 py-1 rounded hover:bg-yellow-600"
+                      >
+                        Send Payment Reminder
+                      </button>
                     )}
                     {elder.status === 'PAYMENT_SUCCESS' && (
                       <button
@@ -208,50 +235,10 @@ const OperatorDashboard = () => {
               ))}
             </tbody>
           </table>
-
-
-          
-        </div>
-      )}
-
-      
-
-      {/* Rejection Reason Modal */}
-      {isModalOpen && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center">
-          <div className="bg-white p-6 rounded-lg w-96">
-            <h2 className="text-xl font-bold mb-4">Reject Elder Request</h2>
-            <textarea
-              value={rejectionReason}
-              onChange={(e) => setRejectionReason(e.target.value)}
-              className="w-full p-2 border rounded"
-              placeholder="Enter rejection reason"
-              rows="4"
-            />
-            <div className="mt-4 flex justify-end space-x-2">
-              <button
-                onClick={() => setIsModalOpen(false)}
-                className="bg-gray-300 px-4 py-2 rounded hover:bg-gray-400"
-              >
-                Cancel
-              </button>
-              <button
-                onClick={handleReject}
-                className={`px-4 py-2 rounded text-white ${
-                  rejectionReason.trim()
-                    ? 'bg-red-500 hover:bg-red-600'
-                    : 'bg-red-300 cursor-not-allowed'
-                }`}
-                disabled={!rejectionReason.trim()}
-              >
-                Submit
-              </button>
-            </div>
-          </div>
         </div>
       )}
     </div>
   );
 };
 
-export default OperatorDashboard;
+export default PendingPaymentsDashboard;

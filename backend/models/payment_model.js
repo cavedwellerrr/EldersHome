@@ -26,6 +26,9 @@ const paymentSchema = new mongoose.Schema(
       default: PaymentStatus.PENDING,
     },
     mockCheckoutUrl: { type: String },
+    reminderSentAt: {
+      type: Date, // Tracks when reminder was sent
+    },
   },
   { timestamps: true }
 );

@@ -36,8 +36,8 @@ import DoctorConsultations from "./pages/staff/DoctorConsultations";
 import DoctorElders from "./pages/staff/DoctorElders";
 
 //Operator
-import ElderRequests from "./pages/staff/ElderRequests";
 import AssignCaretakers from "./pages/staff/AssignCaretakers";
+import PendingPaymentsDashboard from "./pages/staff/PendingPaymentsDashboard";
 
 import Navbar from "./components/Navbar";
 import ProtectedRoute from "./components/ProtectedRoute";
@@ -98,7 +98,7 @@ const App = () => {
               <OperatorLayout>
                 <Routes>
                   <Route index element={<OperatorDashboard />} />
-                  <Route path="elder-requests" element={<ElderRequests />} />
+                  <Route path="elder-requests" element={<PendingPaymentsDashboard />} />
                   <Route path="assign-caretaker" element={<AssignCaretakers />} />
                 </Routes>
               </OperatorLayout>

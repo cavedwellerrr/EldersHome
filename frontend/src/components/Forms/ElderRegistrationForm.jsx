@@ -70,11 +70,11 @@ const ElderRegistrationForm = () => {
         required
       />
       <input
-        type="number"
-        name="age"
-        value={formData.age}
+        type="medicalNotes"
+        name="medicalNotes"
+        value={formData.medicalNotes}
         onChange={handleChange}
-        placeholder="Age"
+        placeholder="medicalNotes"
         required
       />
       <button type="submit">Submit</button>
