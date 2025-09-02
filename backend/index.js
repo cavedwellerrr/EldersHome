@@ -7,6 +7,8 @@ import connectDB from "./config/mongodb.js";
 import guardianRoutes from "./routes/guardianRoutes.js";
 import staffRoutes from "./routes/staff_route.js";
 import donationsRoutes from "./routes/donationsRoute.js";
+import donorListRoutes from "./routes/donorListRoutes.js";
+
 
 const app = express();
 const port = process.env.PORT || 4000;
@@ -25,6 +27,8 @@ app.use("/api/staff", staffRoutes);
 
 //donation routes
 app.use("/api/donations", donationsRoutes);
+app.use("/api/donors", donorListRoutes);
+
 
 
 app.get("/", (req, res) => res.send("API working"));

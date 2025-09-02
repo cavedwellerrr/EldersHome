@@ -1,6 +1,8 @@
 // donationController.js
 import Donation from "../models/donations.js";
+import DonorList from "../models/donorList.js";
 
+// Create donation
 export const createDonation = async (req, res) => {
   try {
     const {
@@ -13,7 +15,6 @@ export const createDonation = async (req, res) => {
       listAcknowledgment,
     } = req.body;
 
-    // Create donation record
     const donation = await Donation.create({
       donorName,
       donorEmail,
@@ -24,7 +25,6 @@ export const createDonation = async (req, res) => {
       listAcknowledgment,
     });
 
-    // Return the created donation (you can later add Stripe payment link if cash)
     res.status(201).json(donation);
   } catch (error) {
     console.error("Error creating donation:", error);
@@ -32,9 +32,9 @@ export const createDonation = async (req, res) => {
   }
 };
 
+// Get all donations
 export const getAllDonations = async (req, res) => {
   try {
-    // Fetch donations sorted by newest first
     const donations = await Donation.find().sort({ createdAt: -1 });
     res.status(200).json(donations);
   } catch (error) {
@@ -43,29 +43,39 @@ export const getAllDonations = async (req, res) => {
   }
 };
 
-//update donation status
-
+// Update donation status and optionally add donor to DonorList
 export const updateDonationStatus = async (req, res) => {
   try {
     const donation = await Donation.findById(req.params.id);
+    if (!donation) return res.status(404).json({ message: "Donation not found" });
 
-    if (!donation) {
-      return res.status(404).json({ message: "Donation not found" });
+    const { status, addToDonorList } = req.body;
+
+    // Update donation status if provided
+    if (status && ["pending", "received"].includes(status)) {
+      donation.status = status;
     }
 
-    const { status } = req.body;
+    // Update DonorList if admin checked/unchecked
+    if (typeof addToDonorList === "boolean") {
+      // Track admin's choice
+      donation.addToDonorList = addToDonorList;
 
-    // Ensure only valid status values are allowed
-    if (!["pending", "received"].includes(status)) {
-      return res.status(400).json({ message: "Invalid status" });
+      if (addToDonorList) {
+        const exists = await DonorList.findOne({ donorName: donation.donorName });
+        if (!exists) {
+          await DonorList.create({ donorName: donation.donorName });
+        }
+      } else {
+        await DonorList.deleteOne({ donorName: donation.donorName });
+      }
     }
 
-    donation.status = status;
     await donation.save();
-
-    res.json({ message: "Status updated successfully", donation });
+    res.json({ message: "Donation updated successfully", donation });
   } catch (error) {
-    console.error("Error updating donation status:", error);
-    res.status(500).json({ message: "Server error updating status" });
+    console.error(error);
+    res.status(500).json({ message: "Server error updating donation" });
   }
 };
+
