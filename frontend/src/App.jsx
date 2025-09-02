@@ -23,9 +23,16 @@ import DoctorDashboard from "./pages/staff/DoctorDashboard";
 import AdminDonations from "./pages/staff/AdminDonations";
 import AdminEvents from "./pages/staff/AdminEvents";
 
+//caretaker
+import CaretakerMeals from "./pages/staff/CaretakerMeals";
+import CaretakerEvents from "./pages/staff/CaretakerEvents";
+import CaretakerRooms from "./pages/staff/CaretakerRooms";
+import AssignedElders from "./pages/staff/AssignedElders";
+
 import Navbar from "./components/Navbar";
 import ProtectedRoute from "./components/ProtectedRoute";
 import AdminLayout from "./layout/AdminLayout";
+import CaretakerLayout from "./layout/CaretakerLayout";
 
 const App = () => {
   const location = useLocation();
@@ -80,10 +87,18 @@ const App = () => {
           }
         />
         <Route
-          path="/staff/caretaker-dashboard"
+          path="/staff/caretaker-dashboard/*"
           element={
             <ProtectedRoute allowedRoles={["caretaker"]}>
-              <CaretakerDashboard />
+              <CaretakerLayout>
+                <Routes>
+                  <Route index element={<CaretakerDashboard />} />
+                  <Route path="assigned-elders" element={<AssignedElders />} />
+                  <Route path="meals" element={<CaretakerMeals />} />
+                  <Route path="rooms" element={<CaretakerRooms />} />
+                  <Route path="events" element={<CaretakerEvents />} />
+                </Routes>
+              </CaretakerLayout>
             </ProtectedRoute>
           }
         />
