@@ -34,11 +34,16 @@ import DoctorAppointments from "./pages/staff/DoctorAppointments";
 import DoctorConsultations from "./pages/staff/DoctorConsultations";
 import DoctorElders from "./pages/staff/DoctorElders";
 
+//Operator
+import ElderRequests from "./pages/staff/ElderRequests";
+import AssignCaretakers from "./pages/staff/AssignCaretakers";
+
 import Navbar from "./components/Navbar";
 import ProtectedRoute from "./components/ProtectedRoute";
 import AdminLayout from "./layout/AdminLayout";
 import CaretakerLayout from "./layout/CaretakerLayout";
 import DoctorLayout from "./layout/DoctorLayout";
+import OperatorLayout from "./layout/OperatorLayout";
 
 const App = () => {
   const location = useLocation();
@@ -85,10 +90,16 @@ const App = () => {
 
         {/* Operator / Caretaker / Doctor */}
         <Route
-          path="/staff/operator-dashboard"
+          path="/staff/operator-dashboard/*"
           element={
             <ProtectedRoute allowedRoles={["operator"]}>
-              <OperatorDashboard />
+              <OperatorLayout>
+                <Routes>
+                  <Route index element={<OperatorDashboard />} />
+                  <Route path="elder-requests" element={<ElderRequests />} />
+                  <Route path="assign-caretaker" element={<AssignCaretakers />} />
+                </Routes>
+              </OperatorLayout>
             </ProtectedRoute>
           }
         />
