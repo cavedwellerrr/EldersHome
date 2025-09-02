@@ -11,6 +11,7 @@ import Events from "./pages/Events";
 import Login from "./pages/guardian/Login";
 import Register from "./pages/guardian/Register";
 import Profile from "./pages/guardian/Profile";
+import ElderRegisterPage from "./pages/elderRegister";
 
 // Staff pages
 import StaffLogin from "./pages/staff/StaffLogin";
@@ -65,6 +66,7 @@ const App = () => {
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
         <Route path="/profile" element={<Profile />} />
+        <Route path="/elder-register" element={<ElderRegisterPage />} />
 
         {/* Staff routes */}
         <Route path="/staff/login" element={<StaffLogin />} />

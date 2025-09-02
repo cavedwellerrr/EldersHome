@@ -1,6 +1,7 @@
 import React, { useContext, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { AuthContext } from "../../context/AuthContext";
+import { Link } from 'react-router-dom';
 
 const Profile = () => {
   const { auth, logout, loading } = useContext(AuthContext);
@@ -22,6 +23,11 @@ const Profile = () => {
       <p>Email: {auth.email}</p>
       <p>Phone: {auth.phone}</p>
       <p>Address: {auth.address}</p>
+
+      <Link to="/elder-register">
+  Request Elder Account
+</Link>
+
       <button
         onClick={logout}
         className="mt-4 bg-red-600 text-white p-2 rounded hover:bg-red-500"
