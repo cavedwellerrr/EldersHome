@@ -11,7 +11,6 @@ const AdminDonations = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
-  // Fetch donations and donor list
   useEffect(() => {
     const fetchData = async () => {
       try {
@@ -30,7 +29,6 @@ const AdminDonations = () => {
     fetchData();
   }, []);
 
-  // Status update
   const handleStatusChange = async (id, newStatus) => {
     try {
       await api.put(`/donations/${id}`, { status: newStatus });
@@ -39,22 +37,13 @@ const AdminDonations = () => {
           donation._id === id ? { ...donation, status: newStatus } : donation
         )
       );
-      toast.success(`Status updated to "${newStatus}"`, {
-        position: "top-right",
-        autoClose: 3000,
-        style: { backgroundColor: "#1E3A8A", color: "#FFFFFF" },
-      });
+      toast.success(`Status updated to "${newStatus}"`);
     } catch (err) {
       console.error(err);
-      toast.error("Error updating status", {
-        position: "top-right",
-        autoClose: 3000,
-        style: { backgroundColor: "#B91C1C", color: "#FFFFFF" },
-      });
+      toast.error("Error updating status");
     }
   };
 
-  // Admin add/remove donor from donor list
   const handleAddToDonorList = async (id, checked) => {
     try {
       await api.put(`/donations/${id}`, { addToDonorList: checked });
@@ -68,24 +57,14 @@ const AdminDonations = () => {
       setDonors(donorsRes.data);
 
       toast.success(
-        checked ? "Added to donor list ✅" : "Removed from donor list ❌",
-        {
-          position: "top-right",
-          autoClose: 3000,
-          style: { backgroundColor: "#1E3A8A", color: "#FFFFFF" },
-        }
+        checked ? "Added to donor list ✅" : "Removed from donor list ❌"
       );
     } catch (err) {
       console.error(err);
-      toast.error("Error updating donor list", {
-        position: "top-right",
-        autoClose: 3000,
-        style: { backgroundColor: "#B91C1C", color: "#FFFFFF" },
-      });
+      toast.error("Error updating donor list");
     }
   };
 
-  // Download donor list CSV
   const downloadDonorListCSV = () => {
     if (donors.length === 0) return;
 
@@ -101,7 +80,6 @@ const AdminDonations = () => {
     saveAs(blob, "donor_list.csv");
   };
 
-  // Download donor list PDF
   const downloadDonorListPDF = () => {
     if (donors.length === 0) return;
 
@@ -121,75 +99,75 @@ const AdminDonations = () => {
       body: tableRows,
       startY: 30,
       styles: { fontSize: 10 },
-      headStyles: { fillColor: [30, 58, 138], textColor: 255 },
-      alternateRowStyles: { fillColor: [245, 245, 245] },
+      headStyles: { fillColor: [34, 197, 94], textColor: 255 }, // emerald/forest green
+      alternateRowStyles: { fillColor: [229, 231, 235] },
     });
 
     doc.save("monthly_donor_list.pdf");
   };
 
   if (loading) return <p className="text-center mt-10">Loading data...</p>;
-  if (error) return <p className="text-center mt-10 text-red-500">{error}</p>;
+  if (error) return <p className="text-center mt-10 text-error">{error}</p>;
 
   return (
-    <div className="max-w-6xl mx-auto mt-10 p-6">
+    <div data-theme="forest" className="min-h-screen bg-base-200 p-6">
       <ToastContainer />
 
       {/* Donations Table */}
-      <h2 className="text-2xl font-bold mb-6 text-white">All Donations</h2>
-      <div className="overflow-x-auto mb-10">
-        <table className="min-w-full border border-blue-500 rounded-lg">
-          <thead className="bg-blue-800 text-white">
+      <h2 className="text-2xl font-bold mb-6">All Donations</h2>
+      <div className="overflow-x-auto mb-10 card bg-base-100 shadow">
+        <table className="table w-full">
+          <thead>
             <tr>
-              <th className="py-2 px-4 border-b border-blue-500">Name</th>
-              <th className="py-2 px-4 border-b border-blue-500">Email</th>
-              <th className="py-2 px-4 border-b border-blue-500">Type</th>
-              <th className="py-2 px-4 border-b border-blue-500">Amount / Item</th>
-              <th className="py-2 px-4 border-b border-blue-500">Quantity</th>
-              <th className="py-2 px-4 border-b border-blue-500">Acknowledgment</th>
-              <th className="py-2 px-4 border-b border-blue-500">Status</th>
-              <th className="py-2 px-4 border-b border-blue-500">Add to Donor List</th>
-              <th className="py-2 px-4 border-b border-blue-500">Date</th>
+              <th>Name</th>
+              <th>Email</th>
+              <th>Type</th>
+              <th>Amount / Item</th>
+              <th>Quantity</th>
+              <th>Acknowledgment</th>
+              <th>Status</th>
+              <th>Add to Donor List</th>
+              <th>Date</th>
             </tr>
           </thead>
           <tbody>
             {donations.map((donation) => (
-              <tr key={donation._id} className="hover:bg-white/10 text-white">
-                <td className="py-2 px-4 border-b border-blue-500">{donation.donorName}</td>
-                <td className="py-2 px-4 border-b border-blue-500">{donation.donorEmail}</td>
-                <td className="py-2 px-4 border-b border-blue-500">{donation.donationType}</td>
-                <td className="py-2 px-4 border-b border-blue-500">
-                  {donation.donationType === "cash" ? `$${donation.amount}` : donation.itemName}
+              <tr key={donation._id}>
+                <td>{donation.donorName}</td>
+                <td>{donation.donorEmail}</td>
+                <td>{donation.donationType}</td>
+                <td>
+                  {donation.donationType === "cash"
+                    ? `$${donation.amount}`
+                    : donation.itemName}
                 </td>
-                <td className="py-2 px-4 border-b border-blue-500">
+                <td>
                   {donation.donationType === "item" ? donation.quantity : "-"}
                 </td>
-                <td className="py-2 px-4 border-b border-blue-500">
-                  {donation.listAcknowledgment ? "Yes" : "No"}
-                </td>
-                <td className="py-2 px-4 border-b border-blue-500">
+                <td>{donation.listAcknowledgment ? "Yes" : "No"}</td>
+                <td>
                   <select
                     value={donation.status}
-                    onChange={(e) => handleStatusChange(donation._id, e.target.value)}
-                    className="border rounded p-1 bg-transparent text-gray-300"
+                    onChange={(e) =>
+                      handleStatusChange(donation._id, e.target.value)
+                    }
+                    className="select select-bordered select-sm w-full"
                   >
                     <option value="pending">Pending</option>
                     <option value="received">Received</option>
                   </select>
                 </td>
-                <td className="py-2 px-4 border-b border-blue-500 text-center">
+                <td className="text-center">
                   <input
                     type="checkbox"
                     checked={donation.addToDonorList || false}
                     onChange={(e) =>
                       handleAddToDonorList(donation._id, e.target.checked)
                     }
-                    className="w-5 h-5 cursor-pointer"
+                    className="checkbox checkbox-success"
                   />
                 </td>
-                <td className="py-2 px-4 border-b border-blue-500">
-                  {new Date(donation.createdAt).toLocaleDateString()}
-                </td>
+                <td>{new Date(donation.createdAt).toLocaleDateString()}</td>
               </tr>
             ))}
           </tbody>
@@ -197,38 +175,33 @@ const AdminDonations = () => {
       </div>
 
       {/* Donor List Table */}
-      <div className="flex justify-between items-center mb-2">
-        <h2 className="text-2xl font-bold mb-4 text-white">Donor List</h2>
+      <div className="flex justify-between items-center mb-4">
+        <h2 className="text-2xl font-bold">Donor List</h2>
         <div className="flex gap-2">
-          <button
-            onClick={downloadDonorListCSV}
-            className="bg-green-600 hover:bg-green-700 text-white font-semibold py-1 px-3 rounded"
-          >
+          <button onClick={downloadDonorListCSV} className="btn btn-success">
             Download CSV
           </button>
-          <button
-            onClick={downloadDonorListPDF}
-            className="bg-red-600 hover:bg-red-700 text-white font-semibold py-1 px-3 rounded"
-          >
+          <button onClick={downloadDonorListPDF} className="btn btn-error">
             Download PDF
           </button>
         </div>
       </div>
-      <div className="overflow-x-auto rounded-lg shadow-lg bg-gray-800">
-        <table className="min-w-full text-white">
+
+      <div className="overflow-x-auto card bg-base-100 shadow">
+        <table className="table w-full">
           <thead>
-            <tr className="bg-blue-800">
-              <th className="py-3 px-6 text-left border-b border-blue-500">#</th>
-              <th className="py-3 px-6 text-left border-b border-blue-500">Name</th>
-              <th className="py-3 px-6 text-center border-b border-blue-500">Donation Date</th>
+            <tr>
+              <th>#</th>
+              <th>Name</th>
+              <th className="text-center">Donation Date</th>
             </tr>
           </thead>
           <tbody>
             {donors.map((donor, index) => (
-              <tr key={donor._id} className="hover:bg-gray-700/50">
-                <td className="py-2 px-6 border-b border-gray-700">{index + 1}</td>
-                <td className="py-2 px-6 border-b border-gray-700">{donor.donorName}</td>
-                <td className="py-2 px-6 border-b border-gray-700 text-center">
+              <tr key={donor._id}>
+                <td>{index + 1}</td>
+                <td>{donor.donorName}</td>
+                <td className="text-center">
                   {donor.donationDate
                     ? new Date(donor.donationDate).toLocaleDateString()
                     : "-"}

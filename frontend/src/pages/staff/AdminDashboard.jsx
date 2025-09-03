@@ -1,6 +1,5 @@
 import React from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { User, LogOut } from "lucide-react";
 
 const AdminDashboard = () => {
   const name = localStorage.getItem("username"); // or staffName
@@ -12,23 +11,25 @@ const AdminDashboard = () => {
   };
 
   return (
-    <div>
-
-
+    <div data-theme="dark" className="min-h-screen bg-base-200 text-base-content p-6">
       {/* Dashboard Content */}
-      <div className="p-6">
-        <h1 className="text-2xl font-bold mb-4">Admin Dashboard</h1>
-        <p className="mb-4">Welcome, {name}</p>
-        <Link to="/staff/admin-dashboard/staff-register">
-          <button className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-500">
-            Register New Staff
+      <div className="space-y-6">
+        <h1 className="text-3xl font-bold">Admin Dashboard</h1>
+        <p>Welcome, {name}</p>
+
+        <div className="flex flex-wrap gap-4">
+          <Link to="/staff/admin-dashboard/staff-register">
+            <button className="btn btn-primary">Register New Staff</button>
+          </Link>
+
+          <Link to="/staff/admin-dashboard/view-staff">
+            <button className="btn btn-success">View Staff Members</button>
+          </Link>
+
+          <button onClick={handleLogout} className="btn btn-error ml-auto">
+            Logout
           </button>
-        </Link>
-        <Link to="/staff/admin-dashboard/view-staff" className="ml-4">
-          <button className="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-500">
-            View Staff Members
-          </button>
-        </Link>
+        </div>
       </div>
     </div>
   );

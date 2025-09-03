@@ -25,11 +25,9 @@ const Donations = () => {
       }
     };
 
-    fetchDonors(); // initial fetch
-
-    const interval = setInterval(fetchDonors, 5000); // every 5 seconds
-
-    return () => clearInterval(interval); // cleanup on unmount
+    fetchDonors();
+    const interval = setInterval(fetchDonors, 5000);
+    return () => clearInterval(interval);
   }, []);
 
   const handleSubmit = async (e) => {
@@ -62,7 +60,7 @@ const Donations = () => {
       setQuantity(1);
       setListAcknowledgment(false);
 
-      // Refetch donor list in case new donor was added
+      // Refetch donor list
       const res = await api.get("/donors");
       setDonors(res.data);
     } catch (err) {
@@ -72,106 +70,131 @@ const Donations = () => {
   };
 
   return (
-    <div className="max-w-6xl mx-auto mt-10 p-6 flex gap-10">
+    <div data-theme="lemonade" className="min-h-screen bg-base-200 p-6">
       <ToastContainer />
 
-      {/* Left: Donation Form */}
-      <div className="flex-1 border p-6 rounded shadow">
-        <h2 className="text-2xl font-bold mb-4">Make a Donation</h2>
-        <form onSubmit={handleSubmit} className="flex flex-col space-y-4">
-          <input
-            type="text"
-            placeholder="Your Name"
-            value={donorName}
-            onChange={(e) => setDonorName(e.target.value)}
-            className="p-2 border rounded"
-            required
-          />
-          <input
-            type="email"
-            placeholder="Email"
-            value={donorEmail}
-            onChange={(e) => setDonorEmail(e.target.value)}
-            className="p-2 border rounded"
-            required
-          />
-          <select
-            value={donationType}
-            onChange={(e) => setDonationType(e.target.value)}
-            className="p-2 border rounded"
-            required
-          >
-            <option value="" disabled hidden>
-              Type
-            </option>
-            <option value="cash">Cash</option>
-            <option value="item">Item</option>
-          </select>
-          {donationType === "cash" && (
-            <div className="relative">
-              <span className="absolute left-2 top-1/2 -translate-y-1/2 text-gray-500">$</span>
-              <input
-                type="number"
-                placeholder="Amount"
-                value={amount}
-                onChange={(e) => setAmount(e.target.value)}
-                className="pl-6 p-2 border rounded w-full"
-                required
-              />
-            </div>
-          )}
-          {donationType === "item" && (
-            <>
+      <div className="max-w-6xl mx-auto flex gap-10">
+        {/* Left Section */}
+        <div className="flex-1">
+          <div className="mb-6 card bg-base-100 shadow p-4">
+            <h2 className="text-2xl font-bold mb-2 text-primary">
+              Every Contribution Counts 💛
+            </h2>
+            <p>
+              Your donations directly support our mission and help us continue
+              to make a positive impact. Whether big or small, each contribution
+              goes a long way in changing lives. Thank you for being part of
+              this journey.
+            </p>
+          </div>
+
+          <p className="mb-4 text-lg font-medium">
+            You can fill this form to make a donation for us. It will be greatly
+            appreciated!
+          </p>
+
+          <div className="card p-6 shadow bg-base-100">
+            <h2 className="text-xl font-bold mb-4">Make a Donation</h2>
+            <form onSubmit={handleSubmit} className="flex flex-col gap-4">
               <input
                 type="text"
-                placeholder="Item Name"
-                value={itemName}
-                onChange={(e) => setItemName(e.target.value)}
-                className="p-2 border rounded"
+                placeholder="Your Name"
+                value={donorName}
+                onChange={(e) => setDonorName(e.target.value)}
+                className="input input-bordered w-full"
                 required
               />
               <input
-                type="number"
-                placeholder="Quantity"
-                value={quantity}
-                onChange={(e) => setQuantity(e.target.value)}
-                className="p-2 border rounded"
-                min={1}
+                type="email"
+                placeholder="Email"
+                value={donorEmail}
+                onChange={(e) => setDonorEmail(e.target.value)}
+                className="input input-bordered w-full"
                 required
               />
-            </>
-          )}
-          <label className="flex items-center space-x-2">
-            <input
-              type="checkbox"
-              checked={listAcknowledgment}
-              onChange={(e) => setListAcknowledgment(e.target.checked)}
-            />
-            <span>Allow my name to be listed publicly</span>
-          </label>
-          <button
-            type="submit"
-            className="bg-blue-600 text-white p-2 rounded hover:bg-blue-500"
-          >
-            Submit Donation
-          </button>
-        </form>
-      </div>
+              <select
+                value={donationType}
+                onChange={(e) => setDonationType(e.target.value)}
+                className="select select-bordered w-full"
+                required
+              >
+                <option value="" disabled hidden>
+                  Type
+                </option>
+                <option value="cash">Cash</option>
+                <option value="item">Item</option>
+              </select>
 
-      {/* Right: Donor List */}
-      <div className="w-1/3 border p-6 rounded shadow bg-transparent">
-        <h2 className="text-2xl text-white font-bold mb-4">Our Monthly Donors</h2>
-        <ul className="space-y-2">
-          {donors.length === 0 ? (
-            <li>No donors yet.</li>
-          ) : (
-            donors.map((donor) => (
-              <li key={donor._id} className=" py-1">
-                {donor.donorName}
-              </li>
-            ))
-          )}
-        </ul>
+              {donationType === "cash" && (
+                <div className="relative">
+                  <span className="absolute left-2 top-1/2 -translate-y-1/2 text-gray-500">
+                    $
+                  </span>
+                  <input
+                    type="number"
+                    placeholder="Amount"
+                    value={amount}
+                    onChange={(e) => setAmount(e.target.value)}
+                    className="input input-bordered w-full pl-6"
+                    required
+                  />
+                </div>
+              )}
+
+              {donationType === "item" && (
+                <>
+                  <input
+                    type="text"
+                    placeholder="Item Name"
+                    value={itemName}
+                    onChange={(e) => setItemName(e.target.value)}
+                    className="input input-bordered w-full"
+                    required
+                  />
+                  <input
+                    type="number"
+                    placeholder="Quantity"
+                    value={quantity}
+                    onChange={(e) => setQuantity(e.target.value)}
+                    className="input input-bordered w-full"
+                    min={1}
+                    required
+                  />
+                </>
+              )}
+
+              <label className="flex items-center space-x-2">
+                <input
+                  type="checkbox"
+                  checked={listAcknowledgment}
+                  onChange={(e) => setListAcknowledgment(e.target.checked)}
+                  className="checkbox"
+                />
+                <span>Allow my name to be listed publicly</span>
+              </label>
+
+              <button type="submit" className="btn btn-primary">
+                Submit Donation
+              </button>
+            </form>
+          </div>
+        </div>
+
+        {/* Right Section: Donor List */}
+        <div className="w-1/3 card shadow p-6 bg-base-100 sticky top-10 h-fit">
+          <h2 className="text-2xl font-bold mb-4">Our Monthly Donors</h2>
+          <ul className="space-y-2">
+            {donors.length === 0 ? (
+              <li>No donors yet.</li>
+            ) : (
+              donors.map((donor) => (
+                <li key={donor._id} className="py-1">
+                  {donor.donorName}
+                </li>
+              ))
+            )}
+          </ul>
+        </div>
       </div>
     </div>
   );
