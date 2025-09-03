@@ -1,238 +1,176 @@
-import { useState } from 'react';
+import React, { useState, useContext } from 'react';
+import axios from 'axios';
+import { useNavigate } from 'react-router-dom';
+import { ThemeContext } from '../../context/ThemeContext ';
 
-function ElderRegistrationForm() {
+const ElderRegistrationForm = () => {
+  const { theme, toggleTheme } = useContext(ThemeContext);
   const [formData, setFormData] = useState({
     fullName: '',
     dob: '',
-    gender: '',
-    address: '',
     medicalNotes: '',
   });
   const [file, setFile] = useState(null);
-  const [error, setError] = useState(null);
-  const [fileError, setFileError] = useState(null);
+  const [error, setError] = useState('');
+  const [successMessage, setSuccessMessage] = useState('');
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const navigate = useNavigate();
 
   const handleChange = (e) => {
-    const { name, value } = e.target;
-    setFormData((prev) => ({ ...prev, [name]: value }));
+    setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
   const handleFileChange = (e) => {
-    const selectedFile = e.target.files[0];
-    if (selectedFile) {
-      if (selectedFile.type !== 'application/pdf') {
-        setFileError('Please upload a PDF file');
-        setFile(null);
-      } else if (selectedFile.size > 5 * 1024 * 1024) {
-        setFileError('File size must be less than 5MB');
-        setFile(null);
-      } else {
-        setFile(selectedFile);
-        setFileError(null);
-      }
-    } else {
-      setFile(null);
-      setFileError(null);
-    }
+    setFile(e.target.files[0]);
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setError(null);
-    const token = localStorage.getItem('token');
-    console.log('Token:', token || 'No token found');
-
-    if (!token) {
-      setError('Please log in to submit the form');
-      return;
-    }
-
     try {
+      setError('');
+      setSuccessMessage('');
       const data = new FormData();
       data.append('fullName', formData.fullName);
       data.append('dob', formData.dob);
-      data.append('gender', formData.gender);
-      data.append('address', formData.address);
       data.append('medicalNotes', formData.medicalNotes);
       if (file) {
         data.append('medicalNotesFile', file);
       }
-
-      const response = await fetch('http://localhost:5000/api/elders', {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${token}`,
+      const token = localStorage.getItem('token');
+      console.log('Submitting with Token:', token); // Debug: Log token
+      const response = await axios.post('http://localhost:5000/api/elders', data, {
+        headers: { 
+          Authorization: `Bearer ${token}`, 
+          'Content-Type': 'multipart/form-data' 
         },
-        body: data,
       });
-
-      const result = await response.json();
-      if (!response.ok) {
-        throw new Error(result.message || `HTTP error ${response.status}`);
-      }
-
-      console.log('Success:', result);
-      setFormData({ fullName: '', dob: '', gender: '', address: '', medicalNotes: '' });
-      setFile(null);
-      setFileError(null);
+      console.log('Response Status:', response.status); // Debug: Log status
+      console.log('Response Data:', response.data); // Debug: Log data
+      setSuccessMessage(response.data.message || 'Elder request submitted successfully!');
+      setIsModalOpen(true);
     } catch (err) {
-      console.error('Submission error:', err);
-      setError(err.message || 'Failed to submit elder registration');
+      console.error('Error Details:', {
+        message: err.message,
+        response: err.response ? {
+          status: err.response.status,
+          data: err.response.data,
+          headers: err.response.headers
+        } : 'No response',
+        request: err.request ? err.request : 'No request',
+        config: err.config ? err.config : 'No config',
+      }); // Debug: Log full error details
+      setError(err.response?.data?.message || err.message || 'Failed to submit elder request. Check console for details.');
     }
   };
 
+  const closeModal = () => {
+    setIsModalOpen(false);
+    navigate('/profile');
+  };
+
   return (
-    <form
-      onSubmit={handleSubmit}
-      className="m-5 p-6 bg-white shadow-lg rounded-lg max-w-md mx-auto"
-    >
-      <h2 className="text-2xl font-semibold text-gray-800 mb-6 text-center">
-        Elder Registration
-      </h2>
+    <div data-theme={theme} className="min-h-screen bg-base-200 p-6">
+      <div className="container mx-auto max-w-md">
+        <div className="flex justify-between items-center mb-6">
+          <h1 className="text-3xl font-bold text-center text-primary">
+            Register Elder
+          </h1>
+          <button onClick={toggleTheme} className="btn btn-outline btn-sm">
+            {theme === 'lemonade' ? 'Switch to Dark' : 'Switch to Light'}
+          </button>
+        </div>
 
-      {/* Full Name */}
-      <div className="mb-4">
-        <label
-          htmlFor="fullName"
-          className="block text-sm font-medium text-gray-700 mb-1"
-        >
-          Full Name
-        </label>
-        <input
-          type="text"
-          id="fullName"
-          name="fullName"
-          value={formData.fullName}
-          onChange={handleChange}
-          placeholder="Enter full name"
-          required
-          className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-        />
-      </div>
-
-      {/* Date of Birth */}
-      <div className="mb-4">
-        <label
-          htmlFor="dob"
-          className="block text-sm font-medium text-gray-700 mb-1"
-        >
-          Date of Birth
-        </label>
-        <input
-          type="date"
-          id="dob"
-          name="dob"
-          value={formData.dob}
-          onChange={handleChange}
-          required
-          className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-        />
-      </div>
-
-      {/* Gender */}
-      <div className="mb-4">
-        <label
-          htmlFor="gender"
-          className="block text-sm font-medium text-gray-700 mb-1"
-        >
-          Gender
-        </label>
-        <select
-          id="gender"
-          name="gender"
-          value={formData.gender}
-          onChange={handleChange}
-          required
-          className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-        >
-          <option value="" disabled>
-            Select gender
-          </option>
-          <option value="Male">Male</option>
-          <option value="Female">Female</option>
-          <option value="Other">Other</option>
-        </select>
-      </div>
-
-      {/* Address */}
-      <div className="mb-4">
-        <label
-          htmlFor="address"
-          className="block text-sm font-medium text-gray-700 mb-1"
-        >
-          Address
-        </label>
-        <input
-          type="text"
-          id="address"
-          name="address"
-          value={formData.address}
-          onChange={handleChange}
-          placeholder="Enter address"
-          required
-          className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-        />
-      </div>
-
-      {/* Medical Notes (Text) */}
-      <div className="mb-4">
-        <label
-          htmlFor="medicalNotes"
-          className="block text-sm font-medium text-gray-700 mb-1"
-        >
-          Medical Notes (Text, optional)
-        </label>
-        <textarea
-          id="medicalNotes"
-          name="medicalNotes"
-          value={formData.medicalNotes}
-          onChange={handleChange}
-          placeholder="Enter medical notes (optional)"
-          rows="4"
-          className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-        ></textarea>
-      </div>
-
-      {/* Medical Notes (PDF) */}
-      <div className="mb-4">
-        <label
-          htmlFor="medicalNotesFile"
-          className="block text-sm font-medium text-gray-700 mb-1"
-        >
-          Medical Notes (PDF, optional, max 5MB)
-        </label>
-        <input
-          type="file"
-          id="medicalNotesFile"
-          name="medicalNotesFile"
-          accept="application/pdf"
-          onChange={handleFileChange}
-          className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-        />
-        {file && (
-          <p className="mt-2 text-sm text-gray-600">
-            Selected file: {file.name}
-          </p>
+        {/* Error Message */}
+        {error && (
+          <div className="alert alert-error shadow-lg mb-4">
+            <div className="flex justify-between w-full items-center">
+              <span>{error}</span>
+              <button onClick={() => setError('')} className="btn btn-sm btn-ghost">
+                ✕
+              </button>
+            </div>
+          </div>
         )}
-        {fileError && (
-          <p className="mt-2 text-sm text-red-600">{fileError}</p>
+
+        {/* Form */}
+        <div className="card bg-base-100 shadow-xl">
+          <div className="card-body">
+            <form onSubmit={handleSubmit}>
+              <div className="form-control mb-4">
+                <label className="label">
+                  <span className="label-text">Full Name</span>
+                </label>
+                <input
+                  type="text"
+                  name="fullName"
+                  value={formData.fullName}
+                  onChange={handleChange}
+                  className="input input-bordered"
+                  required
+                />
+              </div>
+              <div className="form-control mb-4">
+                <label className="label">
+                  <span className="label-text">Date of Birth</span>
+                </label>
+                <input
+                  type="date"
+                  name="dob"
+                  value={formData.dob}
+                  onChange={handleChange}
+                  className="input input-bordered"
+                  required
+                />
+              </div>
+              <div className="form-control mb-4">
+                <label className="label">
+                  <span className="label-text">Medical Notes</span>
+                </label>
+                <textarea
+                  name="medicalNotes"
+                  value={formData.medicalNotes}
+                  onChange={handleChange}
+                  className="textarea textarea-bordered"
+                  rows="4"
+                />
+              </div>
+              <div className="form-control mb-4">
+                <label className="label">
+                  <span className="label-text">Medical Report (PDF)</span>
+                </label>
+                <input
+                  type="file"
+                  accept="application/pdf"
+                  onChange={handleFileChange}
+                  className="file-input file-input-bordered"
+                />
+              </div>
+              <div className="form-control mt-6">
+                <button type="submit" className="btn btn-primary">
+                  Submit
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+
+        {/* Success Modal */}
+        {isModalOpen && (
+          <div className="modal modal-open">
+            <div className="modal-box">
+              <h2 className="text-lg font-bold mb-4">Success</h2>
+              <p>{successMessage}</p>
+              <div className="modal-action">
+                <button onClick={closeModal} className="btn btn-primary">
+                  OK
+                </button>
+              </div>
+            </div>
+          </div>
         )}
       </div>
-
-      {/* Submit Button */}
-      <button
-        type="submit"
-        className="w-full bg-blue-600 text-white py-2 px-4 rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 transition duration-200"
-      >
-        Submit
-      </button>
-
-      {/* Error Message */}
-      {error && (
-        <p className="mt-4 text-red-600 text-sm text-center">{error}</p>
-      )}
-    </form>
+    </div>
   );
-}
+};
 
 export default ElderRegistrationForm;

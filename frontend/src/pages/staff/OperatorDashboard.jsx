@@ -1,29 +1,43 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useContext } from 'react';
 import axios from 'axios';
+import { Navigate } from 'react-router-dom';
+import { ThemeContext } from '../../context/ThemeContext ';
 
 const OperatorDashboard = () => {
-  const [requests, setRequests] = useState([]);
+  const { theme, toggleTheme } = useContext(ThemeContext);
+  const [elders, setElders] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [successMessage, setSuccessMessage] = useState('');
-  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [rejectReason, setRejectReason] = useState('');
+  const [rejectModalOpen, setRejectModalOpen] = useState(false);
   const [selectedElderId, setSelectedElderId] = useState(null);
-  const [rejectionReason, setRejectionReason] = useState('');
+  const [sortColumn, setSortColumn] = useState('fullName');
+  const [sortDirection, setSortDirection] = useState('asc');
 
   const API_URL = 'http://localhost:5000/api/elders';
+  const token = localStorage.getItem('token');
 
-  const fetchPendingRequests = async () => {
+  if (!token) {
+    return <Navigate to="/login" replace />;
+  }
+
+  const fetchPendingReview = async () => {
     try {
       setLoading(true);
       setError('');
-      const token = localStorage.getItem('token');
       const response = await axios.get(`${API_URL}/pending`, {
         headers: { Authorization: `Bearer ${token}` },
       });
-      setRequests(response.data);
+      console.log('Pending Review API Response:', response.data);
+      setElders(response.data);
       setLoading(false);
     } catch (err) {
-      setError(err.response?.data?.message || 'Failed to fetch pending requests');
+      setError(
+        err.response?.status === 401
+          ? 'Unauthorized: Please log in again'
+          : err.response?.data?.message || 'Failed to fetch pending elders'
+      );
       setLoading(false);
     }
   };
@@ -32,60 +46,71 @@ const OperatorDashboard = () => {
     try {
       setError('');
       setSuccessMessage('');
-      const token = localStorage.getItem('token');
       const response = await axios.patch(
         `${API_URL}/${id}/approve`,
         {},
         { headers: { Authorization: `Bearer ${token}` } }
       );
-      setSuccessMessage(response.data.message || 'Request approved. Awaiting payment.');
-      fetchPendingRequests();
+      setSuccessMessage(response.data.message || 'Elder approved successfully');
+      fetchPendingReview();
     } catch (err) {
-      setError(err.response?.data?.message || 'Failed to approve request');
+      setError(
+        err.response?.status === 401
+          ? 'Unauthorized: Please log in again'
+          : err.response?.data?.message || 'Failed to approve elder'
+      );
     }
-  };
-
-  const openRejectModal = (id) => {
-    setSelectedElderId(id);
-    setRejectionReason('');
-    setIsModalOpen(true);
   };
 
   const handleReject = async () => {
     try {
       setError('');
       setSuccessMessage('');
-      const token = localStorage.getItem('token');
       const response = await axios.patch(
         `${API_URL}/${selectedElderId}/reject`,
-        { reason: rejectionReason },
+        { reason: rejectReason },
         { headers: { Authorization: `Bearer ${token}` } }
       );
-      setSuccessMessage(response.data.message || 'Request rejected.');
-      setIsModalOpen(false);
-      setRejectionReason('');
-      fetchPendingRequests();
+      setSuccessMessage(response.data.message || 'Elder rejected successfully');
+      setRejectModalOpen(false);
+      setRejectReason('');
+      setSelectedElderId(null);
+      fetchPendingReview();
     } catch (err) {
-      setError(err.response?.data?.message || 'Failed to reject request');
+      setError(
+        err.response?.status === 401
+          ? 'Unauthorized: Please log in again'
+          : err.response?.data?.message || 'Failed to reject elder'
+      );
+      setRejectModalOpen(false);
     }
   };
 
-  const handleActivate = async (id) => {
-    try {
-      setError('');
-      setSuccessMessage('');
-      const token = localStorage.getItem('token');
-      const response = await axios.patch(
-        `${API_URL}/${id}/activate`,
-        {},
-        { headers: { Authorization: `Bearer ${token}` } }
-      );
-      setSuccessMessage(response.data.message || 'Elder activated.');
-      fetchPendingRequests();
-    } catch (err) {
-      setError(err.response?.data?.message || 'Failed to activate elder');
-    }
+  const openRejectModal = (id) => {
+    setSelectedElderId(id);
+    setRejectModalOpen(true);
   };
+
+  const handleSort = (column) => {
+    const direction = sortColumn === column && sortDirection === 'asc' ? 'desc' : 'asc';
+    setSortColumn(column);
+    setSortDirection(direction);
+  };
+
+  const sortedElders = [...elders].sort((a, b) => {
+    let valA, valB;
+    if (sortColumn === 'dob' || sortColumn === 'createdAt') {
+      valA = new Date(a[sortColumn]).getTime();
+      valB = new Date(b[sortColumn]).getTime();
+    } else {
+      valA = (a[sortColumn] || '').toString().toLowerCase();
+      valB = (b[sortColumn] || '').toString().toLowerCase();
+    }
+
+    if (valA < valB) return sortDirection === 'asc' ? -1 : 1;
+    if (valA > valB) return sortDirection === 'asc' ? 1 : -1;
+    return 0;
+  });
 
   useEffect(() => {
     if (successMessage) {
@@ -95,15 +120,20 @@ const OperatorDashboard = () => {
   }, [successMessage]);
 
   useEffect(() => {
-    fetchPendingRequests();
+    fetchPendingReview();
   }, []);
 
   return (
-    <div data-theme="forest" className="min-h-screen bg-base-200 p-6">
+    <div data-theme={theme} className="min-h-screen bg-base-200 p-6">
       <div className="container mx-auto">
-        <h1 className="text-3xl font-bold mb-6 text-center text-primary">
-          Pending Review
-        </h1>
+        <div className="flex justify-between items-center mb-6">
+          <h1 className="text-3xl font-bold text-center text-primary">
+            Operator Dashboard
+          </h1>
+          <button onClick={toggleTheme} className="btn btn-outline btn-sm">
+            {theme === 'lemonade' ? 'Switch to Dark' : 'Switch to Light'}
+          </button>
+        </div>
 
         {/* Error and Success Messages */}
         {error && (
@@ -142,47 +172,56 @@ const OperatorDashboard = () => {
                 <table className="table table-zebra w-full">
                   <thead className="bg-base-200 text-base-content">
                     <tr>
-                      <th>Full Name</th>
-                      <th>DOB</th>
+                      <th className="cursor-pointer" onClick={() => handleSort('fullName')}>
+                        Full Name {sortColumn === 'fullName' && (sortDirection === 'asc' ? '↑' : '↓')}
+                      </th>
+                      <th className="cursor-pointer" onClick={() => handleSort('dob')}>
+                        DOB {sortColumn === 'dob' && (sortDirection === 'asc' ? '↑' : '↓')}
+                      </th>
                       <th>Medical Notes</th>
                       <th>Guardian</th>
-                      <th>Date Requested</th>
+                      <th>Medical Report</th>
+                      <th className="cursor-pointer" onClick={() => handleSort('createdAt')}>
+                        Date Requested {sortColumn === 'createdAt' && (sortDirection === 'asc' ? '↑' : '↓')}
+                      </th>
                       <th className="text-center">Actions</th>
                     </tr>
                   </thead>
                   <tbody>
-                    {requests.map((elder) => (
+                    {sortedElders.map((elder) => (
                       <tr key={elder._id} className="hover">
                         <td>{elder.fullName}</td>
                         <td>{new Date(elder.dob).toLocaleDateString()}</td>
                         <td>{elder.medicalNotes || 'N/A'}</td>
-                        <td>{elder.guardian?.fullName || elder.guardian?.name || 'N/A'}</td>
+                        <td>{elder.guardian?.name || elder.guardian?.fullName || 'N/A'}</td>
+                        <td>
+                          {elder.medicalNotesFile ? (
+                            <a
+                              href={`http://localhost:5000/${elder.medicalNotesFile}`}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="btn btn-primary btn-sm"
+                            >
+                              View Report
+                            </a>
+                          ) : (
+                            'N/A'
+                          )}
+                        </td>
                         <td>{new Date(elder.createdAt).toLocaleDateString()}</td>
                         <td className="space-x-2 flex justify-center">
-                          {elder.status === 'DISABLED_PENDING_REVIEW' && (
-                            <>
-                              <button
-                                onClick={() => handleApprove(elder._id)}
-                                className="btn btn-success btn-sm"
-                              >
-                                Approve
-                              </button>
-                              <button
-                                onClick={() => openRejectModal(elder._id)}
-                                className="btn btn-error btn-sm"
-                              >
-                                Reject
-                              </button>
-                            </>
-                          )}
-                          {elder.status === 'PAYMENT_SUCCESS' && (
-                            <button
-                              onClick={() => handleActivate(elder._id)}
-                              className="btn btn-info btn-sm"
-                            >
-                              Activate
-                            </button>
-                          )}
+                          <button
+                            onClick={() => handleApprove(elder._id)}
+                            className="btn btn-success btn-sm"
+                          >
+                            Approve
+                          </button>
+                          <button
+                            onClick={() => openRejectModal(elder._id)}
+                            className="btn btn-error btn-sm"
+                          >
+                            Reject
+                          </button>
                         </td>
                       </tr>
                     ))}
@@ -193,35 +232,40 @@ const OperatorDashboard = () => {
           </div>
         )}
 
-        {/* Rejection Reason Modal */}
-        {isModalOpen && (
-          <dialog open className="modal modal-open">
+        {/* Reject Modal */}
+        {rejectModalOpen && (
+          <div className="modal modal-open">
             <div className="modal-box">
               <h2 className="text-lg font-bold mb-4">Reject Elder Request</h2>
-              <textarea
-                value={rejectionReason}
-                onChange={(e) => setRejectionReason(e.target.value)}
-                className="textarea textarea-bordered w-full"
-                placeholder="Enter rejection reason"
-                rows="4"
-              />
+              <div className="form-control">
+                <label className="label">
+                  <span className="label-text">Reason for Rejection</span>
+                </label>
+                <textarea
+                  value={rejectReason}
+                  onChange={(e) => setRejectReason(e.target.value)}
+                  className="textarea textarea-bordered"
+                  placeholder="Enter reason for rejection"
+                  rows="4"
+                />
+              </div>
               <div className="modal-action">
+                <button onClick={handleReject} className="btn btn-error">
+                  Submit
+                </button>
                 <button
-                  onClick={() => setIsModalOpen(false)}
+                  onClick={() => {
+                    setRejectModalOpen(false);
+                    setRejectReason('');
+                    setSelectedElderId(null);
+                  }}
                   className="btn btn-ghost"
                 >
                   Cancel
                 </button>
-                <button
-                  onClick={handleReject}
-                  disabled={!rejectionReason.trim()}
-                  className={`btn ${rejectionReason.trim() ? 'btn-error' : 'btn-disabled'}`}
-                >
-                  Submit
-                </button>
               </div>
             </div>
-          </dialog>
+          </div>
         )}
       </div>
     </div>

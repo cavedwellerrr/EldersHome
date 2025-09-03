@@ -8,6 +8,7 @@ import elderRoutes from "./routes/elderRoutes.js";
 import dotenv from "dotenv";
 import path from "path";
 import { fileURLToPath } from "url";
+import { protect } from "./middleware/authGuardianMiddleware.js";
 
 // Derive __dirname equivalent for ES Modules
 const __filename = fileURLToPath(import.meta.url);

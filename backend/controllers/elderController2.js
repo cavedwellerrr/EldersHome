@@ -5,27 +5,21 @@ import nodemailer from "nodemailer";
 // Guardian creates elder registration request
 export const createElderRequest = async (req, res) => {
   try {
-    const { fullName, dob, gender, address, medicalNotes } = req.body;
-    const medicalNotesFile = req.file ? req.file.path : undefined;
-
-    if (!req.user?._id) {
-      return res
-        .status(401)
-        .json({ message: "Guardian ID not found in token" });
+    console.log("Request User:", req.user); // Debug: Log req.user
+    const { fullName, dob, medicalNotes } = req.body;
+    const medicalNotesFile = req.file ? `uploads/${req.file.filename}` : null;
+    if (!req.user || !req.user._id) {
+      return res.status(401).json({ message: "Unauthorized: No user found" });
     }
-
     const elder = await Elder.create({
       fullName,
       dob,
-      gender,
-      address,
       medicalNotes,
       medicalNotesFile,
       guardian: req.user._id,
-      status: ElderStatus.DISABLED_PENDING_REVIEW,
+      status: "DISABLED_PENDING_REVIEW",
     });
-
-    res.status(201).json({ message: "Elder request submitted", elder });
+    res.status(201).json({ message: "Elder request created", elder });
   } catch (error) {
     console.error("Error in createElderRequest:", error.message);
     res.status(500).json({ message: error.message });
@@ -36,8 +30,15 @@ export const createElderRequest = async (req, res) => {
 export const listPendingReview = async (req, res) => {
   try {
     const elders = await Elder.find({
-      status: ElderStatus.DISABLED_PENDING_REVIEW,
-    }).populate("guardian");
+      status: "DISABLED_PENDING_REVIEW",
+    })
+      .populate({
+        path: "guardian",
+        select: "name email", // or 'fullName email' if User model uses fullName
+      })
+      .select(
+        "fullName dob medicalNotes medicalNotesFile guardian createdAt status"
+      );
     res.json(elders);
   } catch (error) {
     console.error("Error in listPendingReview:", error.message);
@@ -49,22 +50,14 @@ export const listPendingReview = async (req, res) => {
 export const listPendingPayments = async (req, res) => {
   try {
     const elders = await Elder.find({
-      status: ElderStatus.APPROVED_AWAITING_PAYMENT,
+      status: { $in: ["APPROVED_AWAITING_PAYMENT", "PAYMENT_SUCCESS"] },
     })
-      .populate({
-        path: "guardian",
-        select: "fullName name email phoneNumber",
-      })
-      .populate({
-        path: "paymentId",
-        match: { status: PaymentStatus.PENDING },
-        select: "amount status mockCheckoutUrl reminderSentAt",
-      });
-    const filteredElders = elders.filter((elder) => elder.paymentId !== null);
-    console.log(
-      `Fetched ${filteredElders.length} elders with pending payments`
-    );
-    res.json(filteredElders);
+      .populate("guardian", "name email") // or 'fullName email'
+      .populate("paymentId")
+      .select(
+        "fullName dob medicalNotes medicalNotesFile guardian createdAt status paymentId"
+      );
+    res.json(elders);
   } catch (error) {
     console.error("Error in listPendingPayments:", error.message);
     res.status(500).json({ message: error.message });
@@ -213,6 +206,19 @@ export const sendPaymentReminder = async (req, res) => {
     res.json({ message: "Payment reminder sent", info });
   } catch (error) {
     console.error("Email error:", error.message);
+    res.status(500).json({ message: error.message });
+  }
+};
+
+//list guardian wise elders
+export const listMyElders = async (req, res) => {
+  try {
+    const elders = await Elder.find({ guardian: req.user._id }).select(
+      "fullName dob status medicalNotes medicalNotesFile createdAt rejectionReason"
+    );
+    res.json(elders);
+  } catch (error) {
+    console.error("Error fetching my elders:", error.message);
     res.status(500).json({ message: error.message });
   }
 };

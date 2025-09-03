@@ -1,15 +1,17 @@
 import React, { useContext } from "react";
-import { User, LogOut } from "lucide-react";
+import { User, LogOut, Sun, Moon } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
 import { AuthContext } from "../context/AuthContext";
+import { ThemeContext } from "../context/ThemeContext ";
 
 const Navbar = () => {
   const { auth, logout } = useContext(AuthContext);
+  const { theme, toggleTheme } = useContext(ThemeContext);
   const navigate = useNavigate();
 
   const handleLogout = async () => {
-    await logout(); // context handles clearing auth and calling API
-    navigate("/");  // redirect to homepage
+    await logout();
+    navigate("/");
   };
 
   return (
@@ -22,6 +24,14 @@ const Navbar = () => {
       </div>
 
       <div className="flex items-center space-x-4">
+        {/* Theme Toggle */}
+        <button
+          onClick={toggleTheme}
+          className="p-2 rounded hover:bg-blue-500"
+        >
+          {theme === "light" ? <Moon size={20} /> : <Sun size={20} />}
+        </button>
+
         {auth ? (
           <>
             <Link

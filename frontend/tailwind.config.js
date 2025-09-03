@@ -7,4 +7,15 @@ export default {
     extend: {},
   },
   plugins: [daisyui],
+  daisyui: {
+    themes: [
+      "light",
+      "dark",
+      "retro",
+      "emerald",
+      "caramellatte",
+      "lemonade",
+      "forest",
+    ],
+  },
 };

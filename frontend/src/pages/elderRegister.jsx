@@ -18,7 +18,6 @@ const ElderRegisterPage = () => {
 
   return (
     <div>
-      <h1>Request Elder Account</h1>
       <ElderRegistrationForm />
     </div>
   );

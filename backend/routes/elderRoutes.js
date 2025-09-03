@@ -6,9 +6,10 @@ import {
   listPendingPayments,
   reviewApprove,
   reviewReject,
-  markPaymentSuccess,
   activateElder,
   sendPaymentReminder,
+  listMyElders,
+  markPaymentSuccess,
 } from "../controllers/elderController2.js";
 import multer from "multer";
 
@@ -48,12 +49,15 @@ router.post(
 );
 
 // Operator routes
-router.get("/pending", listPendingReview);
-router.get("/pending-payments", listPendingPayments);
+router.get("/pending", protect, listPendingReview);
+router.get("/pending-payments", protect, listPendingPayments);
 router.patch("/:id/approve", reviewApprove);
 router.patch("/:id/reject", reviewReject);
 router.post("/payment-success", markPaymentSuccess);
 router.patch("/:id/activate", activateElder);
-router.post("/:id/remind", sendPaymentReminder);
+router.patch("/:id/send-reminder", protect, sendPaymentReminder);
 
 export default router;
+
+// Guardian route to fetch their elders
+router.get("/my-elders", protect, listMyElders);
