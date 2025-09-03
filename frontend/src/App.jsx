@@ -45,6 +45,7 @@ import AdminLayout from "./layout/AdminLayout";
 import CaretakerLayout from "./layout/CaretakerLayout";
 import DoctorLayout from "./layout/DoctorLayout";
 import OperatorLayout from "./layout/OperatorLayout";
+import { StaffThemeProvider } from "./context/StaffThemeContext";
 
 const App = () => {
   const location = useLocation();
@@ -76,16 +77,18 @@ const App = () => {
           path="/staff/admin-dashboard/*"
           element={
             <ProtectedRoute allowedRoles={["admin"]}>
-              <AdminLayout>
-                <Routes>
-                  <Route index element={<AdminDashboard />} />
-                  <Route path="view-staff" element={<ViewStaff />} />
-                  <Route path="staff-register" element={<StaffRegister />} />
-                  <Route path="donations" element={<AdminDonations />} />
-                  <Route path="events" element={<AdminEvents />} />
-                  {/* <Route path="donations" element={<AdminDonations />} /> */}
-                </Routes>
-              </AdminLayout>
+              <StaffThemeProvider>
+                <AdminLayout>
+                  <Routes>
+                    <Route index element={<AdminDashboard />} />
+                    <Route path="view-staff" element={<ViewStaff />} />
+                    <Route path="staff-register" element={<StaffRegister />} />
+                    <Route path="donations" element={<AdminDonations />} />
+                    <Route path="events" element={<AdminEvents />} />
+                    {/* <Route path="donations" element={<AdminDonations />} /> */}
+                  </Routes>
+                </AdminLayout>
+              </StaffThemeProvider>
             </ProtectedRoute>
           }
         />
