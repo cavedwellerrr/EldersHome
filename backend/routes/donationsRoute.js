@@ -1,6 +1,8 @@
 import express from "express";
-import { createDonation, getAllDonations, updateDonationStatus } from "../controllers/donationController.js";
-import { protectAdmin } from "../middleware/authMiddleware.js";
+import { createDonation, getAllDonations, updateDonationStatus} from "../controllers/donationController.js";
+import Stripe from "stripe";
+import Donation from "../models/donations.js";
+const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
 
 const router = express.Router();
 
@@ -8,5 +10,7 @@ router.post("/", createDonation);
 router.get("/", getAllDonations);
 
 router.put("/:id", updateDonationStatus);
+
+
 
 export default router;

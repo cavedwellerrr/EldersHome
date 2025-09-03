@@ -7,6 +7,7 @@ import AboutUs from "./pages/AboutUs";
 import Donations from "./pages/Donations";
 import Events from "./pages/Events";
 
+
 // Guardian pages
 import Login from "./pages/guardian/Login";
 import Register from "./pages/guardian/Register";
@@ -60,6 +61,7 @@ const App = () => {
         <Route path="/about" element={<AboutUs />} />
         <Route path="/donations" element={<Donations />} />
         <Route path="/events" element={<Events />} />
+
 
         {/* Guardian routes */}
         <Route path="/login" element={<Login />} />
