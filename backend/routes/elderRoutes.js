@@ -1,6 +1,5 @@
 import express from "express";
 import { protect } from "../middleware/authGuardianMiddleware.js";
-import { protectStaff, requireOperator } from "../middleware/staffAuth.js";
 import {
   createElderRequest,
   listPendingReview,
@@ -11,32 +10,50 @@ import {
   activateElder,
   sendPaymentReminder,
 } from "../controllers/elderController2.js";
+import multer from "multer";
+
+// Configure multer for PDF uploads
+const storage = multer.diskStorage({
+  destination: (req, file, cb) => {
+    cb(null, "uploads/");
+  },
+  filename: (req, file, cb) => {
+    const uniqueSuffix = Date.now() + "-" + Math.round(Math.random() * 1e9);
+    cb(null, file.fieldname + "-" + uniqueSuffix + ".pdf");
+  },
+});
+
+const fileFilter = (req, file, cb) => {
+  if (file.mimetype === "application/pdf") {
+    cb(null, true);
+  } else {
+    cb(new Error("Only PDF files are allowed"), false);
+  }
+};
+
+const upload = multer({
+  storage: storage,
+  fileFilter: fileFilter,
+  limits: { fileSize: 5 * 1024 * 1024 }, // 5MB limit
+});
 
 const router = express.Router();
 
-// Guardian creates elder request
-router.post("/", protect, createElderRequest);
-
-// Operator review flow
-router.get("/pending", protectStaff, requireOperator, listPendingReview);
-router.get(
-  "/pending-payments",
-  protectStaff,
-  requireOperator,
-  listPendingPayments
+// Guardian routes
+router.post(
+  "/",
+  protect,
+  upload.single("medicalNotesFile"),
+  createElderRequest
 );
-router.patch("/:id/approve", protectStaff, requireOperator, reviewApprove);
-router.patch("/:id/reject", protectStaff, requireOperator, reviewReject);
-router.patch(
-  "/:id/send-reminder",
-  protectStaff,
-  requireOperator,
-  sendPaymentReminder
-); // New route
-// Guardian payment confirmation
-router.post("/payment/success", protect, markPaymentSuccess);
 
-// Operator activates elder
-router.patch("/:id/activate", protectStaff, requireOperator, activateElder);
+// Operator routes
+router.get("/pending", listPendingReview);
+router.get("/pending-payments", listPendingPayments);
+router.patch("/:id/approve", reviewApprove);
+router.patch("/:id/reject", reviewReject);
+router.post("/payment-success", markPaymentSuccess);
+router.patch("/:id/activate", activateElder);
+router.post("/:id/remind", sendPaymentReminder);
 
 export default router;

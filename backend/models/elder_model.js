@@ -13,6 +13,7 @@ const elderSchema = new mongoose.Schema(
     fullName: { type: String, required: true },
     dob: { type: Date, required: true },
     medicalNotes: { type: String, default: "" },
+    medicalNotesFile: { type: String, required: false },
 
     guardian: {
       type: mongoose.Schema.Types.ObjectId,

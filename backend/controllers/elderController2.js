@@ -5,17 +5,29 @@ import nodemailer from "nodemailer";
 // Guardian creates elder registration request
 export const createElderRequest = async (req, res) => {
   try {
-    const { fullName, dob, medicalNotes } = req.body;
+    const { fullName, dob, gender, address, medicalNotes } = req.body;
+    const medicalNotesFile = req.file ? req.file.path : undefined;
+
+    if (!req.user?._id) {
+      return res
+        .status(401)
+        .json({ message: "Guardian ID not found in token" });
+    }
 
     const elder = await Elder.create({
       fullName,
       dob,
+      gender,
+      address,
       medicalNotes,
-      guardian: req.user?._id || req.guardian?._id,
+      medicalNotesFile,
+      guardian: req.user._id,
+      status: ElderStatus.DISABLED_PENDING_REVIEW,
     });
 
     res.status(201).json({ message: "Elder request submitted", elder });
   } catch (error) {
+    console.error("Error in createElderRequest:", error.message);
     res.status(500).json({ message: error.message });
   }
 };
@@ -28,6 +40,7 @@ export const listPendingReview = async (req, res) => {
     }).populate("guardian");
     res.json(elders);
   } catch (error) {
+    console.error("Error in listPendingReview:", error.message);
     res.status(500).json({ message: error.message });
   }
 };
@@ -45,12 +58,15 @@ export const listPendingPayments = async (req, res) => {
       .populate({
         path: "paymentId",
         match: { status: PaymentStatus.PENDING },
-        select: "amount status mockCheckoutUrl reminderSentAt", // Include reminderSentAt
+        select: "amount status mockCheckoutUrl reminderSentAt",
       });
-    // Filter out elders where paymentId is null (no matching pending payment)
     const filteredElders = elders.filter((elder) => elder.paymentId !== null);
+    console.log(
+      `Fetched ${filteredElders.length} elders with pending payments`
+    );
     res.json(filteredElders);
   } catch (error) {
+    console.error("Error in listPendingPayments:", error.message);
     res.status(500).json({ message: error.message });
   }
 };
@@ -80,6 +96,7 @@ export const reviewApprove = async (req, res) => {
 
     res.json({ message: "Elder approved, awaiting payment", elder, payment });
   } catch (error) {
+    console.error("Error in reviewApprove:", error.message);
     res.status(500).json({ message: error.message });
   }
 };
@@ -100,6 +117,7 @@ export const reviewReject = async (req, res) => {
 
     res.json({ message: "Elder rejected", elder });
   } catch (error) {
+    console.error("Error in reviewReject:", error.message);
     res.status(500).json({ message: error.message });
   }
 };
@@ -120,6 +138,7 @@ export const markPaymentSuccess = async (req, res) => {
 
     res.json({ message: "Payment successful", payment });
   } catch (error) {
+    console.error("Error in markPaymentSuccess:", error.message);
     res.status(500).json({ message: error.message });
   }
 };
@@ -143,6 +162,7 @@ export const activateElder = async (req, res) => {
 
     res.json({ message: "Elder activated", elder });
   } catch (error) {
+    console.error("Error in activateElder:", error.message);
     res.status(500).json({ message: error.message });
   }
 };
@@ -168,23 +188,21 @@ export const sendPaymentReminder = async (req, res) => {
       return res.status(400).json({ message: "No pending payment found" });
     }
 
-    // Update reminderSentAt
     elder.paymentId.reminderSentAt = new Date();
     await elder.paymentId.save();
 
-    // Configure transporter for Gmail
     const transporter = nodemailer.createTransport({
       host: "smtp.gmail.com",
       port: 587,
-      secure: false, // Use TLS
+      secure: false,
       auth: {
-        user: process.env.GMAIL_USER, // e.g., your-email@gmail.com
-        pass: process.env.GMAIL_APP_PASSWORD, // App Password from Google
+        user: process.env.GMAIL_USER,
+        pass: process.env.GMAIL_APP_PASSWORD,
       },
     });
 
     const info = await transporter.sendMail({
-      from: `"Your App Support" <${process.env.GMAIL_USER}>`, // Use GMAIL_USER from .env
+      from: `"Your App Support" <${process.env.GMAIL_USER}>`,
       to: elder.guardian.email,
       subject: `Payment Reminder for Elder: ${elder.fullName}`,
       text: `Dear Guardian,\n\nThis is a reminder to complete the payment for ${elder.fullName}.\nAmount: ${elder.paymentId.amount}\nPay here: ${elder.paymentId.mockCheckoutUrl}\n\nThank you!`,
@@ -192,10 +210,20 @@ export const sendPaymentReminder = async (req, res) => {
     });
 
     console.log("Email sent: %s", info.messageId);
-
     res.json({ message: "Payment reminder sent", info });
   } catch (error) {
-    console.error("Email error:", error);
+    console.error("Email error:", error.message);
     res.status(500).json({ message: error.message });
   }
+};
+
+export default {
+  createElderRequest,
+  listPendingReview,
+  listPendingPayments,
+  reviewApprove,
+  reviewReject,
+  markPaymentSuccess,
+  activateElder,
+  sendPaymentReminder,
 };

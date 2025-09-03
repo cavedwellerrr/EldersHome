@@ -24,7 +24,7 @@ const operatorSchema = new mongoose.Schema(
         },
         paymentDate: { type: Date },
         amount: { type: Number },
-        processedBy: { type: mongoose.Schema.Types.ObjectId, ref: "Operator" }, // optional
+        processedBy: { type: mongoose.Schema.Types.ObjectId, ref: "Operator" },
       },
     ],
     notifications: [

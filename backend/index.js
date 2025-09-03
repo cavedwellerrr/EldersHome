@@ -1,12 +1,18 @@
 import express from "express";
 import cors from "cors";
 import cookieParser from "cookie-parser";
-
 import connectDB from "./config/mongodb.js";
 import guardianRoutes from "./routes/guardianRoutes.js";
 import staffRoutes from "./routes/staff_route.js";
 import elderRoutes from "./routes/elderRoutes.js";
 import dotenv from "dotenv";
+import path from "path";
+import { fileURLToPath } from "url";
+
+// Derive __dirname equivalent for ES Modules
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
 dotenv.config();
 const app = express();
 const port = process.env.PORT || 4000;
@@ -16,6 +22,8 @@ connectDB();
 app.use(express.json());
 app.use(cookieParser());
 app.use(cors({ credentials: true, origin: "http://localhost:5173" }));
+
+app.use("/uploads", express.static(path.join(__dirname, "uploads")));
 
 // Routes
 app.use("/api/guardians", guardianRoutes);

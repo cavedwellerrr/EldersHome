@@ -1,4 +1,3 @@
-// src/components/OperatorDashboard.jsx
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 
@@ -11,15 +10,13 @@ const OperatorDashboard = () => {
   const [selectedElderId, setSelectedElderId] = useState(null);
   const [rejectionReason, setRejectionReason] = useState('');
 
-  // Base API URL (adjust to your backend URL)
   const API_URL = 'http://localhost:5000/api/elders';
 
-  // Fetch pending elder requests
   const fetchPendingRequests = async () => {
     try {
       setLoading(true);
       setError('');
-      const token = localStorage.getItem('token'); // Adjust based on your auth setup
+      const token = localStorage.getItem('token');
       const response = await axios.get(`${API_URL}/pending`, {
         headers: { Authorization: `Bearer ${token}` },
       });
@@ -31,7 +28,6 @@ const OperatorDashboard = () => {
     }
   };
 
-  // Approve elder request
   const handleApprove = async (id) => {
     try {
       setError('');
@@ -43,20 +39,18 @@ const OperatorDashboard = () => {
         { headers: { Authorization: `Bearer ${token}` } }
       );
       setSuccessMessage(response.data.message || 'Request approved. Awaiting payment.');
-      fetchPendingRequests(); // Refresh the list
+      fetchPendingRequests();
     } catch (err) {
       setError(err.response?.data?.message || 'Failed to approve request');
     }
   };
 
-  // Open rejection modal
   const openRejectModal = (id) => {
     setSelectedElderId(id);
     setRejectionReason('');
     setIsModalOpen(true);
   };
 
-  // Reject elder request
   const handleReject = async () => {
     try {
       setError('');
@@ -70,13 +64,12 @@ const OperatorDashboard = () => {
       setSuccessMessage(response.data.message || 'Request rejected.');
       setIsModalOpen(false);
       setRejectionReason('');
-      fetchPendingRequests(); // Refresh the list
+      fetchPendingRequests();
     } catch (err) {
       setError(err.response?.data?.message || 'Failed to reject request');
     }
   };
 
-  // Activate elder
   const handleActivate = async (id) => {
     try {
       setError('');
@@ -88,13 +81,12 @@ const OperatorDashboard = () => {
         { headers: { Authorization: `Bearer ${token}` } }
       );
       setSuccessMessage(response.data.message || 'Elder activated.');
-      fetchPendingRequests(); // Refresh the list
+      fetchPendingRequests();
     } catch (err) {
       setError(err.response?.data?.message || 'Failed to activate elder');
     }
   };
 
-  // Clear success message after 5 seconds
   useEffect(() => {
     if (successMessage) {
       const timer = setTimeout(() => setSuccessMessage(''), 5000);
@@ -102,154 +94,136 @@ const OperatorDashboard = () => {
     }
   }, [successMessage]);
 
-  // Fetch requests on component mount
   useEffect(() => {
     fetchPendingRequests();
   }, []);
 
   return (
-    <div className="container mx-auto p-4">
-      <h1 className="text-2xl font-bold mb-4">Operator Dashboard</h1>
+    <div data-theme="forest" className="min-h-screen bg-base-200 p-6">
+      <div className="container mx-auto">
+        <h1 className="text-3xl font-bold mb-6 text-center text-primary">
+          Pending Review
+        </h1>
 
-      {/* Error and Success Messages */}
-      {error && (
-        <div className="bg-red-100 text-red-700 p-3 rounded mb-4 flex justify-between">
-          <span>{error}</span>
-          <button onClick={() => setError('')} className="text-red-700 font-bold">
-            ×
-          </button>
-        </div>
-      )}
-      {successMessage && (
-        <div className="bg-green-100 text-green-700 p-3 rounded mb-4 flex justify-between">
-          <span>{successMessage}</span>
-          <button onClick={() => setSuccessMessage('')} className="text-green-700 font-bold">
-            ×
-          </button>
-        </div>
-      )}
-
-      {/* Loading Spinner */}
-      {loading ? (
-        <div className="flex justify-center items-center">
-          <svg
-            className="animate-spin h-8 w-8 text-blue-500"
-            xmlns="http://www.w3.org/2000/svg"
-            fill="none"
-            viewBox="0 0 24 24"
-          >
-            <circle
-              className="opacity-25"
-              cx="12"
-              cy="12"
-              r="10"
-              stroke="currentColor"
-              strokeWidth="4"
-            />
-            <path
-              className="opacity-75"
-              fill="currentColor"
-              d="M4 12a8 8 0 018-8v8h8a8 8 0 01-8 8v-8H4z"
-            />
-          </svg>
-        </div>
-      ) : (
-        <div className="overflow-x-auto">
-          <table className="min-w-full bg-white border">
-            <thead>
-              <tr>
-                <th className="py-2 px-4 border">Full Name</th>
-                <th className="py-2 px-4 border">DOB</th>
-                <th className="py-2 px-4 border">Medical Notes</th>
-                <th className="py-2 px-4 border">Guardian</th>
-                <th className="py-2 px-4 border">Status</th>
-                <th className="py-2 px-4 border">Actions</th>
-              </tr>
-            </thead>
-            <tbody>
-              {requests.map((elder) => (
-                <tr key={elder._id}>
-                  <td className="py-2 px-4 border">{elder.fullName}</td>
-                  <td className="py-2 px-4 border">
-                    {new Date(elder.dob).toLocaleDateString()}
-                  </td>
-                  <td className="py-2 px-4 border">{elder.medicalNotes || 'N/A'}</td>
-                  <td className="py-2 px-4 border">
-                    {elder.guardian?.fullName || elder.guardian?.name || 'N/A'}
-                  </td>
-                  <td className="py-2 px-4 border">{elder.status}</td>
-                  <td className="py-2 px-4 border space-x-2">
-                    {elder.status === 'DISABLED_PENDING_REVIEW' && (
-                      <>
-                        <button
-                          onClick={() => handleApprove(elder._id)}
-                          className="bg-green-500 text-white px-3 py-1 rounded hover:bg-green-600"
-                        >
-                          Approve
-                        </button>
-                        <button
-                          onClick={() => openRejectModal(elder._id)}
-                          className="bg-red-500 text-white px-3 py-1 rounded hover:bg-red-600"
-                        >
-                          Reject
-                        </button>
-                      </>
-                    )}
-                    {elder.status === 'PAYMENT_SUCCESS' && (
-                      <button
-                        onClick={() => handleActivate(elder._id)}
-                        className="bg-blue-500 text-white px-3 py-1 rounded hover:bg-blue-600"
-                      >
-                        Activate
-                      </button>
-                    )}
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-
-
-          
-        </div>
-      )}
-
-      
-
-      {/* Rejection Reason Modal */}
-      {isModalOpen && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center">
-          <div className="bg-white p-6 rounded-lg w-96">
-            <h2 className="text-xl font-bold mb-4">Reject Elder Request</h2>
-            <textarea
-              value={rejectionReason}
-              onChange={(e) => setRejectionReason(e.target.value)}
-              className="w-full p-2 border rounded"
-              placeholder="Enter rejection reason"
-              rows="4"
-            />
-            <div className="mt-4 flex justify-end space-x-2">
-              <button
-                onClick={() => setIsModalOpen(false)}
-                className="bg-gray-300 px-4 py-2 rounded hover:bg-gray-400"
-              >
-                Cancel
-              </button>
-              <button
-                onClick={handleReject}
-                className={`px-4 py-2 rounded text-white ${
-                  rejectionReason.trim()
-                    ? 'bg-red-500 hover:bg-red-600'
-                    : 'bg-red-300 cursor-not-allowed'
-                }`}
-                disabled={!rejectionReason.trim()}
-              >
-                Submit
+        {/* Error and Success Messages */}
+        {error && (
+          <div className="alert alert-error shadow-lg mb-4">
+            <div className="flex justify-between w-full items-center">
+              <span>{error}</span>
+              <button onClick={() => setError('')} className="btn btn-sm btn-ghost">
+                ✕
               </button>
             </div>
           </div>
-        </div>
-      )}
+        )}
+        {successMessage && (
+          <div className="alert alert-success shadow-lg mb-4">
+            <div className="flex justify-between w-full items-center">
+              <span>{successMessage}</span>
+              <button
+                onClick={() => setSuccessMessage('')}
+                className="btn btn-sm btn-ghost"
+              >
+                ✕
+              </button>
+            </div>
+          </div>
+        )}
+
+        {/* Loading Spinner */}
+        {loading ? (
+          <div className="flex justify-center items-center h-48">
+            <span className="loading loading-spinner loading-lg text-primary"></span>
+          </div>
+        ) : (
+          <div className="card bg-base-100 shadow-xl">
+            <div className="card-body">
+              <div className="overflow-x-auto">
+                <table className="table table-zebra w-full">
+                  <thead className="bg-base-200 text-base-content">
+                    <tr>
+                      <th>Full Name</th>
+                      <th>DOB</th>
+                      <th>Medical Notes</th>
+                      <th>Guardian</th>
+                      <th>Date Requested</th>
+                      <th className="text-center">Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {requests.map((elder) => (
+                      <tr key={elder._id} className="hover">
+                        <td>{elder.fullName}</td>
+                        <td>{new Date(elder.dob).toLocaleDateString()}</td>
+                        <td>{elder.medicalNotes || 'N/A'}</td>
+                        <td>{elder.guardian?.fullName || elder.guardian?.name || 'N/A'}</td>
+                        <td>{new Date(elder.createdAt).toLocaleDateString()}</td>
+                        <td className="space-x-2 flex justify-center">
+                          {elder.status === 'DISABLED_PENDING_REVIEW' && (
+                            <>
+                              <button
+                                onClick={() => handleApprove(elder._id)}
+                                className="btn btn-success btn-sm"
+                              >
+                                Approve
+                              </button>
+                              <button
+                                onClick={() => openRejectModal(elder._id)}
+                                className="btn btn-error btn-sm"
+                              >
+                                Reject
+                              </button>
+                            </>
+                          )}
+                          {elder.status === 'PAYMENT_SUCCESS' && (
+                            <button
+                              onClick={() => handleActivate(elder._id)}
+                              className="btn btn-info btn-sm"
+                            >
+                              Activate
+                            </button>
+                          )}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Rejection Reason Modal */}
+        {isModalOpen && (
+          <dialog open className="modal modal-open">
+            <div className="modal-box">
+              <h2 className="text-lg font-bold mb-4">Reject Elder Request</h2>
+              <textarea
+                value={rejectionReason}
+                onChange={(e) => setRejectionReason(e.target.value)}
+                className="textarea textarea-bordered w-full"
+                placeholder="Enter rejection reason"
+                rows="4"
+              />
+              <div className="modal-action">
+                <button
+                  onClick={() => setIsModalOpen(false)}
+                  className="btn btn-ghost"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={handleReject}
+                  disabled={!rejectionReason.trim()}
+                  className={`btn ${rejectionReason.trim() ? 'btn-error' : 'btn-disabled'}`}
+                >
+                  Submit
+                </button>
+              </div>
+            </div>
+          </dialog>
+        )}
+      </div>
     </div>
   );
 };

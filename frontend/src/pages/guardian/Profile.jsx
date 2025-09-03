@@ -24,9 +24,11 @@ const Profile = () => {
       <p>Phone: {auth.phone}</p>
       <p>Address: {auth.address}</p>
 
+    <button className="mt-8 m-5 bg-blue-600 text-white p-2 rounded hover:bg-blue-500" >
       <Link to="/elder-register">
-  Request Elder Account
-</Link>
+        Request Elder Account
+      </Link>
+      </button>
 
       <button
         onClick={logout}
