@@ -1,13 +1,13 @@
 import express from "express";
 import cors from "cors";
-import "dotenv/config";
 import cookieParser from "cookie-parser";
 
 import connectDB from "./config/mongodb.js";
 import guardianRoutes from "./routes/guardianRoutes.js";
 import staffRoutes from "./routes/staff_route.js";
 import elderRoutes from "./routes/elderRoutes.js";
-
+import dotenv from "dotenv";
+dotenv.config();
 const app = express();
 const port = process.env.PORT || 4000;
 

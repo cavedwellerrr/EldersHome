@@ -172,31 +172,30 @@ export const sendPaymentReminder = async (req, res) => {
     elder.paymentId.reminderSentAt = new Date();
     await elder.paymentId.save();
 
-    // Create Ethereal test account for testing (replace with real SMTP in production)
-    const testAccount = await nodemailer.createTestAccount();
-
-    //const transporter = nodemailer.createTransport({
-    //   host: "smtp.ethereal.email",
-    //   port: 587,
-    //    secure: false,
-    //   auth: {
-    //    user: testAccount.user,
-    //    pass: testAccount.pass,
-    //  },
-    // });
+    // Configure transporter for Gmail
+    const transporter = nodemailer.createTransport({
+      host: "smtp.gmail.com",
+      port: 587,
+      secure: false, // Use TLS
+      auth: {
+        user: process.env.GMAIL_USER, // e.g., your-email@gmail.com
+        pass: process.env.GMAIL_APP_PASSWORD, // App Password from Google
+      },
+    });
 
     const info = await transporter.sendMail({
-      from: '"Your App Support" <support@yourapp.com>',
+      from: `"Your App Support" <${process.env.GMAIL_USER}>`, // Use GMAIL_USER from .env
       to: elder.guardian.email,
       subject: `Payment Reminder for Elder: ${elder.fullName}`,
       text: `Dear Guardian,\n\nThis is a reminder to complete the payment for ${elder.fullName}.\nAmount: ${elder.paymentId.amount}\nPay here: ${elder.paymentId.mockCheckoutUrl}\n\nThank you!`,
       html: `<p>Dear Guardian,</p><p>This is a reminder to complete the payment for <strong>${elder.fullName}</strong>.</p><p>Amount: ${elder.paymentId.amount}</p><p><a href="${elder.paymentId.mockCheckoutUrl}">Pay Now</a></p><p>Thank you!</p>`,
     });
 
-    console.log("Preview URL: %s", nodemailer.getTestMessageUrl(info));
+    console.log("Email sent: %s", info.messageId);
 
     res.json({ message: "Payment reminder sent", info });
   } catch (error) {
+    console.error("Email error:", error);
     res.status(500).json({ message: error.message });
   }
 };
