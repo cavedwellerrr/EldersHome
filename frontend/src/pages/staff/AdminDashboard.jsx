@@ -11,7 +11,9 @@ const AdminDashboard = () => {
   };
 
   return (
-    <div  className="min-h-screen bg-base-200 text-base-content p-6">
+
+    <div className="min-h-screen bg-base-200 text-base-content p-6">
+
       {/* Dashboard Content */}
       <div className="space-y-6">
         <h1 className="text-3xl font-bold">Admin Dashboard</h1>

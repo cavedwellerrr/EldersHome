@@ -1,18 +1,19 @@
-import React from "react";
-import { User, LogOut } from "lucide-react";
+import React, { useContext } from "react";
+import { User, LogOut, Sun, Moon } from "lucide-react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
+import { StaffThemeContext } from "../../context/StaffThemeContext";
 
 const AdminNavbar = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const name = localStorage.getItem("username");
+  const { theme, toggleTheme } = useContext(StaffThemeContext);
 
   const handleLogout = () => {
-    localStorage.clear(); // remove token, role, username
+    localStorage.clear();
     navigate("/staff/login");
   };
 
-  // Helper to mark active tab
   const isActive = (path) => location.pathname === path;
 
   return (
@@ -21,43 +22,44 @@ const AdminNavbar = () => {
       <div className="flex items-center space-x-4">
         <Link
           to="/staff/admin-dashboard"
-          className={`font-bold text-lg px-3 py-2 rounded ${isActive("/staff/admin-dashboard") ? "bg-blue-500" : "hover:bg-blue-500"
-            }`}
+          className={`font-bold text-lg px-3 py-2 rounded ${isActive("/staff/admin-dashboard") ? "bg-blue-500" : "hover:bg-blue-500"}`}
         >
           Admin Portal
         </Link>
         <Link
-          to="/staff/admin-dashboard/view-staff" // nested route
-          className={`px-3 py-2 rounded ${isActive("/staff/admin-dashboard/view-staff") ? "bg-blue-500" : "hover:bg-blue-500"
-            }`}
+          to="/staff/admin-dashboard/view-staff"
+          className={`px-3 py-2 rounded ${isActive("/staff/admin-dashboard/view-staff") ? "bg-blue-500" : "hover:bg-blue-500"}`}
         >
           View Staff
         </Link>
         <Link
           to="/staff/admin-dashboard/staff-register"
-          className={`px-3 py-2 rounded ${isActive("/staff/admin-dashboard/staff-register") ? "bg-blue-500" : "hover:bg-blue-500"
-            }`}
+          className={`px-3 py-2 rounded ${isActive("/staff/admin-dashboard/staff-register") ? "bg-blue-500" : "hover:bg-blue-500"}`}
         >
           Register Staff
         </Link>
         <Link
           to="/staff/admin-dashboard/donations"
-          className={`px-3 py-2 rounded ${isActive("/staff/admin-dashboard/donations") ? "bg-blue-500" : "hover:bg-blue-500"
-            }`}
+          className={`px-3 py-2 rounded ${isActive("/staff/admin-dashboard/donations") ? "bg-blue-500" : "hover:bg-blue-500"}`}
         >
           Donations
         </Link>
         <Link
           to="/staff/admin-dashboard/events"
-          className={`px-3 py-2 rounded ${isActive("/staff/admin-dashboard/events") ? "bg-blue-500" : "hover:bg-blue-500"
-            }`}
+          className={`px-3 py-2 rounded ${isActive("/staff/admin-dashboard/events") ? "bg-blue-500" : "hover:bg-blue-500"}`}
         >
           Events
         </Link>
       </div>
 
-      {/* Right side profile + logout */}
+      {/* Right side profile + logout + theme toggle */}
       <div className="flex items-center space-x-4">
+        <button
+          onClick={toggleTheme}
+          className="p-2 rounded hover:bg-blue-500"
+        >
+          {theme === "light" ? <Moon size={20} /> : <Sun size={20} />}
+        </button>
         <Link
           to="/staff/admin-dashboard"
           className="flex items-center space-x-1 hover:bg-blue-500 px-3 py-2 rounded"
