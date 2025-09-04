@@ -20,9 +20,9 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
-  useEffect(() => {
-    fetchGuardian();
-  }, []);
+   useEffect(() => {
+     fetchGuardian();
+   }, []);
 
   // Login function
   const login = async (username, password) => {
