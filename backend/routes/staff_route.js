@@ -8,13 +8,15 @@ import {
 } from "../controllers/staffController.js";
 import Staff from "../models/staff_model.js";
 
+import { protect } from "../middleware/auth.js";
+
 const router = express.Router();
 
-router.post("/register", protectAdmin, registerStaff);
+router.post("/register", protect, registerStaff);
 router.post("/login", loginStaff);
-router.delete("/:id", protectAdmin, deleteStaff);
-router.put("/:id", protectAdmin, updateStaff);
-router.get("/", protectAdmin, async (req, res) => {
+router.delete("/:id", protect, deleteStaff);
+router.put("/:id", protect, updateStaff);
+router.get("/", protect, async (req, res) => {
   try {
     const staff = await Staff.find();
     res.json(staff);

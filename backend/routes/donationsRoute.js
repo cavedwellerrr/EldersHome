@@ -7,7 +7,7 @@ const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
 const router = express.Router();
 
 router.post("/", createDonation);
-router.get("/", getAllDonations);
+router.get("/",  getAllDonations);
 
 router.put("/:id", updateDonationStatus);
 

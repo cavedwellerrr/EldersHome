@@ -14,6 +14,10 @@ const elderSchema = new mongoose.Schema(
       type: mongoose.Schema.Types.ObjectId,
       ref: "Guardian",
     },
+    request: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Request",
+    },
     isActive: { type: Boolean, default: false }, // active after payment and assignment
   },
   { timestamps: true }

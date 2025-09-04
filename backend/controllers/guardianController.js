@@ -1,5 +1,6 @@
 import Guardian from "../models/guardians.js";
 import jwt from "jsonwebtoken";
+import upload from "../middleware/upload.js";
 
 // Helper to create JWT token
 const generateToken = (id) => {
@@ -163,4 +164,67 @@ export const updateProfile = async (req, res) => {
     res.status(500).json({ message: error.message });
   }
 };
+
+export const submitElderRequest = async (req, res) => {
+  try {
+    const { elderName, dob, gender, medicalNotes } = req.body;
+    const guardianId = req.user._id; // From protect middleware (authenticated guardian)
+
+    // Validate required fields
+    if (!elderName || !dob || !gender) {
+      return res.status(400).json({ message: "Elder name, DOB, and gender are required" });
+    }
+
+    // Validate gender
+    if (!["male", "female", "other"].includes(gender)) {
+      return res.status(400).json({ message: "Invalid gender value" });
+    }
+
+    // Validate DOB format (basic check)
+    const dobDate = new Date(dob);
+    if (isNaN(dobDate.getTime())) {
+      return res.status(400).json({ message: "Invalid date of birth" });
+    }
+
+    // Handle uploaded files
+    const medicalFiles = req.files
+      ? req.files.map((file) => ({
+          url: file.path, // File path from multer (or S3 URL in production)
+          fileName: file.filename,
+        }))
+      : [];
+
+    // Create new request
+    const request = new Request({
+      elderName,
+      dob: dobDate,
+      gender,
+      medicalNotes: medicalNotes || "", // Optional field
+      medicalFiles,
+      guardian: guardianId,
+      status: "pending", // Default status
+    });
+
+    // Save request to database
+    await request.save();
+
+    res.status(201).json({
+      message: "Elder request submitted successfully",
+      request: {
+        elderName,
+        dob,
+        gender,
+        medicalNotes,
+        medicalFiles,
+        status: request.status,
+        createdAt: request.createdAt,
+      },
+    });
+  } catch (error) {
+    console.error("Error submitting elder request:", error);
+    res.status(500).json({ message: "Server error while submitting request" });
+  }
+};
+
+
 
