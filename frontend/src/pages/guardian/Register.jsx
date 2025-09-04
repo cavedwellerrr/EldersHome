@@ -30,6 +30,7 @@ const Register = () => {
   };
 
   return (
+    <div className="min-h-screen bg-base-100 flex justify-center items-start py-10">
     <div className="max-w-md mx-auto mt-10 p-6 border rounded shadow">
       <h2 className="text-2xl font-bold mb-4">Register</h2>
       {error && <p className="text-red-500 mb-4">{error}</p>}
@@ -95,6 +96,7 @@ const Register = () => {
           Login
         </Link>
       </p>
+    </div>
     </div>
   );
 };

@@ -1,13 +1,13 @@
 import React, { useContext } from "react";
 import { User, LogOut, Sun, Moon } from "lucide-react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
-import { StaffThemeContext } from "../../context/StaffThemeContext";
+
 
 const AdminNavbar = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const name = localStorage.getItem("username");
-  const { theme, toggleTheme } = useContext(StaffThemeContext);
+
 
   const handleLogout = () => {
     localStorage.clear();
@@ -54,12 +54,7 @@ const AdminNavbar = () => {
 
       {/* Right side profile + logout + theme toggle */}
       <div className="flex items-center space-x-4">
-        <button
-          onClick={toggleTheme}
-          className="p-2 rounded hover:bg-blue-500"
-        >
-          {theme === "light" ? <Moon size={20} /> : <Sun size={20} />}
-        </button>
+
         <Link
           to="/staff/admin-dashboard"
           className="flex items-center space-x-1 hover:bg-blue-500 px-3 py-2 rounded"

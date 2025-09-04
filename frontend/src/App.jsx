@@ -45,7 +45,6 @@ import AdminLayout from "./layout/AdminLayout";
 import CaretakerLayout from "./layout/CaretakerLayout";
 import DoctorLayout from "./layout/DoctorLayout";
 import OperatorLayout from "./layout/OperatorLayout";
-import { StaffThemeProvider } from "./context/StaffThemeContext";
 
 const App = () => {
   const location = useLocation();
@@ -55,30 +54,29 @@ const App = () => {
 
   return (
     <>
-      <div data-theme= "light">
-      {showNavbar && <Navbar />}
-      <Routes>
-        {/* Public routes */}
-        <Route path="/" element={<Home />} />
-        <Route path="/about" element={<AboutUs />} />
-        <Route path="/donations" element={<Donations />} />
-        <Route path="/events" element={<Events />} />
+      <div data-theme="light">
+        {showNavbar && <Navbar />}
+        <Routes>
+          {/* Public routes */}
+          <Route path="/" element={<Home />} />
+          <Route path="/about" element={<AboutUs />} />
+          <Route path="/donations" element={<Donations />} />
+          <Route path="/events" element={<Events />} />
 
 
-        {/* Guardian routes */}
-        <Route path="/login" element={<Login />} />
-        <Route path="/register" element={<Register />} />
-        <Route path="/profile" element={<Profile />} />
+          {/* Guardian routes */}
+          <Route path="/login" element={<Login />} />
+          <Route path="/register" element={<Register />} />
+          <Route path="/profile" element={<Profile />} />
 
-        {/* Staff routes */}
-        <Route path="/staff/login" element={<StaffLogin />} />
+          {/* Staff routes */}
+          <Route path="/staff/login" element={<StaffLogin />} />
 
-        {/* Admin routes with layout */}
-        <Route
-          path="/staff/admin-dashboard/*"
-          element={
-            <ProtectedRoute allowedRoles={["admin"]}>
-              <StaffThemeProvider>
+          {/* Admin routes with layout */}
+          <Route
+            path="/staff/admin-dashboard/*"
+            element={
+              <ProtectedRoute allowedRoles={["admin"]}>
                 <AdminLayout>
                   <Routes>
                     <Route index element={<AdminDashboard />} />
@@ -89,59 +87,58 @@ const App = () => {
                     {/* <Route path="donations" element={<AdminDonations />} /> */}
                   </Routes>
                 </AdminLayout>
-              </StaffThemeProvider>
-            </ProtectedRoute>
-          }
-        />
+              </ProtectedRoute>
+            }
+          />
 
-        {/* Operator / Caretaker / Doctor */}
-        <Route
-          path="/staff/operator-dashboard/*"
-          element={
-            <ProtectedRoute allowedRoles={["operator"]}>
-              <OperatorLayout>
-                <Routes>
-                  <Route index element={<OperatorDashboard />} />
-                  <Route path="elder-requests" element={<ElderRequests />} />
-                  <Route path="assign-caretaker" element={<AssignCaretakers />} />
-                </Routes>
-              </OperatorLayout>
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="/staff/caretaker-dashboard/*"
-          element={
-            <ProtectedRoute allowedRoles={["caretaker"]}>
-              <CaretakerLayout>
-                <Routes>
-                  <Route index element={<CaretakerDashboard />} />
-                  <Route path="assigned-elders" element={<AssignedElders />} />
-                  <Route path="meals" element={<CaretakerMeals />} />
-                  <Route path="rooms" element={<CaretakerRooms />} />
-                  <Route path="events" element={<CaretakerEvents />} />
-                </Routes>
-              </CaretakerLayout>
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="/staff/doctor-dashboard/*"
-          element={
-            <ProtectedRoute allowedRoles={["doctor"]}>
-              <DoctorLayout>
-                <Routes>
-                  <Route index element={<DoctorDashboard />} />
-                  <Route path="elders" element={<DoctorElders />} />
-                  {/* <Route path="elders/:elderId" element={<ElderProfile />} /> */}
-                  <Route path="appointments" element={<DoctorAppointments />} />
-                  <Route path="consultations" element={<DoctorConsultations />} />
-                </Routes>
-              </DoctorLayout>
-            </ProtectedRoute>
-          }
-        />
-      </Routes>
+          {/* Operator / Caretaker / Doctor */}
+          <Route
+            path="/staff/operator-dashboard/*"
+            element={
+              <ProtectedRoute allowedRoles={["operator"]}>
+                <OperatorLayout>
+                  <Routes>
+                    <Route index element={<OperatorDashboard />} />
+                    <Route path="elder-requests" element={<ElderRequests />} />
+                    <Route path="assign-caretaker" element={<AssignCaretakers />} />
+                  </Routes>
+                </OperatorLayout>
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/staff/caretaker-dashboard/*"
+            element={
+              <ProtectedRoute allowedRoles={["caretaker"]}>
+                <CaretakerLayout>
+                  <Routes>
+                    <Route index element={<CaretakerDashboard />} />
+                    <Route path="assigned-elders" element={<AssignedElders />} />
+                    <Route path="meals" element={<CaretakerMeals />} />
+                    <Route path="rooms" element={<CaretakerRooms />} />
+                    <Route path="events" element={<CaretakerEvents />} />
+                  </Routes>
+                </CaretakerLayout>
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/staff/doctor-dashboard/*"
+            element={
+              <ProtectedRoute allowedRoles={["doctor"]}>
+                <DoctorLayout>
+                  <Routes>
+                    <Route index element={<DoctorDashboard />} />
+                    <Route path="elders" element={<DoctorElders />} />
+                    {/* <Route path="elders/:elderId" element={<ElderProfile />} /> */}
+                    <Route path="appointments" element={<DoctorAppointments />} />
+                    <Route path="consultations" element={<DoctorConsultations />} />
+                  </Routes>
+                </DoctorLayout>
+              </ProtectedRoute>
+            }
+          />
+        </Routes>
       </div>
     </>
   );
