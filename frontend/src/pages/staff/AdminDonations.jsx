@@ -11,23 +11,35 @@ const AdminDonations = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
-  useEffect(() => {
-    const fetchData = async () => {
-      try {
-        const donationsRes = await api.get("/donations");
-        setDonations(donationsRes.data);
-
-        const donorsRes = await api.get("/donors");
-        setDonors(donorsRes.data);
-      } catch (err) {
-        console.error(err);
-        setError(err.response?.data?.message || "Error fetching data");
-      } finally {
-        setLoading(false);
+  const fetchData = async () => {
+    try {
+      const donationsRes = await api.get("/donations");
+      if (donationsRes.data.length > donations.length) {
+        toast.info("New donation received!");
       }
-    };
+      setDonations(donationsRes.data);
+
+      const donorsRes = await api.get("/donors");
+      setDonors(donorsRes.data);
+    } catch (err) {
+      console.error("Fetch error:", err);
+      setError(err.response?.data?.message || "Error fetching data");
+      toast.error(err.response?.data?.message || "Error fetching data");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    // Initial fetch
     fetchData();
-  }, []);
+
+    // Set up polling every 10 seconds
+    const intervalId = setInterval(fetchData, 10000);
+
+    // Clean up interval on component unmount
+    return () => clearInterval(intervalId);
+  }, [donations.length]); // Include donations.length to trigger toast on new donations
 
   const handleStatusChange = async (id, newStatus) => {
     try {
@@ -39,7 +51,7 @@ const AdminDonations = () => {
       );
       toast.success(`Status updated to "${newStatus}"`);
     } catch (err) {
-      console.error(err);
+      console.error("Status update error:", err);
       toast.error("Error updating status");
     }
   };
@@ -53,6 +65,7 @@ const AdminDonations = () => {
         )
       );
 
+      // Refresh donor list
       const donorsRes = await api.get("/donors");
       setDonors(donorsRes.data);
 
@@ -60,13 +73,16 @@ const AdminDonations = () => {
         checked ? "Added to donor list ✅" : "Removed from donor list ❌"
       );
     } catch (err) {
-      console.error(err);
+      console.error("Donor list update error:", err);
       toast.error("Error updating donor list");
     }
   };
 
   const downloadDonorListCSV = () => {
-    if (donors.length === 0) return;
+    if (donors.length === 0) {
+      toast.warn("No donors to export");
+      return;
+    }
 
     const headers = ["#", "Name", "Donation Date"];
     const rows = donors.map((d, index) => [
@@ -81,29 +97,41 @@ const AdminDonations = () => {
   };
 
   const downloadDonorListPDF = () => {
-    if (donors.length === 0) return;
+    if (donors.length === 0) {
+      toast.warn("No donors to export");
+      return;
+    }
 
-    const doc = new jsPDF();
-    doc.setFontSize(18);
-    doc.text("Our Monthly Donors", 14, 20);
+    try {
+      const doc = new jsPDF();
+      doc.setFontSize(18);
+      doc.text("Our Monthly Donors", 14, 20);
 
-    const tableColumn = ["#", "Name", "Donation Date"];
-    const tableRows = donors.map((donor, index) => [
-      index + 1,
-      donor.donorName,
-      donor.donationDate ? new Date(donor.donationDate).toLocaleDateString() : "-",
-    ]);
+      if (!doc.autoTable) {
+        throw new Error("autoTable plugin not loaded");
+      }
 
-    doc.autoTable({
-      head: [tableColumn],
-      body: tableRows,
-      startY: 30,
-      styles: { fontSize: 10 },
-      headStyles: { fillColor: [34, 197, 94], textColor: 255 }, // emerald/forest green
-      alternateRowStyles: { fillColor: [229, 231, 235] },
-    });
+      const tableColumn = ["#", "Name", "Donation Date"];
+      const tableRows = donors.map((donor, index) => [
+        index + 1,
+        donor.donorName,
+        donor.donationDate ? new Date(donor.donationDate).toLocaleDateString() : "-",
+      ]);
 
-    doc.save("monthly_donor_list.pdf");
+      doc.autoTable({
+        head: [tableColumn],
+        body: tableRows,
+        startY: 30,
+        styles: { fontSize: 10 },
+        headStyles: { fillColor: [34, 197, 94], textColor: 255 }, // emerald/forest green
+        alternateRowStyles: { fillColor: [229, 231, 235] },
+      });
+
+      doc.save("monthly_donor_list.pdf");
+    } catch (err) {
+      console.error("PDF generation error:", err);
+      toast.error(`Error generating PDF: ${err.message}`);
+    }
   };
 
   if (loading) return <p className="text-center mt-10">Loading data...</p>;
