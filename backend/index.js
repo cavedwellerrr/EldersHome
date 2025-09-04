@@ -8,6 +8,8 @@ import guardianRoutes from "./routes/guardianRoutes.js";
 import staffRoutes from "./routes/staff_route.js";
 import medicalRecordRoutes from "./routes/medicalRecord_route.js";
 import "./models/elder_model.js";
+import elderRoutes from "./routes/elder_route.js";
+
 
 
 import "./models/doctor_model.js";
@@ -25,6 +27,9 @@ app.use(cors({ credentials: true, origin: "http://localhost:5173" })); // replac
 
 // Routes
 app.use("/api/guardians", guardianRoutes);
+
+app.use("/api", elderRoutes);
+
 
 app.use("/api", medicalRecordRoutes);
 
