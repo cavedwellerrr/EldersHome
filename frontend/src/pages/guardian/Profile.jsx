@@ -17,17 +17,19 @@ const Profile = () => {
   if (!auth) return null; // will redirect anyway
 
   return (
-    <div className="max-w-md mx-auto mt-10 p-6 border rounded shadow">
-      <h2 className="text-2xl font-bold mb-4">Welcome, {auth.name}</h2>
-      <p>Email: {auth.email}</p>
-      <p>Phone: {auth.phone}</p>
-      <p>Address: {auth.address}</p>
-      <button
-        onClick={logout}
-        className="mt-4 bg-red-600 text-white p-2 rounded hover:bg-red-500"
-      >
-        Logout
-      </button>
+    <div className="min-h-screen bg-base-100 flex justify-center items-start py-10">
+      <div className="max-w-md w-full p-6 border rounded shadow bg-white">
+        <h2 className="text-2xl font-bold mb-4">Welcome, {auth.name}</h2>
+        <p>Email: {auth.email}</p>
+        <p>Phone: {auth.phone}</p>
+        <p>Address: {auth.address}</p>
+        <button
+          onClick={logout}
+          className="mt-4 bg-red-600 text-white p-2 rounded hover:bg-red-500"
+        >
+          Logout
+        </button>
+      </div>
     </div>
   );
 };

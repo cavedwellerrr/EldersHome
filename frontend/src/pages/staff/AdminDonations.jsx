@@ -110,7 +110,7 @@ const AdminDonations = () => {
   if (error) return <p className="text-center mt-10 text-error">{error}</p>;
 
   return (
-    <div data-theme="forest" className="min-h-screen bg-base-200 p-6">
+    <div className="min-h-screen bg-base-100 p-6">
       <ToastContainer />
 
       {/* Donations Table */}

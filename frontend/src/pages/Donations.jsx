@@ -70,7 +70,7 @@ const Donations = () => {
   };
 
   return (
-    <div data-theme="lemonade" className="min-h-screen bg-base-200 p-6">
+    <div className=" p-6">
       <ToastContainer />
 
       <div className="max-w-6xl mx-auto flex gap-10">
