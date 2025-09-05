@@ -2,7 +2,7 @@ import mongoose from "mongoose";
 
 const elderSchema = new mongoose.Schema(
   {
-    name: { type: String, required: true },
+    fullName: { type: String, required: true },
     dob: { type: Date },
     gender: { type: String, enum: ["male", "female", "other"] },
     room: { type: String }, // assigned by operator

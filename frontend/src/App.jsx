@@ -33,6 +33,7 @@ import AssignedElders from "./pages/staff/AssignedElders";
 import DoctorAppointments from "./pages/staff/DoctorAppointments";
 import DoctorConsultations from "./pages/staff/DoctorConsultations";
 import DoctorElders from "./pages/staff/DoctorElders";
+import DoctorMedicalRecords from "./pages/staff/DoctorMedicalRecords";
 
 //Operator
 import ElderRequests from "./pages/staff/ElderRequests";
@@ -98,6 +99,8 @@ const App = () => {
                   <Route index element={<OperatorDashboard />} />
                   <Route path="elder-requests" element={<ElderRequests />} />
                   <Route path="assign-caretaker" element={<AssignCaretakers />} />
+
+
                 </Routes>
               </OperatorLayout>
             </ProtectedRoute>
@@ -130,6 +133,8 @@ const App = () => {
                   {/* <Route path="elders/:elderId" element={<ElderProfile />} /> */}
                   <Route path="appointments" element={<DoctorAppointments />} />
                   <Route path="consultations" element={<DoctorConsultations />} />
+                  <Route path="medicalrecords" element={<DoctorMedicalRecords />} /> {/* 👈 Add this */}
+
                 </Routes>
               </DoctorLayout>
             </ProtectedRoute>

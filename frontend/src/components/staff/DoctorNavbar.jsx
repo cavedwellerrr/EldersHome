@@ -46,6 +46,13 @@ const DoctorNavbar = () => {
         >
           Consultations
         </Link>
+                <Link
+          to="/staff/doctor-dashboard/medicalrecords"
+          className={`px-3 py-2 rounded ${isActive("/staff/doctor-dashboard/medicalrecords") ? "bg-green-500" : "hover:bg-green-500"
+            }`}
+        >
+          Medical Records
+        </Link>
       </div>
 
       {/* Right profile + logout */}
