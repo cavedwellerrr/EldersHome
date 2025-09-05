@@ -22,43 +22,39 @@ const CaretakerNavbar = () => {
         <div className="flex items-center space-x-6 text-lg font-medium">
           <Link
             to="/staff/caretaker-dashboard"
-            className={`transition ${
-              isActive("/staff/caretaker-dashboard")
-                ? "font-bold text-yellow-300"
-                : "hover:text-yellow-200"
-            }`}
+            className={`transition ${isActive("/staff/caretaker-dashboard")
+              ? "font-bold text-yellow-300"
+              : "hover:text-yellow-200"
+              }`}
           >
             Caretaker Portal
           </Link>
           <Link
             to="/staff/caretaker-dashboard/assigned-elders"
-            className={`transition ${
-              isActive("/staff/caretaker-dashboard/assigned-elders")
-                ? "font-bold text-yellow-300"
-                : "hover:text-yellow-200"
-            }`}
+            className={`transition ${isActive("/staff/caretaker-dashboard/assigned-elders")
+              ? "font-bold text-yellow-300"
+              : "hover:text-yellow-200"
+              }`}
           >
             Assigned Elders
           </Link>
           <Link
             to="/staff/caretaker-dashboard/meals"
-            className={`transition ${
-              isActive("/staff/caretaker-dashboard/meals")
-                ? "font-bold text-yellow-300"
-                : "hover:text-yellow-200"
-            }`}
+            className={`transition ${isActive("/staff/caretaker-dashboard/meals")
+              ? "font-bold text-yellow-300"
+              : "hover:text-yellow-200"
+              }`}
           >
             Meals
           </Link>
           <Link
             to="/staff/caretaker-dashboard/rooms"
-            className={`transition ${
-              isActive("/staff/caretaker-dashboard/rooms")
-                ? "font-bold text-yellow-300"
-                : "hover:text-yellow-200"
-            }`}
+            className={`transition ${isActive("/staff/caretaker-dashboard/rooms")
+              ? "font-bold text-yellow-300"
+              : "hover:text-yellow-200"
+              }`}
           >
-            Rooms
+            {/* Rooms
           </Link>
           <Link
             to="/staff/caretaker-dashboard/events"
@@ -67,7 +63,7 @@ const CaretakerNavbar = () => {
                 ? "font-bold text-yellow-300"
                 : "hover:text-yellow-200"
             }`}
-          >
+          > */}
             Events
           </Link>
         </div>
