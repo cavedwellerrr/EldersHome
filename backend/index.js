@@ -9,11 +9,12 @@ import staffRoutes from "./routes/staff_route.js";
 import medicalRecordRoutes from "./routes/medicalRecord_route.js";
 import "./models/elder_model.js";
 import elderRoutes from "./routes/elder_route.js";
-
-
-
 import "./models/doctor_model.js";
 import "./models/medicalRecord_model.js";
+import caretakerRoutes from "./routes/Caretaker3.route.js";
+import consultationRoutes from "./routes/consultation_route.js";
+
+
 
 
 const app = express();
@@ -30,10 +31,14 @@ app.use("/api/guardians", guardianRoutes);
 
 app.use("/api", elderRoutes);
 
+app.use("/caretakers", caretakerRoutes);
 
 app.use("/api", medicalRecordRoutes);
 
 app.use("/api/staff", staffRoutes);
+
+app.use("/consultations", consultationRoutes);
+
 
 app.get("/", (req, res) => res.send("API working"));
 

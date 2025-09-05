@@ -4,8 +4,8 @@ import Elder from "../models/elder_model.js";
 export const getAllElders = async (req, res) => {
   try {
     const elders = await Elder.find()
-      .populate("caretaker", "fullname")
-      .populate("guardian", "fullname");
+      .populate("caretaker", "name")   // caretakers use "name"
+      .populate("guardian", "name");   // guardians use "name"
     res.json(elders);
   } catch (error) {
     console.error("Error fetching elders:", error);
@@ -18,7 +18,7 @@ export const getEldersByCaretaker = async (req, res) => {
   try {
     const { caretakerId } = req.params;
     const elders = await Elder.find({ caretaker: caretakerId })
-      .populate("guardian", "fullName ");
+      .populate("guardian", "name ");
     res.json(elders);
   } catch (error) {
     console.error("Error fetching caretaker elders:", error);
@@ -36,7 +36,7 @@ export const getElderByName = async (req, res) => {
 
     // Case-insensitive search using regex
     const elders = await Elder.find({
-      fullname: { $regex: nameQuery, $options: "i" }
+      fullName: { $regex: nameQuery, $options: "i" }
     })
       .populate("caretaker", "fullname ")
       .populate("guardian", "fullname ");

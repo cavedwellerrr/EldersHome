@@ -4,6 +4,7 @@ import {
   getAllMedicalRecords,
   updateMedicalRecord,
   deleteMedicalRecord,
+  
 } from "../controllers/medicalRecordController.js";
 
 
