@@ -48,7 +48,7 @@ const StaffRegister = () => {
   };
 
   return (
-    <div style={{ maxWidth: "500px", margin: "50px auto" }}>
+    <div style={{ maxWidth: "500px" }}>
       <h2>Register New Staff</h2>
       {error && <p style={{ color: "red" }}>{error}</p>}
       {success && <p style={{ color: "green" }}>{success}</p>}

@@ -12,51 +12,63 @@ const OperatorNavbar = () => {
     navigate("/staff/login");
   };
 
+  // Highlight active tab
   const isActive = (path) => location.pathname === path;
 
   return (
-    <nav className="bg-yellow-600 text-white p-4 flex justify-between items-center">
-      {/* Left tabs */}
-      <div className="flex items-center space-x-4">
-        <Link
-          
-          className={`font-bold text-lg px-3 py-2 rounded 
+    <nav className="bg-gradient-to-r from-orange-400 to-orange-600 text-white shadow-md">
+      <div className="max-w-7xl mx-auto px-6 py-4 flex justify-between items-center">
+        {/* Left side tabs */}
+        <div className="flex items-center space-x-6 text-lg font-medium">
+          <Link
+            to="/staff/operator-dashboard"
+            className={`transition ${
+              isActive("/staff/operator-dashboard")
+                ? "font-bold text-yellow-300"
+                : "hover:text-yellow-200"
             }`}
-        >
-          Operator Portal
-        </Link>
-        <Link
-          to="/staff/operator-dashboard"
-          className={`px-3 py-2 rounded ${isActive("/staff/operator-dashboard") ? "bg-yellow-500" : "hover:bg-yellow-500"
+          >
+            Operator Portal
+          </Link>
+          <Link
+            to="/staff/operator-dashboard"
+            className={`transition ${
+              isActive("/staff/operator-dashboard")
+                ? "font-bold text-yellow-300"
+                : "hover:text-yellow-200"
             }`}
-        >
-          Elder Requests
-        </Link>
-        <Link
-          to="/staff/operator-dashboard/assign-caretaker"
-          className={`px-3 py-2 rounded ${isActive("/staff/operator-dashboard/assign-caretaker") ? "bg-yellow-500" : "hover:bg-yellow-500"
+          >
+            Elder Requests
+          </Link>
+          <Link
+            to="/staff/operator-dashboard/assign-caretaker"
+            className={`transition ${
+              isActive("/staff/operator-dashboard/assign-caretaker")
+                ? "font-bold text-yellow-300"
+                : "hover:text-yellow-200"
             }`}
-        >
-          Assign Caretaker
-        </Link>
-      </div>
+          >
+            Assign Caretaker
+          </Link>
+        </div>
 
-      {/* Right profile + logout */}
-      <div className="flex items-center space-x-4">
-        <Link
-          to="/staff/operator-dashboard"
-          className="flex items-center space-x-1 hover:bg-yellow-500 px-3 py-2 rounded"
-        >
-          <User size={20} />
-          <span>{name}</span>
-        </Link>
-        <button
-          onClick={handleLogout}
-          className="flex items-center space-x-1 hover:bg-yellow-500 px-3 py-2 rounded"
-        >
-          <LogOut size={20} />
-          <span>Logout</span>
-        </button>
+        {/* Right side profile + logout */}
+        <div className="flex items-center space-x-5 text-lg font-medium">
+          <Link
+            to="/staff/operator-dashboard"
+            className="flex items-center space-x-2 transition hover:text-yellow-200"
+          >
+            <User size={22} />
+            <span>{name}</span>
+          </Link>
+          <button
+            onClick={handleLogout}
+            className="flex items-center space-x-2 transition hover:text-yellow-200"
+          >
+            <LogOut size={22} />
+            <span>Logout</span>
+          </button>
+        </div>
       </div>
     </nav>
   );

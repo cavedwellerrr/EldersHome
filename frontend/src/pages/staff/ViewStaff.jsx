@@ -82,7 +82,7 @@ const ViewStaff = () => {
     }
   };
 
-  if (loading) return <p className="text-center mt-5">Loading staff members...</p>;
+  if (loading) return <p className="text-center ">Loading staff members...</p>;
 
   return (
     <div>
