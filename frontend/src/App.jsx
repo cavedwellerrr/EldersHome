@@ -54,7 +54,7 @@ const App = () => {
 
   return (
     <>
-      <div data-theme="light">
+     
         {showNavbar && <Navbar />}
         <Routes>
           {/* Public routes */}
@@ -139,7 +139,7 @@ const App = () => {
             }
           />
         </Routes>
-      </div>
+      
     </>
   );
 };
