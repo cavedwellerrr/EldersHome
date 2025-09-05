@@ -208,3 +208,12 @@ export const updateStaff = async (req, res) => {
     res.status(500).json({ message: "Server error while updating staff" });
   }
 };
+
+export const listCaretakers = async (req, res) => {
+  try {
+    const caretakers = await Staff.find({ role: "caretaker" });
+    res.json(caretakers);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};

@@ -12,6 +12,7 @@ import Events from "./pages/Events";
 import Login from "./pages/guardian/Login";
 import Register from "./pages/guardian/Register";
 import Profile from "./pages/guardian/Profile";
+import ElderRegisterPage from "./pages/elderRegister";
 
 // Staff pages
 import StaffLogin from "./pages/staff/StaffLogin";
@@ -36,8 +37,8 @@ import DoctorConsultations from "./pages/staff/DoctorConsultations";
 import DoctorElders from "./pages/staff/DoctorElders";
 
 //Operator
-import ElderRequests from "./pages/staff/ElderRequests";
 import AssignCaretakers from "./pages/staff/AssignCaretakers";
+import PendingPaymentsDashboard from "./pages/staff/PendingPaymentsDashboard";
 
 import Navbar from "./components/Navbar";
 import ProtectedRoute from "./components/ProtectedRoute";
@@ -68,6 +69,7 @@ const App = () => {
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
           <Route path="/profile" element={<Profile />} />
+          <Route path="/elder-register" element={<ElderRegisterPage />} />
 
           {/* Staff routes */}
           <Route path="/staff/login" element={<StaffLogin />} />
@@ -99,7 +101,7 @@ const App = () => {
                 <OperatorLayout>
                   <Routes>
                     <Route index element={<OperatorDashboard />} />
-                    <Route path="elder-requests" element={<ElderRequests />} />
+                    <Route path="elder-requests" element={<PendingPaymentsDashboard />} />
                     <Route path="assign-caretaker" element={<AssignCaretakers />} />
                   </Routes>
                 </OperatorLayout>

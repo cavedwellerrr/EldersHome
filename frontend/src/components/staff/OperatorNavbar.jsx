@@ -19,15 +19,15 @@ const OperatorNavbar = () => {
       {/* Left tabs */}
       <div className="flex items-center space-x-4">
         <Link
-          to="/staff/operator-dashboard"
-          className={`font-bold text-lg px-3 py-2 rounded ${isActive("/staff/operator-dashboard") ? "bg-yellow-500" : "hover:bg-yellow-500"
+          
+          className={`font-bold text-lg px-3 py-2 rounded 
             }`}
         >
           Operator Portal
         </Link>
         <Link
-          to="/staff/operator-dashboard/elder-requests"
-          className={`px-3 py-2 rounded ${isActive("/staff/operator-dashboard/elder-requests") ? "bg-yellow-500" : "hover:bg-yellow-500"
+          to="/staff/operator-dashboard"
+          className={`px-3 py-2 rounded ${isActive("/staff/operator-dashboard") ? "bg-yellow-500" : "hover:bg-yellow-500"
             }`}
         >
           Elder Requests

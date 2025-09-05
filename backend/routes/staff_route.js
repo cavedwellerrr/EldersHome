@@ -1,10 +1,13 @@
 import express from "express";
 import { protectAdmin } from "../middleware/authMiddleware.js";
+import { protectStaff } from "../middleware/staffAuth.js";
+
 import {
   registerStaff,
   loginStaff,
   deleteStaff,
   updateStaff,
+  listCaretakers,
 } from "../controllers/staffController.js";
 import Staff from "../models/staff_model.js";
 
@@ -22,5 +25,6 @@ router.get("/", protectAdmin, async (req, res) => {
     res.status(500).json({ message: "Error fetching staff", error: err });
   }
 });
+router.get("/caretakers", protectStaff, listCaretakers);
 
 export default router;
