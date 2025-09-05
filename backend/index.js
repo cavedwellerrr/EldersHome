@@ -7,7 +7,9 @@ import connectDB from "./config/mongodb.js";
 import guardianRoutes from "./routes/guardianRoutes.js";
 import staffRoutes from "./routes/staff_route.js";
 
+import roomRoutes from "./routes/roomRoutes.js";
 import mealRoutes from "./routes/mealRoutes.js"
+
 
 const app = express();
 const port = process.env.PORT || 4000;
@@ -22,7 +24,12 @@ app.use(cors({ credentials: true, origin: "http://localhost:5173" })); // replac
 app.use("/api/guardians", guardianRoutes);
 
 app.use("/api/staff", staffRoutes);
+
+//WSM subsystem
 app.use("/api/meals", mealRoutes);//meal
+app.use("/api/rooms", roomRoutes);//rooms
+// app.use("/api/caretaker/elders", caretakerElderRoutes);
+
 
 app.get("/", (req, res) => res.send("API working"));
 

@@ -3,7 +3,8 @@ import OperatorNavbar from "../components/staff/OperatorNavbar";
 
 const OperatorLayout = ({ children }) => {
   return (
-    <div>
+    <div className="min-h-screen bg-[#FFF7F2] text-neutral-800">
+
       <OperatorNavbar />
       <main className="p-6">{children}</main>
     </div>

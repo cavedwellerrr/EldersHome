@@ -13,7 +13,8 @@ const Navbar = () => {
   };
 
   return (
-    <nav className="bg-blue-600 text-white p-4 flex justify-between items-center">
+
+    <nav className="bg-blue-600 text-white p-4 flex justify-between  items-center">
       <div className="flex items-center space-x-4">
         <Link to="/" className="font-bold text-lg">EldersHome</Link>
         <Link to="/events" className="hover:bg-blue-500 px-3 py-2 rounded">Events</Link>

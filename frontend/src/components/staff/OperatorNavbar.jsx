@@ -39,6 +39,13 @@ const OperatorNavbar = () => {
         >
           Assign Caretaker
         </Link>
+        <Link
+          to="/staff/operator-dashboard/rooms"
+          className={`px-3 py-2 rounded ${isActive("/staff/operator-dashboard/rooms") ? "bg-yellow-500" : "hover:bg-yellow-500"
+            }`}
+        >
+          Manage Rooms
+        </Link>
       </div>
 
       {/* Right profile + logout */}
