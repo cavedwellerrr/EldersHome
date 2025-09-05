@@ -27,7 +27,8 @@ import AdminEvents from "./pages/staff/AdminEvents";
 import CaretakerMeals from "./pages/staff/CaretakerMeals";
 import CaretakerEvents from "./pages/staff/CaretakerEvents";
 import CaretakerRooms from "./pages/staff/CaretakerRooms";
-import AssignedElders from "./pages/staff/AssignedElders";
+// import AssignedElders from "./pages/staff/AssignedElders";
+import C_ElderProfile from "./pages/staff/C_ElderProfile"
 
 //Doctor
 import DoctorAppointments from "./pages/staff/DoctorAppointments";
@@ -37,6 +38,7 @@ import DoctorElders from "./pages/staff/DoctorElders";
 //Operator
 import ElderRequests from "./pages/staff/ElderRequests";
 import AssignCaretakers from "./pages/staff/AssignCaretakers";
+import OperatorRooms from "./pages/staff/OperatorRooms"
 
 import Navbar from "./components/Navbar";
 import ProtectedRoute from "./components/ProtectedRoute";
@@ -54,6 +56,8 @@ const App = () => {
   return (
     <>
       {showNavbar && <Navbar />}
+
+
       <Routes>
         {/* Public routes */}
         <Route path="/" element={<Home />} />
@@ -98,6 +102,8 @@ const App = () => {
                   <Route index element={<OperatorDashboard />} />
                   <Route path="elder-requests" element={<ElderRequests />} />
                   <Route path="assign-caretaker" element={<AssignCaretakers />} />
+
+                  <Route path="rooms" element={<OperatorRooms />} />
                 </Routes>
               </OperatorLayout>
             </ProtectedRoute>
@@ -110,9 +116,10 @@ const App = () => {
               <CaretakerLayout>
                 <Routes>
                   <Route index element={<CaretakerDashboard />} />
-                  <Route path="assigned-elders" element={<AssignedElders />} />
+                  {/* <Route path="assigned-elders" element={<AssignedElders />} /> */}
                   <Route path="meals" element={<CaretakerMeals />} />
                   <Route path="rooms" element={<CaretakerRooms />} />
+                  <Route path="elder/:elderId" element={<C_ElderProfile />} />
                   <Route path="events" element={<CaretakerEvents />} />
                 </Routes>
               </CaretakerLayout>
