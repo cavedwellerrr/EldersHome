@@ -12,6 +12,7 @@ import { protect } from "./middleware/authGuardianMiddleware.js";
 import caretakerRoutes from "./routes/caretakerRoutes.js";
 import donationsRoutes from "./routes/donationsRoute.js";
 import donorListRoutes from "./routes/donorListRoutes.js";
+import caretakerElderRoutes from "./routes/caretaker_elder_routes.js"
 
 // Derive __dirname equivalent for ES Modules
 const __filename = fileURLToPath(import.meta.url);
@@ -40,6 +41,8 @@ app.use("/api/caretakers", caretakerRoutes);
 //donation routes
 app.use("/api/donations", donationsRoutes);
 app.use("/api/donors", donorListRoutes);
+
+app.use("/api/caretaker/elders", caretakerElderRoutes);
 
 app.get("/", (req, res) => res.send("API working"));
 
