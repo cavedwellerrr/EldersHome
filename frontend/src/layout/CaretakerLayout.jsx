@@ -5,7 +5,7 @@ const CaretakerLayout = ({ children }) => {
   return (
     <div>
       <CaretakerNavbar />
-      <main className="p-6">{children}</main>
+      <main className="p-0 min-h-screen" data-theme="light">{children}</main>
     </div>
   );
 };

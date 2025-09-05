@@ -5,7 +5,7 @@ const OperatorLayout = ({ children }) => {
   return (
     <div>
       <OperatorNavbar />
-      <main className="p-6">{children}</main>
+      <main className="p-0 min-h-screen" data-theme="light">{children}</main>
     </div>
   );
 };
