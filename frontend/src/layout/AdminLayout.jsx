@@ -5,7 +5,7 @@ const AdminLayout = ({ children }) => {
   return (
     <div>
       <AdminNavbar />
-      <main className="p-0 min-h-screen bg-base-100">{children}</main>
+      <main  className="p-0 min-h-screen" data-theme="light">{children}</main>
     </div>
   );
 };
