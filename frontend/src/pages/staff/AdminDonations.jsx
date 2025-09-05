@@ -78,6 +78,19 @@ const AdminDonations = () => {
     }
   };
 
+  const handleDeleteDonation = async (id) => {
+    if (!window.confirm("Are you sure you want to delete this donation?")) return;
+
+    try {
+      await api.post(`/donations/delete/${id}`);
+      setDonations((prev) => prev.filter((donation) => donation._id !== id));
+      toast.success("Donation deleted successfully");
+    } catch (err) {
+      console.error("Delete donation error:", err);
+      toast.error("Error deleting donation");
+    }
+  };
+
   const downloadDonorListCSV = () => {
     if (donors.length === 0) {
       toast.warn("No donors to export");
@@ -158,6 +171,7 @@ const AdminDonations = () => {
               <th>Status</th>
               <th>Add to Donor List</th>
               <th>Date</th>
+              <th>Actions</th>
             </tr>
           </thead>
           <tbody>
@@ -198,6 +212,14 @@ const AdminDonations = () => {
                   />
                 </td>
                 <td>{new Date(donation.createdAt).toLocaleDateString()}</td>
+                <td>
+                  <button
+                    onClick={() => handleDeleteDonation(donation._id)}
+                    className="btn btn-sm btn-error"
+                  >
+                    🗑️
+                  </button>
+                </td>
               </tr>
             ))}
           </tbody>
@@ -224,6 +246,7 @@ const AdminDonations = () => {
               <th>#</th>
               <th>Name</th>
               <th className="text-center">Donation Date</th>
+              <th >Actions</th>
             </tr>
           </thead>
           <tbody>
@@ -235,6 +258,24 @@ const AdminDonations = () => {
                   {donor.donationDate
                     ? new Date(donor.donationDate).toLocaleDateString()
                     : "-"}
+                </td>
+                <td>
+                  <button
+                    onClick={async () => {
+                      if (!window.confirm("Are you sure you want to delete this donor?")) return;
+                      try {
+                        await api.delete(`/donors/${donor._id}`);
+                        setDonors((prev) => prev.filter((d) => d._id !== donor._id));
+                        toast.success("Donor deleted successfully");
+                      } catch (err) {
+                        console.error("Delete donor error:", err);
+                        toast.error("Error deleting donor");
+                      }
+                    }}
+                    className="btn btn-sm btn-error"
+                  >
+                    🗑️
+                  </button>
                 </td>
               </tr>
             ))}

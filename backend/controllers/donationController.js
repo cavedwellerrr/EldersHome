@@ -79,3 +79,32 @@ export const updateDonationStatus = async (req, res) => {
   }
 };
 
+// Delete donation
+export const deleteDonation = async (req, res) => {
+  try {
+    const donation = await Donation.findById(req.params.id);
+    if (!donation) {
+      return res.status(404).json({ message: "Donation not found" });
+    }
+
+    // If donation was linked to donor list, remove donor only if they have no other donations
+    if (donation.addToDonorList) {
+      const donorDonations = await Donation.find({
+        donorName: donation.donorName,
+        _id: { $ne: donation._id },
+      });
+
+      if (donorDonations.length === 0) {
+        await DonorList.deleteOne({ donorName: donation.donorName });
+      }
+    }
+
+    await donation.deleteOne();
+
+    res.json({ message: "Donation deleted successfully" });
+  } catch (error) {
+    console.error("Error deleting donation:", error);
+    res.status(500).json({ message: "Server error while deleting donation" });
+  }
+};
+
