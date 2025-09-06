@@ -180,7 +180,7 @@ const AdminDonations = () => {
         <div className="text-center space-y-4 p-8">
           <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto">
             <svg className="w-8 h-8 text-red-500" fill="currentColor" viewBox="0 0 24 24">
-              <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/>
+              <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z" />
             </svg>
           </div>
           <p className="text-xl font-semibold text-red-600">{error}</p>
@@ -192,7 +192,7 @@ const AdminDonations = () => {
   return (
     <div className="min-h-screen bg-gradient-to-br from-orange-50 to-white">
       <ToastContainer />
-      
+
       {/* Header Section */}
       <div className="bg-white shadow-sm border-b border-orange-100">
         <div className="max-w-7xl mx-auto px-6 py-8">
@@ -201,14 +201,14 @@ const AdminDonations = () => {
               <h1 className="text-3xl font-bold text-gray-900 flex items-center gap-3">
                 <div className="w-10 h-10 bg-gradient-to-br from-orange-500 to-orange-600 rounded-xl flex items-center justify-center">
                   <svg className="w-6 h-6 text-white" fill="currentColor" viewBox="0 0 24 24">
-                    <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
+                    <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" />
                   </svg>
                 </div>
                 Donations Dashboard
               </h1>
               <p className="text-gray-600 mt-2">Manage and track all donations in real-time</p>
             </div>
-            
+
             <div className="flex items-center gap-3">
               <div className="w-3 h-3 bg-green-500 rounded-full animate-pulse"></div>
               <span className="text-sm text-gray-600 font-medium">Live Updates</span>
@@ -218,7 +218,7 @@ const AdminDonations = () => {
       </div>
 
       <div className="max-w-7xl mx-auto px-6 py-8 space-y-8">
-        
+
         {/* Stats Cards */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
           <div className="bg-white rounded-2xl p-6 shadow-lg border border-orange-100 hover:shadow-xl transition-all duration-300">
@@ -229,7 +229,7 @@ const AdminDonations = () => {
               </div>
               <div className="w-12 h-12 bg-orange-100 rounded-xl flex items-center justify-center">
                 <svg className="w-6 h-6 text-orange-500" fill="currentColor" viewBox="0 0 24 24">
-                  <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
+                  <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" />
                 </svg>
               </div>
             </div>
@@ -243,7 +243,7 @@ const AdminDonations = () => {
               </div>
               <div className="w-12 h-12 bg-green-100 rounded-xl flex items-center justify-center">
                 <svg className="w-6 h-6 text-green-500" fill="currentColor" viewBox="0 0 24 24">
-                  <path d="M11.8 10.9c-2.27-.59-3-1.2-3-2.15 0-1.09 1.01-1.85 2.7-1.85 1.78 0 2.44.85 2.5 2.1h2.21c-.07-1.72-1.12-3.3-3.21-3.81V3h-3v2.16c-1.94.42-3.5 1.68-3.5 3.61 0 2.31 1.91 3.46 4.7 4.13 2.5.6 3 1.48 3 2.41 0 .69-.49 1.79-2.7 1.79-2.06 0-2.87-.92-2.98-2.1h-2.2c.12 2.19 1.76 3.42 3.68 3.83V21h3v-2.15c1.95-.37 3.5-1.5 3.5-3.55 0-2.84-2.43-3.81-4.7-4.4z"/>
+                  <path d="M11.8 10.9c-2.27-.59-3-1.2-3-2.15 0-1.09 1.01-1.85 2.7-1.85 1.78 0 2.44.85 2.5 2.1h2.21c-.07-1.72-1.12-3.3-3.21-3.81V3h-3v2.16c-1.94.42-3.5 1.68-3.5 3.61 0 2.31 1.91 3.46 4.7 4.13 2.5.6 3 1.48 3 2.41 0 .69-.49 1.79-2.7 1.79-2.06 0-2.87-.92-2.98-2.1h-2.2c.12 2.19 1.76 3.42 3.68 3.83V21h3v-2.15c1.95-.37 3.5-1.5 3.5-3.55 0-2.84-2.43-3.81-4.7-4.4z" />
                 </svg>
               </div>
             </div>
@@ -257,7 +257,7 @@ const AdminDonations = () => {
               </div>
               <div className="w-12 h-12 bg-yellow-100 rounded-xl flex items-center justify-center">
                 <svg className="w-6 h-6 text-yellow-500" fill="currentColor" viewBox="0 0 24 24">
-                  <path d="M12,2A10,10 0 0,0 2,12A10,10 0 0,0 12,22A10,10 0 0,0 22,12A10,10 0 0,0 12,2M7.07,18.28C7.5,17.38 10.12,16.5 12,16.5C13.88,16.5 16.5,17.38 16.93,18.28C15.57,19.36 13.86,20 12,20C10.14,20 8.43,19.36 7.07,18.28M18.36,16.83C16.93,15.09 13.46,14.5 12,14.5C10.54,14.5 7.07,15.09 5.64,16.83C4.62,15.5 4,13.82 4,12C4,7.59 7.59,4 12,4C16.41,4 20,7.59 20,12C20,13.82 19.38,15.5 18.36,16.83M12,6C10.06,6 8.5,7.56 8.5,9.5C8.5,11.44 10.06,13 12,13C13.94,13 15.5,11.44 15.5,9.5C15.5,7.56 13.94,6 12,6M12,11A1.5,1.5 0 0,1 10.5,9.5A1.5,1.5 0 0,1 12,8A1.5,1.5 0 0,1 13.5,9.5A1.5,1.5 0 0,1 12,11Z"/>
+                  <path d="M12,2A10,10 0 0,0 2,12A10,10 0 0,0 12,22A10,10 0 0,0 22,12A10,10 0 0,0 12,2M7.07,18.28C7.5,17.38 10.12,16.5 12,16.5C13.88,16.5 16.5,17.38 16.93,18.28C15.57,19.36 13.86,20 12,20C10.14,20 8.43,19.36 7.07,18.28M18.36,16.83C16.93,15.09 13.46,14.5 12,14.5C10.54,14.5 7.07,15.09 5.64,16.83C4.62,15.5 4,13.82 4,12C4,7.59 7.59,4 12,4C16.41,4 20,7.59 20,12C20,13.82 19.38,15.5 18.36,16.83M12,6C10.06,6 8.5,7.56 8.5,9.5C8.5,11.44 10.06,13 12,13C13.94,13 15.5,11.44 15.5,9.5C15.5,7.56 13.94,6 12,6M12,11A1.5,1.5 0 0,1 10.5,9.5A1.5,1.5 0 0,1 12,8A1.5,1.5 0 0,1 13.5,9.5A1.5,1.5 0 0,1 12,11Z" />
                 </svg>
               </div>
             </div>
@@ -271,7 +271,7 @@ const AdminDonations = () => {
               </div>
               <div className="w-12 h-12 bg-green-100 rounded-xl flex items-center justify-center">
                 <svg className="w-6 h-6 text-green-500" fill="currentColor" viewBox="0 0 24 24">
-                  <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/>
+                  <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z" />
                 </svg>
               </div>
             </div>
@@ -283,13 +283,13 @@ const AdminDonations = () => {
           <div className="bg-gradient-to-r from-orange-500 to-orange-600 px-6 py-4">
             <h2 className="text-2xl font-bold text-white flex items-center gap-3">
               <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 24 24">
-                <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
+                <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" />
               </svg>
               All Donations
             </h2>
             <p className="text-orange-100 mt-1">Manage and track donation status</p>
           </div>
-          
+
           <div className="overflow-x-auto">
             <table className="table w-full">
               <thead className="bg-gray-50">
@@ -301,6 +301,7 @@ const AdminDonations = () => {
                   <th className="text-center font-semibold text-gray-700">Qty</th>
                   <th className="text-center font-semibold text-gray-700">Public</th>
                   <th className="text-center font-semibold text-gray-700">Status</th>
+                  <th className="text-center font-semibold text-gray-700">Payment ID</th>
                   <th className="text-center font-semibold text-gray-700">Donor List</th>
                   <th className="text-center font-semibold text-gray-700">Date</th>
                   <th className="text-center font-semibold text-gray-700">Actions</th>
@@ -312,11 +313,10 @@ const AdminDonations = () => {
                     <td className="font-medium text-gray-900">{donation.donorName}</td>
                     <td className="text-gray-600">{donation.donorEmail}</td>
                     <td>
-                      <span className={`px-3 py-1 rounded-full text-xs font-semibold ${
-                        donation.donationType === 'cash' 
-                          ? 'bg-green-100 text-green-700' 
+                      <span className={`px-3 py-1 rounded-full text-xs font-semibold ${donation.donationType === 'cash'
+                          ? 'bg-green-100 text-green-700'
                           : 'bg-blue-100 text-blue-700'
-                      }`}>
+                        }`}>
                         {donation.donationType === 'cash' ? '💰 Cash' : '📦 Item'}
                       </span>
                     </td>
@@ -329,11 +329,10 @@ const AdminDonations = () => {
                       {donation.donationType === "item" ? donation.quantity : "-"}
                     </td>
                     <td className="text-center">
-                      <span className={`px-2 py-1 rounded-full text-xs font-semibold ${
-                        donation.listAcknowledgment 
-                          ? 'bg-green-100 text-green-700' 
+                      <span className={`px-2 py-1 rounded-full text-xs font-semibold ${donation.listAcknowledgment
+                          ? 'bg-green-100 text-green-700'
                           : 'bg-gray-100 text-gray-700'
-                      }`}>
+                        }`}>
                         {donation.listAcknowledgment ? "Yes" : "No"}
                       </span>
                     </td>
@@ -348,6 +347,9 @@ const AdminDonations = () => {
                         <option value="pending">⏳ Pending</option>
                         <option value="received">✅ Received</option>
                       </select>
+                    </td>
+                    <td className="text-center text-gray-600 text-sm max-w-[150px] break-words">
+                      {donation.paymentId || "-"}
                     </td>
                     <td className="text-center">
                       <input
@@ -376,12 +378,12 @@ const AdminDonations = () => {
               </tbody>
             </table>
           </div>
-          
+
           {donations.length === 0 && (
             <div className="text-center py-12">
               <div className="w-16 h-16 bg-orange-100 rounded-full mx-auto mb-4 flex items-center justify-center">
                 <svg className="w-8 h-8 text-orange-500" fill="currentColor" viewBox="0 0 24 24">
-                  <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
+                  <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" />
                 </svg>
               </div>
               <p className="text-gray-500 text-lg">No donations yet</p>
@@ -395,22 +397,22 @@ const AdminDonations = () => {
             <div>
               <h2 className="text-2xl font-bold text-white flex items-center gap-3">
                 <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 24 24">
-                  <path d="M16 4c0-1.11.89-2 2-2s2 .89 2 2-.89 2-2 2-2-.89-2-2zm4 18v-6h2.5l-2.54-7.63A2.99 2.99 0 0 0 16.85 6c-.47 0-.91.17-1.25.47L14 7.75V12c0 1.11-.89 2-2 2s-2-.89-2-2V5c0-1.11.89-2 2-2s2 .89 2 2v3l4.05-2.76c.85-.58 2-.58 2.85 0L22 8v14h-2z"/>
+                  <path d="M16 4c0-1.11.89-2 2-2s2 .89 2 2-.89 2-2 2-2-.89-2-2zm4 18v-6h2.5l-2.54-7.63A2.99 2.99 0 0 0 16.85 6c-.47 0-.91.17-1.25.47L14 7.75V12c0 1.11-.89 2-2 2s-2-.89-2-2V5c0-1.11.89-2 2-2s2 .89 2 2v3l4.05-2.76c.85-.58 2-.58 2.85 0L22 8v14h-2z" />
                 </svg>
                 Public Donor List
               </h2>
               <p className="text-orange-100 mt-1">Export and manage public donor recognition</p>
             </div>
-            
+
             <div className="flex gap-3">
-              <button 
-                onClick={downloadDonorListCSV} 
+              <button
+                onClick={downloadDonorListCSV}
                 className="btn bg-white text-orange-600 hover:bg-orange-50 border-white hover:border-orange-100 rounded-lg shadow-lg transition-all duration-200"
               >
                 📄 CSV
               </button>
-              <button 
-                onClick={downloadDonorListPDF} 
+              <button
+                onClick={downloadDonorListPDF}
                 className="btn bg-orange-700 text-white hover:bg-orange-800 border-orange-700 hover:border-orange-800 rounded-lg shadow-lg transition-all duration-200"
               >
                 📑 PDF
@@ -474,7 +476,7 @@ const AdminDonations = () => {
             <div className="text-center py-12">
               <div className="w-16 h-16 bg-orange-100 rounded-full mx-auto mb-4 flex items-center justify-center">
                 <svg className="w-8 h-8 text-orange-500" fill="currentColor" viewBox="0 0 24 24">
-                  <path d="M16 4c0-1.11.89-2 2-2s2 .89 2 2-.89 2-2 2-2-.89-2-2zm4 18v-6h2.5l-2.54-7.63A2.99 2.99 0 0 0 16.85 6c-.47 0-.91.17-1.25.47L14 7.75V12c0 1.11-.89 2-2 2s-2-.89-2-2V5c0-1.11.89-2 2-2s2 .89 2 2v3l4.05-2.76c.85-.58 2-.58 2.85 0L22 8v14h-2z"/>
+                  <path d="M16 4c0-1.11.89-2 2-2s2 .89 2 2-.89 2-2 2-2-.89-2-2zm4 18v-6h2.5l-2.54-7.63A2.99 2.99 0 0 0 16.85 6c-.47 0-.91.17-1.25.47L14 7.75V12c0 1.11-.89 2-2 2s-2-.89-2-2V5c0-1.11.89-2 2-2s2 .89 2 2v3l4.05-2.76c.85-.58 2-.58 2.85 0L22 8v14h-2z" />
                 </svg>
               </div>
               <p className="text-gray-500 text-lg">No public donors yet</p>
