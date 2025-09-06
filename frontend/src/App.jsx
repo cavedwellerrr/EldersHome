@@ -30,6 +30,9 @@ import CaretakerMeals from "./pages/staff/CaretakerMeals";
 import CaretakerEvents from "./pages/staff/CaretakerEvents";
 import CaretakerRooms from "./pages/staff/CaretakerRooms";
 import AssignedElders from "./pages/staff/AssignedElders";
+import CaretakerConsultations from "./pages/staff/CaretakerConsultations";
+
+
 
 //Doctor
 import DoctorAppointments from "./pages/staff/DoctorAppointments";
@@ -116,9 +119,11 @@ const App = () => {
                   <Routes>
                     <Route index element={<CaretakerDashboard />} />
                     <Route path="assigned-elders" element={<AssignedElders />} />
+                    <Route path="consultations" element={<CaretakerConsultations/>} />
                     <Route path="meals" element={<CaretakerMeals />} />
                     <Route path="rooms" element={<CaretakerRooms />} />
                     <Route path="events" element={<CaretakerEvents />} />
+
                   </Routes>
                 </CaretakerLayout>
               </ProtectedRoute>

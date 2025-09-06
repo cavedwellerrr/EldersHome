@@ -41,6 +41,19 @@ const CaretakerNavbar = () => {
             Assigned Elders
           </Link>
           <Link
+            to="/staff/caretaker-dashboard/consultations"
+            className={`transition ${
+              isActive("/staff/caretaker-dashboard/consultations")
+                ? "font-bold text-yellow-300"
+                : "hover:text-yellow-200"
+            }`}
+          >
+            Consultations
+          </Link>
+
+
+
+          <Link
             to="/staff/caretaker-dashboard/meals"
             className={`transition ${
               isActive("/staff/caretaker-dashboard/meals")

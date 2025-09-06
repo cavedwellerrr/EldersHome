@@ -19,6 +19,12 @@ const StaffLogin = () => {
       localStorage.setItem("role", res.data.role);
       localStorage.setItem("username", res.data.username);
 
+      //osh
+      // Add these so AssignedElders can read them
+      localStorage.setItem("staffToken", res.data.token);
+      localStorage.setItem("staffRole", res.data.role);
+      localStorage.setItem("staffName", res.data.name || "");
+
       // ✅ Redirect by role
       switch (res.data.role) {
         case "admin":
