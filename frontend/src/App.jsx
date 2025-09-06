@@ -6,6 +6,7 @@ import Home from "./pages/Home";
 import AboutUs from "./pages/AboutUs";
 import Donations from "./pages/Donations";
 import Events from "./pages/Events";
+import DonationSuccess from "./pages/DonationSuccess";
 
 
 // Guardian pages
@@ -63,6 +64,7 @@ const App = () => {
           <Route path="/about" element={<AboutUs />} />
           <Route path="/donations" element={<Donations />} />
           <Route path="/events" element={<Events />} />
+          <Route path="/donations/success" element={<DonationSuccess/>}/>
 
 
           {/* Guardian routes */}

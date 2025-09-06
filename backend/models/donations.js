@@ -19,6 +19,7 @@ const donationSchema = new mongoose.Schema({
 
   // Stripe payment id for cash donations
   paymentId: { type: String },
+  sessionId: {type: String},
 
   // Status: pending (form filled, awaiting action) OR received (confirmed by admin)
   status: {

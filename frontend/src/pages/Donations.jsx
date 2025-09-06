@@ -30,7 +30,7 @@ const Donations = () => {
     return () => clearInterval(interval);
   }, []);
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     if (e && e.preventDefault) e.preventDefault();
 
     if (!donationType) {
@@ -38,22 +38,37 @@ const Donations = () => {
       return;
     }
 
-    // Simulate API call
-    const submitDonation = async () => {
-      try {
-        await api.post("/donations", {
-          donorName,
-          donorEmail,
-          donationType,
-          amount: donationType === "cash" ? Number(amount) : undefined,
-          itemName: donationType === "item" ? itemName : undefined,
-          quantity: donationType === "item" ? Number(quantity) : undefined,
-          listAcknowledgment,
-        });
+    if (!donorName || !donorEmail) {
+      toast.error("Please provide your name and email");
+      return;
+    }
 
+    if (donationType === "cash" && (!amount || Number(amount) <= 0)) {
+      toast.error("Please enter a valid donation amount");
+      return;
+    }
+
+    if (donationType === "item" && (!itemName || Number(quantity) <= 0)) {
+      toast.error("Please provide item name and a valid quantity");
+      return;
+    }
+
+    try {
+      const response = await api.post("/donations", {
+        donorName,
+        donorEmail,
+        donationType,
+        amount: donationType === "cash" ? Number(amount) : undefined,
+        itemName: donationType === "item" ? itemName : undefined,
+        quantity: donationType === "item" ? Number(quantity) : undefined,
+        listAcknowledgment,
+      });
+
+      if (donationType === "cash" && response.data.url) {
+        window.location.href = response.data.url; // Redirect to Stripe Checkout
+      } else {
         toast.success("Donation submitted successfully!");
-
-        // Reset form
+        // Reset form for item donations
         setDonorName("");
         setDonorEmail("");
         setDonationType("");
@@ -61,17 +76,14 @@ const Donations = () => {
         setItemName("");
         setQuantity(1);
         setListAcknowledgment(false);
-
         // Refetch donor list
         const res = await api.get("/donors");
         setDonors(res.data);
-      } catch (err) {
-        console.error(err);
-        toast.error(err.response?.data?.message || "Error submitting donation");
       }
-    };
-
-    submitDonation();
+    } catch (err) {
+      console.error("Form submission error:", err);
+      toast.error(err.response?.data?.message || "Error submitting donation");
+    }
   };
 
   const scrollToForm = () => {
@@ -407,7 +419,7 @@ const Donations = () => {
                         <path d="M20 4H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 4l-8 5-8-5V6l8 5 8-5v2z"/>
                       </svg>
                     </div>
-                    <span className="text-sm text-gray-600">support@donations.org</span>
+                    <span className="text-sm text-gray-600">support@ElderCaredonations.org</span>
                   </div>
                   <div className="flex items-center gap-3">
                     <div className="w-8 h-8 bg-orange-100 rounded-full flex items-center justify-center">
