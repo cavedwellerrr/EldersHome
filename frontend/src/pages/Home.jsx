@@ -1,5 +1,13 @@
 import React, { useState, useEffect } from "react";
 import { Heart, Users, Calendar, Stethoscope, Phone, Mail, MapPin, Star, Clock, Shield } from "lucide-react";
+import happyman from "../assets/smiling_oldman.jpg";
+import boardgames from "../assets/boardgames.jpeg";
+import exercise from "../assets/exercise.jpeg";
+import spiritual from "../assets/spiritual.jpeg";
+import healthcare from "../assets/healthcare.jpeg";
+import spiritual2 from "../assets/spiritual2.jpg";
+import elderExercises from "../assets/elderExercises.jpg";
+import elderBoardgames from "../assets/elderBoardgames.jpg";
 
 const Home = () => {
   const [isVisible, setIsVisible] = useState({});
@@ -27,19 +35,19 @@ const Home = () => {
     {
       title: "Spiritual Programs",
       description: "Weekly meditation sessions, prayer groups, and spiritual guidance to nourish the soul",
-      image: "https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=400&h=300&fit=crop",
+      image: spiritual2,
       schedule: "Sundays & Wednesdays"
     },
     {
       title: "Board Games & Activities", 
       description: "Strategic thinking games, puzzles, and social activities that keep minds sharp and engaged",
-      image: "https://images.unsplash.com/photo-1611371805429-8b5c1b2c34ba?w=400&h=300&fit=crop",
+      image: elderBoardgames,
       schedule: "Daily 2-4 PM"
     },
     {
       title: "Exercise Programs",
       description: "Gentle fitness routines, yoga, and physical therapy designed for senior wellness",
-      image: "https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?w=400&h=300&fit=crop",
+      image: elderExercises,
       schedule: "Mon, Wed, Fri"
     }
   ];
@@ -71,7 +79,7 @@ const Home = () => {
     { number: "1,000", label: "Happy Residents" },
     { number: "2,000", label: "Care Hours" },
     { number: "15", label: "Years Experience" },
-    { number: "50", label: "Staff Members" }
+    { number: "100", label: "Staff Members" }
   ];
 
   return (
@@ -112,9 +120,9 @@ const Home = () => {
             <div className={`transform transition-all duration-1000 delay-300 ${isVisible['section-hero'] ? 'translate-x-0 opacity-100' : 'translate-x-10 opacity-0'}`}>
               <div className="relative">
                 <img 
-                  src="https://images.unsplash.com/photo-1559839734-2b71ea197ec2?w=600&h=500&fit=crop" 
+                  src={happyman} 
                   alt="Happy seniors with caregiver"
-                  className="rounded-2xl shadow-2xl"
+                  className="rounded-2xl shadow-2xl w-full h-[500px] object-cover"
                 />
                 <div className="absolute -bottom-6 -left-6 bg-white p-6 rounded-xl shadow-lg">
                   <div className="flex items-center space-x-3">
@@ -245,9 +253,9 @@ const Home = () => {
             </div>
             <div className="relative">
               <img 
-                src="https://images.unsplash.com/photo-1582750433449-648ed127bb54?w=600&h=500&fit=crop" 
+                src={healthcare} 
                 alt="Healthcare services"
-                className="rounded-2xl shadow-2xl"
+                className="w-[600px] h-[500px] rounded-2xl shadow-2xl"
               />
             </div>
           </div>
