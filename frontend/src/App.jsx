@@ -24,6 +24,7 @@ import CaretakerDashboard from "./pages/staff/CaretakerDashboard";
 import DoctorDashboard from "./pages/staff/DoctorDashboard";
 import AdminDonations from "./pages/staff/AdminDonations";
 import AdminEvents from "./pages/staff/AdminEvents";
+import AdminEnrollments from "./pages/staff/AdminEnrollments";
 
 //caretaker
 import CaretakerMeals from "./pages/staff/CaretakerMeals";
@@ -86,6 +87,9 @@ const App = () => {
                     <Route path="staff-register" element={<StaffRegister />} />
                     <Route path="donations" element={<AdminDonations />} />
                     <Route path="events" element={<AdminEvents />} />
+                    <Route path="enrollments" element={<AdminEnrollments />} /> 
+                    
+
                     {/* <Route path="donations" element={<AdminDonations />} /> */}
                   </Routes>
                 </AdminLayout>

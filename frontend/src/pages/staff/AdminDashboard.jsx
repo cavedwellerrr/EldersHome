@@ -28,6 +28,12 @@ const AdminDashboard = () => {
             <button className="btn btn-success">View Staff Members</button>
           </Link>
 
+           
+        <Link to="/staff/admin-dashboard/events" className="ml-4">
+  <button className="bg-purple-600 text-white px-4 py-2 rounded hover:bg-purple-500">
+    Manage Events
+  </button>
+</Link>
           <button onClick={handleLogout} className="btn btn-error ml-auto">
             Logout
           </button>
