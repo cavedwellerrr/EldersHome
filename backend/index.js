@@ -13,7 +13,7 @@ import caretakerRoutes from "./routes/caretakerRoutes.js";
 import donationsRoutes from "./routes/donationsRoute.js";
 import donorListRoutes from "./routes/donorListRoutes.js";
 import consultationRoutes from "./routes/consultationRoutes.js";
-import caretakerElderRoutes from "./routes/caretaker_elder_routes.js"
+import caretakerAssignedEldersRoutes from "./routes/caretakerAssignedEldersRoutes.js";
 import doctorRoutes from "./routes/doctorRoutes.js";
 import appointmentRoutes from "./routes/appointmentRoutes.js";
 
@@ -52,7 +52,8 @@ app.use("/api/donors", donorListRoutes);
 app.use("/api/consultations", consultationRoutes);
 
 
-app.use("/api/caretaker/elders", caretakerElderRoutes);
+app.use("/api/caretaker/elders", caretakerAssignedEldersRoutes);
+
 
 //Doctor Route
 app.use("/api/doctors", doctorRoutes);
