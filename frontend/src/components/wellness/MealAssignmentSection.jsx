@@ -1,6 +1,6 @@
 // src/components/staff/MealAssignmentSection.jsx
 import { useEffect, useState } from "react";
-import { Utensils } from "lucide-react";
+import { Utensils, Search, Filter, Plus, Check } from "lucide-react";
 import api from "../../api";
 
 export default function MealAssignmentSection({ elderId }) {
@@ -22,6 +22,9 @@ export default function MealAssignmentSection({ elderId }) {
     });
 
     const [isEditing, setIsEditing] = useState(false);
+    const [searchTerm, setSearchTerm] = useState("");
+    const [selectedCategory, setSelectedCategory] = useState("All");
+    const [showSearchResults, setShowSearchResults] = useState(false);
 
     const catKey = (c) => (c.toLowerCase() === "snack" ? "snacks" : c.toLowerCase());
 
@@ -147,136 +150,334 @@ export default function MealAssignmentSection({ elderId }) {
         Snack: "🍪",
     };
 
+    // Search functionality
+    const getAllMeals = () => {
+        const allMeals = [];
+        Object.entries(optionsByCat).forEach(([category, meals]) => {
+            meals.forEach(meal => {
+                allMeals.push({ ...meal, category });
+            });
+        });
+        return allMeals;
+    };
+
+    const getFilteredMeals = () => {
+        const allMeals = getAllMeals();
+        let filtered = allMeals;
+
+        // Filter by search term
+        if (searchTerm.trim()) {
+            filtered = filtered.filter(meal =>
+                meal.name.toLowerCase().includes(searchTerm.toLowerCase())
+            );
+        }
+
+        // Filter by category
+        if (selectedCategory !== "All") {
+            filtered = filtered.filter(meal => meal.category === selectedCategory);
+        }
+
+        return filtered;
+    };
+
+    const handleSearch = () => {
+        if (searchTerm.trim() || selectedCategory !== "All") {
+            setShowSearchResults(true);
+        } else {
+            setShowSearchResults(false);
+        }
+    };
+
+    const clearSearch = () => {
+        setSearchTerm("");
+        setSelectedCategory("All");
+        setShowSearchResults(false);
+    };
+
     return (
         <div className="space-y-6">
             {/* Control Bar */}
-            <div className="border border-orange-200 rounded-lg p-4 bg-gradient-to-r from-orange-50 to-orange-100">
-                <div className="flex items-center justify-between w-full">
-                    <h4 className="font-semibold flex items-center gap-2 text-gray-900">
-                        <Utensils className="w-5 h-5 text-orange-500" />
-                        Meal Preferences
-                    </h4>
-                    <div className="flex gap-2">
-                        {!isEditing ? (
-                            <button
-                                className="btn btn-primary btn-sm bg-orange-500 hover:bg-orange-600 border-orange-500"
-                                onClick={() => setIsEditing(true)}
-                            >
-                                Edit Preferences
-                            </button>
-                        ) : (
-                            <>
+            <div className="bg-white rounded-lg shadow-lg border border-orange-100" style={{ boxShadow: '0 -4px 8px -2px rgba(0, 0, 0, 0.08), 0 -2px 4px -1px rgba(0, 0, 0, 0.04), 0 4px 8px -2px rgba(0, 0, 0, 0.08), 0 2px 4px -1px rgba(0, 0, 0, 0.04)' }}>
+                <div className="bg-white p-4 border-b border-orange-200">
+                    <div className="flex items-center justify-between">
+                        <h4 className="font-semibold flex items-center gap-2 text-gray-900">
+                            <div className="w-8 h-8 bg-orange-100 rounded-lg flex items-center justify-center">
+                                <Utensils className="w-4 h-4 text-orange-600" />
+                            </div>
+                            Meal Management
+                        </h4>
+                        <div className="flex gap-2">
+                            {!isEditing && (
                                 <button
-                                    className="btn btn-success btn-sm bg-green-600 hover:bg-green-700"
-                                    onClick={save}
+                                    className="bg-orange-500 text-white hover:bg-orange-600 border-2 border-orange-500 hover:border-orange-600 px-4 py-2 rounded-lg font-semibold transition-all duration-200 flex items-center gap-2 shadow-sm hover:shadow-md"
+                                    onClick={() => setIsEditing(true)}
                                 >
-                                    Save Changes
+                                    <Plus className="w-4 h-4" />
+                                    Edit Preferences
                                 </button>
-                                <button className="btn btn-ghost btn-sm" onClick={cancel}>
-                                    Cancel
-                                </button>
-                            </>
-                        )}
+                            )}
+                        </div>
                     </div>
                 </div>
             </div>
 
-            {/* Meal Categories */}
-            <div className="grid gap-4 md:grid-cols-2">
-                {categories.map((cat) => {
-                    const list = optionsByCat[cat] || [];
-                    const key = catKey(cat);
-                    const selectedIds = new Set(prefs.selections[key] || []);
-                    const chips = namesFor(cat);
 
-                    return (
-                        <div key={cat} className="bg-white rounded-lg shadow-lg">
-                            <div className="bg-gray-50 p-4 rounded-t-lg border-b">
-                                <div className="flex items-center justify-between">
-                                    <h5 className="font-semibold flex items-center gap-2 text-gray-900">
-                                        <span className="text-lg">{categoryIcons[cat] || "🍽️"}</span>
-                                        {cat}
-                                    </h5>
-                                    {!isEditing && chips.length === 0 && (
+
+            {/* Current Assignments Summary */}
+            {!isEditing && (
+                <div className="bg-white rounded-lg shadow-lg border border-orange-100" style={{ boxShadow: '0 -4px 8px -2px rgba(0, 0, 0, 0.08), 0 -2px 4px -1px rgba(0, 0, 0, 0.04), 0 4px 8px -2px rgba(0, 0, 0, 0.08), 0 2px 4px -1px rgba(0, 0, 0, 0.04)' }}>
+                    <div className="bg-white p-4 border-b border-orange-200">
+                        <h5 className="font-semibold flex items-center gap-2 text-gray-900">
+                            <div className="w-8 h-8 bg-orange-100 rounded-lg flex items-center justify-center">
+                                <Check className="w-4 h-4 text-orange-600" />
+                            </div>
+                            Current Meal Assignments
+                        </h5>
+                    </div>
+                    <div className="p-4">
+                        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+                            {categories.map((cat) => {
+                                const chips = namesFor(cat);
+                                return (
+                                    <div key={cat} className="bg-orange-50 rounded-lg p-3 border border-orange-100">
+                                        <div className="flex items-center gap-2 mb-2">
+                                            <span className="text-lg">{categoryIcons[cat] || "🍽️"}</span>
+                                            <span className="font-medium text-sm text-gray-900">{cat}</span>
+                                            <span className="text-xs text-orange-600 font-semibold">({chips.length})</span>
+                                        </div>
+                                        {chips.length > 0 ? (
+                                            <div className="flex flex-wrap gap-1">
+                                                {chips.slice(0, 3).map((m) => (
+                                                    <span
+                                                        key={m._id}
+                                                        className="px-2 py-1 bg-orange-100 text-orange-800 rounded-full text-xs font-medium border border-orange-200"
+                                                    >
+                                                        {m.name}
+                                                    </span>
+                                                ))}
+                                                {chips.length > 3 && (
+                                                    <span className="px-2 py-1 bg-white text-gray-600 rounded-full text-xs border border-gray-200">
+                                                        +{chips.length - 3} more
+                                                    </span>
+                                                )}
+                                            </div>
+                                        ) : (
+                                            <p className="text-xs text-gray-500">No meals assigned</p>
+                                        )}
+                                    </div>
+                                );
+                            })}
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {/* Detailed Meal Categories - Only show when editing */}
+            {isEditing && (
+                <div className="bg-white rounded-lg shadow-lg border border-orange-100" style={{ boxShadow: '0 -4px 8px -2px rgba(0, 0, 0, 0.08), 0 -2px 4px -1px rgba(0, 0, 0, 0.04), 0 4px 8px -2px rgba(0, 0, 0, 0.08), 0 2px 4px -1px rgba(0, 0, 0, 0.04)' }}>
+                    <div className="bg-white p-4 border-b border-orange-200">
+                        <h5 className="font-semibold flex items-center gap-2 text-gray-900">
+                            <Utensils className="w-4 h-4 text-orange-600" />
+                            Detailed Meal Selection by Category
+                        </h5>
+                    </div>
+
+                    {/* Search Section */}
+                    <div className="p-4 border-b border-orange-200">
+                        <div className="bg-gradient-to-r from-orange-50 to-white p-4 rounded-lg border border-orange-200">
+                            <h6 className="font-semibold flex items-center gap-2 text-gray-900 mb-3">
+                                <div className="w-6 h-6 bg-orange-100 rounded-lg flex items-center justify-center">
+                                    <Search className="w-3 h-3 text-orange-600" />
+                                </div>
+                                Search & Filter Meals
+                            </h6>
+
+                            {/* Search Bar */}
+                            <div className="flex flex-col sm:flex-row gap-3">
+                                <div className="flex-1">
+                                    <div className="relative">
+                                        <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-orange-400" />
+                                        <input
+                                            type="text"
+                                            placeholder="Search meals by name..."
+                                            className="input input-bordered w-full pl-10 pr-4 bg-white border-orange-200 focus:border-orange-400"
+                                            value={searchTerm}
+                                            onChange={(e) => setSearchTerm(e.target.value)}
+                                            onKeyPress={(e) => e.key === 'Enter' && handleSearch()}
+                                        />
+                                    </div>
+                                </div>
+                                <div className="sm:w-48">
+                                    <select
+                                        className="select select-bordered w-full bg-white border-orange-200 focus:border-orange-400"
+                                        value={selectedCategory}
+                                        onChange={(e) => setSelectedCategory(e.target.value)}
+                                    >
+                                        <option value="All">All Categories</option>
+                                        {categories.map(cat => (
+                                            <option key={cat} value={cat}>{cat}</option>
+                                        ))}
+                                    </select>
+                                </div>
+                                <div className="flex gap-2">
+                                    <button
+                                        className="btn btn-outline btn-sm border-orange-300 text-orange-600 hover:bg-orange-50"
+                                        onClick={handleSearch}
+                                    >
+                                        <Filter className="w-4 h-4" />
+                                        Search
+                                    </button>
+                                    {(searchTerm || selectedCategory !== "All") && (
                                         <button
-                                            className="btn btn-ghost btn-xs text-orange-500 hover:text-orange-600"
-                                            onClick={() => setIsEditing(true)}
+                                            className="btn btn-ghost btn-sm text-gray-600 hover:text-gray-800"
+                                            onClick={clearSearch}
                                         >
-                                            Add Items
+                                            Clear
                                         </button>
                                     )}
                                 </div>
                             </div>
+                        </div>
+                    </div>
 
-                            <div className="p-4">
-                                {!isEditing && (
-                                    <div className="min-h-[60px] flex items-center">
-                                        {chips.length ? (
-                                            <div className="flex flex-wrap gap-2">
-                                                {chips.map((m) => (
-                                                    <div
-                                                        key={m._id}
-                                                        className="px-2 py-1 bg-orange-100 text-orange-800 rounded-full text-xs font-medium"
-                                                    >
-                                                        {m.name}
+                    {/* Search Results */}
+                    {showSearchResults && (
+                        <div className="p-4">
+                            <div className="bg-gradient-to-r from-orange-50 to-white p-4 rounded-lg border border-orange-200 mb-4">
+                                <h6 className="font-semibold flex items-center gap-2 text-gray-900">
+                                    <div className="w-6 h-6 bg-orange-100 rounded-lg flex items-center justify-center">
+                                        <Search className="w-3 h-3 text-orange-600" />
+                                    </div>
+                                    Search Results ({getFilteredMeals().length} meals found)
+                                </h6>
+                            </div>
+
+                            {getFilteredMeals().length > 0 ? (
+                                <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+                                    {getFilteredMeals().map((meal) => {
+                                        const key = catKey(meal.category);
+                                        const isSelected = prefs.selections[key]?.includes(meal._id) || false;
+
+                                        return (
+                                            <div
+                                                key={meal._id}
+                                                className={`p-3 rounded-lg border-2 transition-all cursor-pointer ${isSelected
+                                                    ? 'border-orange-300 bg-orange-50'
+                                                    : 'border-gray-200 bg-white hover:border-orange-200 hover:bg-orange-25'
+                                                    }`}
+                                                onClick={() => toggleMeal(meal.category, meal._id)}
+                                            >
+                                                <div className="flex items-center justify-between">
+                                                    <div className="flex-1">
+                                                        <div className="font-medium text-sm text-gray-900">{meal.name}</div>
+                                                        <div className="text-xs text-gray-600 flex items-center gap-1">
+                                                            <span className="text-lg">{categoryIcons[meal.category] || "🍽️"}</span>
+                                                            {meal.category}
+                                                        </div>
                                                     </div>
-                                                ))}
+                                                    <div className="ml-2">
+                                                        <input
+                                                            type="checkbox"
+                                                            className="checkbox checkbox-primary checkbox-sm"
+                                                            checked={isSelected}
+                                                            onChange={() => toggleMeal(meal.category, meal._id)}
+                                                        />
+                                                    </div>
+                                                </div>
                                             </div>
-                                        ) : (
-                                            <div className="text-center w-full py-4">
-                                                <Utensils className="w-8 h-8 text-gray-400 mx-auto mb-2" />
-                                                <p className="text-sm text-gray-600">
-                                                    No meals selected for {cat.toLowerCase()}
-                                                </p>
-                                            </div>
-                                        )}
-                                    </div>
-                                )}
+                                        );
+                                    })}
+                                </div>
+                            ) : (
+                                <div className="text-center py-8">
+                                    <Search className="w-12 h-12 text-gray-400 mx-auto mb-3" />
+                                    <p className="text-gray-600">No meals found matching your search criteria.</p>
+                                    <button
+                                        className="btn btn-ghost btn-sm mt-2 text-orange-600 hover:text-orange-700"
+                                        onClick={clearSearch}
+                                    >
+                                        Clear search
+                                    </button>
+                                </div>
+                            )}
+                        </div>
+                    )}
 
-                                {isEditing && (
-                                    <div className="space-y-3">
-                                        <div className="text-xs text-orange-600 font-medium uppercase tracking-wider">
-                                            Select {cat} Options
+                    {/* Category Selection */}
+                    {!showSearchResults && (
+                        <div className="p-4">
+                            <div className="grid gap-4 md:grid-cols-2">
+                                {categories.map((cat) => {
+                                    const list = optionsByCat[cat] || [];
+                                    const key = catKey(cat);
+                                    const selectedIds = new Set(prefs.selections[key] || []);
+
+                                    return (
+                                        <div key={cat} className="bg-gray-50 rounded-lg p-4">
+                                            <div className="flex items-center gap-2 mb-3">
+                                                <span className="text-lg">{categoryIcons[cat] || "🍽️"}</span>
+                                                <h6 className="font-semibold text-gray-900">{cat}</h6>
+                                                <span className="text-xs text-gray-500">({selectedIds.size} selected)</span>
+                                            </div>
+
+                                            <div className="max-h-48 overflow-auto bg-white rounded-lg p-3 border border-gray-200">
+                                                {list.length === 0 ? (
+                                                    <div className="text-center py-4">
+                                                        <p className="text-sm text-gray-600">
+                                                            No meals available in this category
+                                                        </p>
+                                                    </div>
+                                                ) : (
+                                                    <div className="space-y-2">
+                                                        {list.map((m) => (
+                                                            <label
+                                                                key={m._id}
+                                                                className="flex items-center gap-3 p-2 hover:bg-gray-50 transition-colors cursor-pointer rounded"
+                                                            >
+                                                                <input
+                                                                    type="checkbox"
+                                                                    className="checkbox checkbox-primary checkbox-sm"
+                                                                    checked={selectedIds.has(m._id)}
+                                                                    onChange={() => toggleMeal(cat, m._id)}
+                                                                />
+                                                                <div className="flex-1">
+                                                                    <div className="font-medium text-sm text-gray-900">{m.name}</div>
+                                                                </div>
+                                                            </label>
+                                                        ))}
+                                                    </div>
+                                                )}
+                                            </div>
                                         </div>
-                                        <div className="max-h-48 overflow-auto bg-gray-50 rounded-lg p-3">
-                                            {list.length === 0 ? (
-                                                <div className="text-center py-4">
-                                                    <p className="text-sm text-gray-600">
-                                                        No meals available in this category
-                                                    </p>
-                                                </div>
-                                            ) : (
-                                                <div className="space-y-2">
-                                                    {list.map((m) => (
-                                                        <label
-                                                            key={m._id}
-                                                            className="flex items-center gap-3 bg-white rounded-lg p-2 hover:bg-gray-50 transition-colors cursor-pointer"
-                                                        >
-                                                            <input
-                                                                type="checkbox"
-                                                                className="checkbox checkbox-primary checkbox-sm"
-                                                                checked={selectedIds.has(m._id)}
-                                                                onChange={() => toggleMeal(cat, m._id)}
-                                                            />
-                                                            <div className="flex-1">
-                                                                <div className="font-medium text-sm text-gray-900">{m.name}</div>
-                                                                <div className="text-xs text-gray-600">{m.category}</div>
-                                                            </div>
-                                                        </label>
-                                                    ))}
-                                                </div>
-                                            )}
-                                        </div>
-                                    </div>
-                                )}
+                                    );
+                                })}
                             </div>
                         </div>
-                    );
-                })}
-            </div>
+                    )}
+
+                    {/* Save/Cancel buttons at the bottom */}
+                    <div className="p-4 bg-orange-50 border-t border-orange-200">
+                        <div className="flex justify-end gap-2">
+                            <button
+                                className="bg-green-500 text-white hover:bg-green-600 border-2 border-green-500 hover:border-green-600 px-4 py-2 rounded-lg font-semibold transition-all duration-200 flex items-center gap-2 shadow-sm hover:shadow-md"
+                                onClick={save}
+                            >
+                                <Check className="w-4 h-4" />
+                                Save Changes
+                            </button>
+                            <button
+                                className="bg-white text-gray-600 hover:bg-gray-50 border-2 border-gray-200 hover:border-gray-300 px-4 py-2 rounded-lg font-semibold transition-all duration-200"
+                                onClick={cancel}
+                            >
+                                Cancel
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
 
             {loading && (
-                <div className="bg-white rounded-lg p-4 text-center">
+                <div className="bg-white rounded-lg shadow-lg border border-orange-100 p-4 text-center">
                     <span className="loading loading-spinner loading-md text-orange-500"></span>
                     <p className="text-gray-600 mt-2">Loading meals...</p>
                 </div>

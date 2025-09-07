@@ -6,19 +6,19 @@ import MealCard from "../../components/wellness/MealCard.jsx";
 
 const CATEGORY_ORDER = ["breakfast", "lunch", "dinner", "snack", "special", "other", "uncategorized"];
 
-// Theme-matching chip
+// Theme-matching chip with AssignedElders styling
 const Chip = ({ active, onClick, children, count }) => (
   <button
     onClick={onClick}
     className={[
-      "whitespace-nowrap rounded-full px-4 py-2 text-sm transition-all border",
+      "whitespace-nowrap rounded-full px-4 py-2 text-sm font-medium transition-all duration-200 border-2",
       active
-        ? "bg-[#FAEEE8] text-[#B5522A] border-[#F2C7AE] shadow-sm"
-        : "bg-white/70 text-neutral-700 border-neutral-200 hover:bg-neutral-50"
+        ? "bg-orange-500 text-white border-orange-500 shadow-lg shadow-orange-200"
+        : "bg-white text-gray-700 border-orange-200 hover:bg-orange-50 hover:border-orange-300"
     ].join(" ")}
   >
     <span className="capitalize">{children}</span>
-    {typeof count === "number" && <span className="opacity-60"> ({count})</span>}
+    {typeof count === "number" && <span className="opacity-80 ml-1">({count})</span>}
   </button>
 );
 
@@ -80,34 +80,36 @@ const CaretakerMeals = () => {
     return list;
   }, [meals, grouped, activeCat, search]);
 
-  // small skeleton grid
+  // Enhanced skeleton grid matching AssignedElders theme
   const Skeleton = () => (
-    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-      {Array.from({ length: 6 }).map((_, i) => (
-        <div key={i} className="animate-pulse rounded-2xl border border-neutral-200 bg-white/70 h-52" />
-      ))}
+    <div className="bg-white rounded-2xl shadow-lg border border-orange-100 p-8">
+      <div className="flex items-center justify-center space-x-3">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-orange-500"></div>
+        <span className="text-gray-600 font-medium">Loading meals...</span>
+      </div>
     </div>
   );
 
   return (
-    <div className="min-h-screen bg-[#FFF7F2] text-neutral-800">
-      {/* top hero banner (matches reference tone) */}
-      <section className="relative isolate overflow-hidden">
-        <div className="absolute inset-0 -z-10 bg-gradient-to-r from-[#FFF2EA] via-[#FFE7DA] to-[#FFEFE6]" />
-        <MealHeader />
-        <div className="mx-auto max-w-7xl px-4 pt-6 pb-8">
-          <div className="rounded-3xl bg-white/70 backdrop-blur border border-[#F4D7C8] p-6 md:p-8 shadow-sm">
-            <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+    <div className="min-h-screen bg-gradient-to-br from-orange-50 to-white">
+      <div className="max-w-7xl mx-auto p-6 lg:p-8">
+        {/* Header Section */}
+        <div className="mb-8">
+          <div className="bg-white rounded-2xl shadow-lg border border-orange-100 p-6 lg:p-8">
+            <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
               <div>
-                <h2 className="text-2xl md:text-3xl font-semibold tracking-tight text-neutral-900">
-                  Makes Your Meal Planning Simple & Caring
-                </h2>
-                <p className="text-neutral-600 mt-1">
-                  Curated breakfasts, lunches, dinners and snacks with senior-friendly nutrition.
-                </p>
+                <h1 className="text-3xl lg:text-4xl font-bold text-gray-900 mb-2">
+                  Meal Management
+                </h1>
+                <div className="flex items-center gap-2">
+                  <div className="h-2 w-2 bg-orange-500 rounded-full"></div>
+                  <p className="text-gray-600 font-medium">
+                    {meals.length ? `${meals.length} meals available` : "Loading..."}
+                  </p>
+                </div>
               </div>
 
-              {/* quick stats */}
+              {/* Quick Stats */}
               <div className="grid grid-cols-3 gap-3">
                 <Stat label="Meals" value={meals.length} />
                 <Stat label="Categories" value={tabs.length - 1} />
@@ -115,22 +117,25 @@ const CaretakerMeals = () => {
               </div>
             </div>
 
-            {/* toolbar */}
-            <div className="mt-6 flex items-center gap-3 flex-wrap md:flex-nowrap">
-              {/* Search */}
-              <div className="relative grow basis-[320px]">
+            {/* Search Bar */}
+            <div className="mt-6 flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
+              <div className="relative w-full lg:w-96">
+                <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                  <svg className="h-5 w-5 text-orange-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                  </svg>
+                </div>
                 <input
                   type="text"
                   placeholder="Search meals by name..."
                   value={search}
                   onChange={(e) => setSearch(e.target.value)}
-                  className="w-full rounded-xl border border-neutral-200 bg-white py-2.5 pl-3 pr-10 focus:outline-none focus:ring-2 focus:ring-[#F29B77]"
+                  className="w-full pl-12 pr-4 py-3 border-2 border-orange-200 rounded-xl focus:border-orange-500 focus:outline-none focus:ring-4 focus:ring-orange-100 transition-all duration-200 bg-white shadow-sm text-gray-900 placeholder-gray-500"
                 />
-                <span className="absolute right-3 top-1/2 -translate-y-1/2 opacity-60 select-none">🔎</span>
               </div>
 
-              {/* chips */}
-              <div className="flex items-center gap-2 overflow-x-auto md:overflow-visible max-w-full">
+              {/* Category Chips */}
+              <div className="flex items-center gap-2 overflow-x-auto lg:overflow-visible">
                 <Chip active={activeCat === "all"} onClick={() => setActiveCat("all")} count={meals.length}>
                   all
                 </Chip>
@@ -151,33 +156,57 @@ const CaretakerMeals = () => {
             </div>
           </div>
         </div>
-      </section>
 
-      {/* content */}
-      <div className="max-w-7xl mx-auto px-4 pb-14">
+        {/* Add Meal Button */}
+        <MealHeader />
+
+        {/* Loading State */}
         {loading && <Skeleton />}
 
+        {/* No Results State */}
         {!loading && visibleMeals.length === 0 && (
-          <div className="text-center py-16">
-            <div className="mx-auto w-20 h-20 rounded-full bg-[#FAEEE8] grid place-items-center">
-              <span className="text-3xl">🍽️</span>
+          <div className="bg-white rounded-2xl shadow-lg border border-orange-100 p-12 text-center">
+            <div className="flex flex-col items-center space-y-4">
+              <div className="w-16 h-16 bg-orange-100 rounded-full flex items-center justify-center">
+                <svg className="h-8 w-8 text-orange-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.746 0 3.332.477 4.5 1.253v13C19.832 18.477 18.246 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
+                </svg>
+              </div>
+              <div>
+                <h3 className="text-xl font-semibold text-gray-900 mb-2">No meals found</h3>
+                <p className="text-gray-600">
+                  {search
+                    ? `No results match "${search}"`
+                    : activeCat === "all"
+                      ? "No meals available yet."
+                      : `No meals in "${activeCat}" category.`}
+                </p>
+              </div>
             </div>
-            <p className="mt-4 text-lg font-medium text-neutral-800">Nothing here yet</p>
-            <p className="text-neutral-600">
-              {search
-                ? `No meals found matching “${search}”.`
-                : activeCat === "all"
-                  ? "No meals found."
-                  : `No meals in “${activeCat}”.`}
-            </p>
           </div>
         )}
 
+        {/* Meals Grid */}
         {!loading && visibleMeals.length > 0 && (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {visibleMeals.map((meal) => (
-              <MealCard key={meal._id} meal={meal} onUpdated={() => window.location.reload()} />
-            ))}
+          <div className="bg-white rounded-2xl shadow-lg border border-orange-100 overflow-hidden">
+            <div className="p-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {visibleMeals.map((meal) => (
+                  <MealCard key={meal._id} meal={meal} onUpdated={() => window.location.reload()} />
+                ))}
+              </div>
+            </div>
+
+            {/* Footer */}
+            <div className="bg-gray-50 px-6 py-4 border-t border-orange-100">
+              <p className="text-sm text-gray-600 flex items-center justify-between">
+                <span>Showing {visibleMeals.length} of {meals.length} meals</span>
+                <span className="flex items-center space-x-1">
+                  <div className="w-2 h-2 bg-orange-500 rounded-full"></div>
+                  <span>Meal management system</span>
+                </span>
+              </p>
+            </div>
           </div>
         )}
       </div>
@@ -186,9 +215,9 @@ const CaretakerMeals = () => {
 };
 
 const Stat = ({ label, value, small }) => (
-  <div className="rounded-2xl bg-[#FFF9F6] border border-[#F4D7C8] px-4 py-3 text-center">
-    <div className={`font-semibold ${small ? "text-sm" : "text-xl"} text-neutral-900`}>{value}</div>
-    <div className="text-xs tracking-wide text-neutral-500">{label}</div>
+  <div className="rounded-2xl bg-gradient-to-br from-orange-50 to-white border border-orange-200 px-4 py-3 text-center shadow-sm">
+    <div className={`font-bold ${small ? "text-sm" : "text-xl"} text-gray-900`}>{value}</div>
+    <div className="text-xs font-medium tracking-wide text-gray-600">{label}</div>
   </div>
 );
 

@@ -61,9 +61,9 @@ export default function ElderProfile() {
 
     return (
         <div className="min-h-screen bg-gray-50 p-4 md:p-6">
-            <div className="max-w-7xl mx-auto space-y-6">
+            <div className="max-w-7xl mx-auto space-y-10">
                 {/* Hero Header */}
-                <div className="bg-white rounded-xl shadow-lg">
+                <div className="bg-white rounded-xl shadow-lg border border-orange-100">
                     <div className="bg-gradient-to-r from-orange-500 to-orange-600 h-2 rounded-t-xl" />
                     <div className="p-6">
                         <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6">
@@ -103,29 +103,35 @@ export default function ElderProfile() {
                 </div>
 
                 {loading && (
-                    <div className="bg-white rounded-xl shadow-lg p-8 text-center">
+                    <div className="bg-white rounded-xl shadow-lg border border-orange-100 p-8 text-center">
                         <span className="loading loading-spinner loading-lg text-orange-500"></span>
                         <p className="text-gray-600 mt-4">Loading elder profile...</p>
                     </div>
                 )}
 
                 {!loading && err && (
-                    <div className="alert alert-error shadow-lg">
-                        <AlertTriangle className="w-6 h-6" />
-                        <span>{err}</span>
+                    <div className="bg-white rounded-xl shadow-lg border border-orange-100 p-6">
+                        <div className="flex items-center gap-3">
+                            <AlertTriangle className="w-6 h-6 text-red-500" />
+                            <span className="text-red-700">{err}</span>
+                        </div>
                     </div>
                 )}
 
                 {!loading && !err && elder && (
                     <>
-                        <div className="grid gap-6 lg:grid-cols-3 items-start">
-                            {/* Left Side - Elder Details */}
-                            <div className="lg:col-span-1 space-y-6">
-                                {/* Basic Information */}
-                                <div className="bg-white rounded-xl shadow-lg">
-                                    <div className="bg-gray-50 p-4 rounded-t-xl border-b">
+                        {/* Main Content Grid */}
+                        <div className="grid gap-10 xl:grid-cols-12 items-start">
+                            {/* Left Column - Personal & Guardian Info */}
+                            <div className="xl:col-span-4 space-y-10">
+                                {/* Personal Information Card */}
+                                <div className="bg-white rounded-xl shadow-lg border border-orange-100">
+                                    <div className="bg-gradient-to-r from-orange-500 to-orange-600 h-2 rounded-t-xl" />
+                                    <div className="bg-white p-4 border-b border-orange-200">
                                         <h3 className="font-semibold text-gray-900 flex items-center gap-2">
-                                            <Users className="w-5 h-5 text-orange-500" />
+                                            <div className="w-8 h-8 bg-orange-100 rounded-lg flex items-center justify-center">
+                                                <Users className="w-4 h-4 text-orange-600" />
+                                            </div>
                                             Personal Information
                                         </h3>
                                     </div>
@@ -153,9 +159,9 @@ export default function ElderProfile() {
                                                 label="Disability Status"
                                                 value={
                                                     <span
-                                                        className={`px-2 py-1 rounded-full text-xs font-medium ${elder.isDisabled
-                                                                ? "bg-yellow-100 text-yellow-800"
-                                                                : "bg-green-100 text-green-800"
+                                                        className={`px-3 py-1 rounded-full text-xs font-medium ${elder.isDisabled
+                                                            ? "bg-yellow-100 text-yellow-800 border border-yellow-200"
+                                                            : "bg-green-100 text-green-800 border border-green-200"
                                                             }`}
                                                     >
                                                         {elder.isDisabled ? "Yes" : "No"}
@@ -178,11 +184,14 @@ export default function ElderProfile() {
                                     </div>
                                 </div>
 
-                                {/* Guardian Information */}
-                                <div className="bg-white rounded-xl shadow-lg">
-                                    <div className="bg-gray-50 p-4 rounded-t-xl border-b">
+                                {/* Guardian Information Card */}
+                                <div className="bg-white rounded-xl shadow-lg border border-orange-100">
+                                    <div className="bg-gradient-to-r from-orange-500 to-orange-600 h-2 rounded-t-xl" />
+                                    <div className="bg-white p-4 border-b border-orange-200">
                                         <h3 className="font-semibold text-gray-900 flex items-center gap-2">
-                                            <Users className="w-5 h-5 text-orange-500" />
+                                            <div className="w-8 h-8 bg-orange-100 rounded-lg flex items-center justify-center">
+                                                <Users className="w-4 h-4 text-orange-600" />
+                                            </div>
                                             Guardian Information
                                         </h3>
                                     </div>
@@ -193,7 +202,7 @@ export default function ElderProfile() {
                                                 label="Phone Number"
                                                 value={
                                                     elder.guardian?.phone ? (
-                                                        <span className="font-mono text-orange-600">
+                                                        <span className="font-mono text-orange-600 bg-orange-50 px-2 py-1 rounded">
                                                             {elder.guardian.phone}
                                                         </span>
                                                     ) : (
@@ -205,16 +214,19 @@ export default function ElderProfile() {
                                     </div>
                                 </div>
 
-                                {/* Medical Notes */}
-                                <div className="bg-white rounded-xl shadow-lg">
-                                    <div className="bg-gray-50 p-4 rounded-t-xl border-b">
+                                {/* Medical Notes Card */}
+                                <div className="bg-white rounded-xl shadow-lg border border-orange-100">
+                                    <div className="bg-gradient-to-r from-orange-500 to-orange-600 h-2 rounded-t-xl" />
+                                    <div className="bg-white p-4 border-b border-orange-200">
                                         <h3 className="font-semibold text-gray-900 flex items-center gap-2">
-                                            <FileText className="w-5 h-5 text-orange-500" />
+                                            <div className="w-8 h-8 bg-orange-100 rounded-lg flex items-center justify-center">
+                                                <FileText className="w-4 h-4 text-orange-600" />
+                                            </div>
                                             Medical Notes
                                         </h3>
                                     </div>
                                     <div className="p-6">
-                                        <div className="bg-gray-50 rounded-lg p-4">
+                                        <div className="bg-gray-50 rounded-lg p-4 border border-gray-200">
                                             <p className="text-sm leading-relaxed whitespace-pre-wrap text-gray-700">
                                                 {elder.medicalNotes || "No medical notes recorded."}
                                             </p>
@@ -223,12 +235,16 @@ export default function ElderProfile() {
                                 </div>
                             </div>
 
-                            {/* Right Side - Room Section */}
-                            <div className="lg:col-span-2 space-y-6">
-                                <div className="bg-white rounded-xl shadow-lg">
-                                    <div className="bg-gray-50 p-4 rounded-t-xl border-b">
+                            {/* Right Column - Room & Meal Management */}
+                            <div className="xl:col-span-8 space-y-10">
+                                {/* Room Assignment Card */}
+                                <div className="bg-white rounded-xl shadow-lg border border-orange-100">
+                                    <div className="bg-gradient-to-r from-orange-500 to-orange-600 h-2 rounded-t-xl" />
+                                    <div className="bg-white p-4 border-b border-orange-200">
                                         <h3 className="font-semibold text-gray-900 flex items-center gap-2">
-                                            <Home className="w-5 h-5 text-orange-500" />
+                                            <div className="w-8 h-8 bg-orange-100 rounded-lg flex items-center justify-center">
+                                                <Home className="w-4 h-4 text-orange-600" />
+                                            </div>
                                             Room Assignment
                                         </h3>
                                     </div>
@@ -240,19 +256,22 @@ export default function ElderProfile() {
                                         />
                                     </div>
                                 </div>
-                            </div>
-                        </div>
 
-                        {/* Meal Assignment */}
-                        <div className="bg-white rounded-xl shadow-lg">
-                            <div className="bg-gray-50 p-4 rounded-t-xl border-b">
-                                <h3 className="font-semibold text-gray-900 flex items-center gap-2">
-                                    <Utensils className="w-5 h-5 text-orange-500" />
-                                    Meal Management
-                                </h3>
-                            </div>
-                            <div className="p-6">
-                                <MealAssignmentSection elderId={id} />
+                                {/* Meal Management Card */}
+                                <div className="bg-white rounded-xl shadow-lg border border-orange-100">
+                                    <div className="bg-gradient-to-r from-orange-500 to-orange-600 h-2 rounded-t-xl" />
+                                    <div className="bg-white p-4 border-b border-orange-200">
+                                        <h3 className="font-semibold text-gray-900 flex items-center gap-2">
+                                            <div className="w-8 h-8 bg-orange-100 rounded-lg flex items-center justify-center">
+                                                <Utensils className="w-4 h-4 text-orange-600" />
+                                            </div>
+                                            Meal Management
+                                        </h3>
+                                    </div>
+                                    <div className="p-6">
+                                        <MealAssignmentSection elderId={id} />
+                                    </div>
+                                </div>
                             </div>
                         </div>
                     </>
@@ -285,9 +304,9 @@ function StatusBadge({ status }) {
 
 function InfoRow({ label, value }) {
     return (
-        <div className="flex justify-between items-start gap-4 py-2">
-            <span className="text-sm text-gray-600 font-medium">{label}</span>
-            <span className="text-sm text-right font-semibold text-gray-900">
+        <div className="flex justify-between items-start gap-4 py-3 border-b border-orange-100 last:border-b-0">
+            <span className="text-sm text-gray-600 font-medium min-w-0 flex-shrink-0">{label}</span>
+            <span className="text-sm text-right font-semibold text-gray-900 min-w-0 flex-1">
                 {typeof value === "string" ? (value || "—") : value}
             </span>
         </div>

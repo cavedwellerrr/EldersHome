@@ -68,7 +68,7 @@ export default function RoomAssignmentSection({ elderId, currentRoom, onChanged 
     return (
         <div className="space-y-4">
             {/* Current Room Status */}
-            <div className="border border-orange-200 rounded-lg p-4 bg-gradient-to-r from-orange-50 to-orange-100">
+            <div className="border border-orange-100 rounded-lg p-4 bg-white shadow-lg">
                 {currentRoom ? (
                     <div className="w-full">
                         <div className="flex items-center justify-between mb-4">
@@ -99,11 +99,14 @@ export default function RoomAssignmentSection({ elderId, currentRoom, onChanged 
                                 </div>
                             </div>
                             <div className="flex gap-2">
-                                <button className="btn btn-error btn-sm" onClick={unassign}>
+                                <button
+                                    className="bg-red-500 text-white hover:bg-red-600 border-2 border-red-500 hover:border-red-600 px-4 py-2 rounded-lg font-semibold transition-all duration-200 shadow-sm hover:shadow-md"
+                                    onClick={unassign}
+                                >
                                     Unassign Room
                                 </button>
                                 <button
-                                    className="btn btn-outline btn-sm"
+                                    className="bg-orange-500 text-white hover:bg-orange-600 border-2 border-orange-500 hover:border-orange-600 px-4 py-2 rounded-lg font-semibold transition-all duration-200 shadow-sm hover:shadow-md"
                                     onClick={() => setShowSelection(true)}
                                 >
                                     Change Room
@@ -117,7 +120,7 @@ export default function RoomAssignmentSection({ elderId, currentRoom, onChanged 
                         <h4 className="font-semibold mb-2 text-gray-900">No Room Assigned</h4>
                         <p className="text-gray-600 mb-4">This elder hasn't been assigned to a room yet.</p>
                         <button
-                            className="btn btn-primary bg-orange-500 hover:bg-orange-600 border-orange-500"
+                            className="bg-orange-500 text-white hover:bg-orange-600 border-2 border-orange-500 hover:border-orange-600 px-4 py-2 rounded-lg font-semibold transition-all duration-200 shadow-sm hover:shadow-md"
                             onClick={() => setShowSelection(true)}
                         >
                             Assign a Room
@@ -130,7 +133,7 @@ export default function RoomAssignmentSection({ elderId, currentRoom, onChanged 
             {showSelection && (
                 <div className="space-y-4">
                     {/* Filters */}
-                    <div className="bg-gray-50 rounded-lg p-4">
+                    <div className="bg-orange-50 rounded-lg p-4 border border-orange-100">
                         <h5 className="font-medium text-gray-900 mb-3">Filter Available Rooms</h5>
                         <div className="grid grid-cols-1 md:grid-cols-4 gap-3">
                             <select
@@ -166,7 +169,7 @@ export default function RoomAssignmentSection({ elderId, currentRoom, onChanged 
                                 placeholder="Search room ID"
                             />
                             <button
-                                className="btn btn-primary btn-sm bg-orange-500 hover:bg-orange-600 border-orange-500"
+                                className="bg-orange-500 text-white hover:bg-orange-600 border-2 border-orange-500 hover:border-orange-600 px-4 py-2 rounded-lg font-semibold transition-all duration-200 shadow-sm hover:shadow-md"
                                 onClick={loadAvailable}
                             >
                                 Apply Filters
@@ -175,7 +178,7 @@ export default function RoomAssignmentSection({ elderId, currentRoom, onChanged 
                     </div>
 
                     {/* Available Rooms */}
-                    <div className="bg-white rounded-lg shadow-lg">
+                    <div className="bg-white rounded-lg shadow-lg border border-orange-100">
                         {loading ? (
                             <div className="p-8 text-center">
                                 <span className="loading loading-spinner loading-md text-orange-500"></span>
@@ -188,7 +191,7 @@ export default function RoomAssignmentSection({ elderId, currentRoom, onChanged 
                             </div>
                         ) : (
                             <div>
-                                <div className="bg-gray-50 p-4 border-b">
+                                <div className="bg-orange-50 p-4 border-b border-orange-200">
                                     <h5 className="font-medium text-gray-900">Available Rooms ({rooms.length})</h5>
                                 </div>
                                 <div className="overflow-x-auto">
@@ -213,7 +216,7 @@ export default function RoomAssignmentSection({ elderId, currentRoom, onChanged 
                                                     </td>
                                                     <td>
                                                         <button
-                                                            className="btn btn-success btn-sm bg-green-600 hover:bg-green-700"
+                                                            className="bg-green-500 text-white hover:bg-green-600 border-2 border-green-500 hover:border-green-600 px-3 py-1 rounded-lg font-semibold transition-all duration-200 shadow-sm hover:shadow-md text-sm"
                                                             onClick={() => assign(r.room_id)}
                                                         >
                                                             Assign
@@ -229,7 +232,10 @@ export default function RoomAssignmentSection({ elderId, currentRoom, onChanged 
                     </div>
 
                     <div className="flex justify-end">
-                        <button className="btn btn-ghost btn-sm" onClick={() => setShowSelection(false)}>
+                        <button
+                            className="bg-white text-gray-600 hover:bg-gray-50 border-2 border-gray-200 hover:border-gray-300 px-4 py-2 rounded-lg font-semibold transition-all duration-200"
+                            onClick={() => setShowSelection(false)}
+                        >
                             Cancel
                         </button>
                     </div>
