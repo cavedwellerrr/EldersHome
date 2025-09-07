@@ -18,6 +18,8 @@ import mealRoutes from "./routes/mealRoutes.js";
 import roomRoutes from "./routes/roomRoutes.js";
 import assignmentRoutes from "./routes/assignment_routes.js";
 
+import eventRoutes from "./routes/event.route.js";
+import eventEnrollmentRoutes from "./routes/eventEnrollments.route.js";
 
 
 // Derive __dirname equivalent for ES Modules
@@ -54,6 +56,9 @@ app.use("/api/rooms", roomRoutes);//rooms
 
 app.use("/api/caretaker/elders", caretakerElderRoutes);
 app.use("/api/assign", assignmentRoutes);//to asiign meal and rooms
+
+app.use("/api/events", eventRoutes);
+app.use("/api/event-enrollments", eventEnrollmentRoutes);
 
 app.get("/", (req, res) => res.send("API working"));
 
