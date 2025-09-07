@@ -12,7 +12,13 @@ import { protect } from "./middleware/authGuardianMiddleware.js";
 import caretakerRoutes from "./routes/caretakerRoutes.js";
 import donationsRoutes from "./routes/donationsRoute.js";
 import donorListRoutes from "./routes/donorListRoutes.js";
-import caretakerElderRoutes from "./routes/caretaker_elder_routes.js"
+import caretakerElderRoutes from "./routes/caretaker_elder_routes.js";
+
+import mealRoutes from "./routes/mealRoutes.js";
+import roomRoutes from "./routes/roomRoutes.js";
+import assignmentRoutes from "./routes/assignment_routes.js";
+
+
 
 // Derive __dirname equivalent for ES Modules
 const __filename = fileURLToPath(import.meta.url);
@@ -42,7 +48,12 @@ app.use("/api/caretakers", caretakerRoutes);
 app.use("/api/donations", donationsRoutes);
 app.use("/api/donors", donorListRoutes);
 
+//meal routes
+app.use("/api/meals", mealRoutes);//meal
+app.use("/api/rooms", roomRoutes);//rooms
+
 app.use("/api/caretaker/elders", caretakerElderRoutes);
+app.use("/api/assign", assignmentRoutes);//to asiign meal and rooms
 
 app.get("/", (req, res) => res.send("API working"));
 

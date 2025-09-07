@@ -29,8 +29,9 @@ import AdminEvents from "./pages/staff/AdminEvents";
 //caretaker
 import CaretakerMeals from "./pages/staff/CaretakerMeals";
 import CaretakerEvents from "./pages/staff/CaretakerEvents";
-import CaretakerRooms from "./pages/staff/CaretakerRooms";
+// import CaretakerRooms from "./pages/staff/CaretakerRooms";
 import AssignedElders from "./pages/staff/AssignedElders";
+import ElderProfile from "./pages/staff/ElderProfile";
 
 //Doctor
 import DoctorAppointments from "./pages/staff/DoctorAppointments";
@@ -40,6 +41,7 @@ import DoctorElders from "./pages/staff/DoctorElders";
 //Operator
 import AssignCaretakers from "./pages/staff/AssignCaretakers";
 import PendingPaymentsDashboard from "./pages/staff/PendingPaymentsDashboard";
+import OperatorRooms from "./pages/staff/OperatorRooms";
 
 import Navbar from "./components/Navbar";
 import ProtectedRoute from "./components/ProtectedRoute";
@@ -105,6 +107,7 @@ const App = () => {
                     <Route index element={<OperatorDashboard />} />
                     <Route path="elder-requests" element={<PendingPaymentsDashboard />} />
                     <Route path="assign-caretaker" element={<AssignCaretakers />} />
+                     <Route path="manage-rooms" element={<OperatorRooms />} />
                   </Routes>
                 </OperatorLayout>
               </ProtectedRoute>
@@ -118,9 +121,10 @@ const App = () => {
                   <Routes>
                     <Route index element={<CaretakerDashboard />} />
                     <Route path="assigned-elders" element={<AssignedElders />} />
-                    <Route path="meals" element={<CaretakerMeals />} />
-                    <Route path="rooms" element={<CaretakerRooms />} />
-                    <Route path="events" element={<CaretakerEvents />} />
+                  <Route path="meals" element={<CaretakerMeals />} />
+                  {/* <Route path="rooms" element={<CaretakerRooms />} /> */}
+                  <Route path="events" element={<CaretakerEvents />} />
+                  <Route path="elders/:id" element={<ElderProfile />} />
                   </Routes>
                 </CaretakerLayout>
               </ProtectedRoute>
