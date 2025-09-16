@@ -47,15 +47,15 @@ const CaretakerNavbar = () => {
           >
             Meals
           </Link>
-          <Link
+          {/* <Link
             to="/staff/caretaker-dashboard/rooms"
             className={`transition ${isActive("/staff/caretaker-dashboard/rooms")
               ? "font-bold text-yellow-300"
               : "hover:text-yellow-200"
               }`}
           >
-            {/* Rooms
-          </Link>
+            Rooms
+          </Link> */}
           <Link
             to="/staff/caretaker-dashboard/events"
             className={`transition ${
@@ -63,7 +63,7 @@ const CaretakerNavbar = () => {
                 ? "font-bold text-yellow-300"
                 : "hover:text-yellow-200"
             }`}
-          > */}
+          >
             Events
           </Link>
         </div>
