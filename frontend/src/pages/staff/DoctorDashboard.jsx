@@ -1,11 +1,13 @@
-// frontend/src/pages/staff/DoctorDashboard.jsx
 import { useEffect, useState } from "react";
+import { Link } from "react-router-dom";
 import api from "../../api";
+import { FaUserMd, FaClipboardList, FaCalendarAlt, FaClock, FaExclamationTriangle } from "react-icons/fa";
 
 export default function DoctorDashboard() {
   const [eldersCount, setEldersCount] = useState(0);
   const [appointmentsCount, setAppointmentsCount] = useState(0);
   const [pendingConsultationsCount, setPendingConsultationsCount] = useState(0);
+  const [urgentConsultationsCount, setUrgentConsultationsCount] = useState(0); // ✅ urgent
   const [nextAppointment, setNextAppointment] = useState(null);
   const [loading, setLoading] = useState(true);
 
@@ -31,22 +33,27 @@ export default function DoctorDashboard() {
         const uniqueElders = new Set(appointments.map((a) => a.elder?._id));
         setEldersCount(uniqueElders.size);
 
-        // Next appointment = earliest future date
+        // Next appointment
         const futureAppointments = appointments
           .filter((a) => new Date(a.date) > new Date())
           .sort((a, b) => new Date(a.date) - new Date(b.date));
 
-        if (futureAppointments.length > 0) {
-          setNextAppointment(new Date(futureAppointments[0].date));
-        } else {
-          setNextAppointment(null);
-        }
+        setNextAppointment(
+          futureAppointments.length > 0
+            ? new Date(futureAppointments[0].date)
+            : null
+        );
 
         // ✅ Fetch pending consultations
         const resConsultations = await api.get("/consultations/pending", {
           headers: { Authorization: `Bearer ${token}` },
         });
-        setPendingConsultationsCount(resConsultations.data?.length || 0);
+        const consultations = resConsultations.data || [];
+        setPendingConsultationsCount(consultations.length);
+
+        // ✅ Count urgent consultations
+        const urgent = consultations.filter((c) => c.priority === "Urgent");
+        setUrgentConsultationsCount(urgent.length);
       } catch (err) {
         console.error("Error fetching dashboard data:", err);
       } finally {
@@ -68,24 +75,38 @@ export default function DoctorDashboard() {
       {loading ? (
         <p>Loading dashboard...</p>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-6">
           {/* Elders Assigned */}
           <DashboardCard
             title="Elders Assigned"
             value={eldersCount}
             color="from-orange-400 to-orange-600"
+            icon={<FaUserMd size={32} />}
+            to="/staff/doctor-dashboard/elders"
           />
           {/* Appointments */}
           <DashboardCard
             title="Appointments"
             value={appointmentsCount}
             color="from-green-400 to-green-600"
+            icon={<FaCalendarAlt size={32} />}
+            to="/staff/doctor-dashboard/appointments"
           />
           {/* Pending Consultations */}
           <DashboardCard
             title="Pending Consultations"
             value={pendingConsultationsCount}
             color="from-blue-400 to-blue-600"
+            icon={<FaClipboardList size={32} />}
+            to="/staff/doctor-dashboard/consultations"
+          />
+          {/* Urgent Consultations */}
+          <DashboardCard
+            title="Urgent Consultations"
+            value={urgentConsultationsCount}
+            color="from-red-400 to-red-600"
+            icon={<FaExclamationTriangle size={32} />}
+            to="/staff/doctor-dashboard/consultations"
           />
           {/* Next Appointment */}
           <DashboardCard
@@ -96,6 +117,9 @@ export default function DoctorDashboard() {
                 : "No upcoming"
             }
             color="from-purple-400 to-purple-600"
+            icon={<FaClock size={32} />}
+            highlight
+            to="/staff/doctor-dashboard/appointments"
           />
         </div>
       )}
@@ -103,13 +127,20 @@ export default function DoctorDashboard() {
   );
 }
 
-function DashboardCard({ title, value, color }) {
-  return (
+function DashboardCard({ title, value, color, icon, highlight, to }) {
+  const CardContent = (
     <div
-      className={`rounded-xl shadow-lg p-6 bg-gradient-to-r ${color} text-white`}
+      className={`flex items-center justify-between rounded-2xl shadow-lg p-6 bg-gradient-to-r ${color} text-white transform transition hover:scale-105 cursor-pointer ${
+        highlight ? "lg:col-span-2" : ""
+      }`}
     >
-      <p className="text-lg font-medium">{title}</p>
-      <p className="text-2xl font-bold mt-2">{value}</p>
+      <div>
+        <p className="text-lg font-medium">{title}</p>
+        <p className="text-2xl font-bold mt-2">{value}</p>
+      </div>
+      <div className="opacity-90">{icon}</div>
     </div>
   );
+
+  return to ? <Link to={to}>{CardContent}</Link> : CardContent;
 }

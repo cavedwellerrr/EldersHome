@@ -56,5 +56,28 @@ router.patch("/:id", protectStaff, async (req, res) => {
     res.status(500).json({ message: error.message });
   }
 });
+// ✅ Get all appointments for logged-in caretaker
+router.get("/caretaker/my", protectStaff, async (req, res) => {
+  try {
+    if (req.staff.role !== "caretaker") {
+      return res.status(403).json({ message: "Only caretakers can view their appointments" });
+    }
+
+    const appointments = await Appointment.find({ caretaker: req.staff._id })
+      .populate("elder", "fullName dob")
+      .populate({
+        path: "doctor",
+        populate: { path: "staff", select: "name email" },
+      })
+      .populate("guardian", "name email");
+
+    res.json(appointments);
+  } catch (error) {
+    console.error("Error fetching caretaker appointments:", error);
+    res.status(500).json({ message: error.message });
+  }
+});
+
+
 
 export default router;

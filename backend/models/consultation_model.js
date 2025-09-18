@@ -32,6 +32,10 @@ const consultationSchema = new mongoose.Schema(
       enum: ["Pending", "Approved", "Rejected"], // workflow
       default: "Pending",
     },
+    requestDate: {
+    type: Date,
+    default: Date.now, // ✅ Auto-set when request is created
+  },
     responseNotes: {
       type: String,
       default: "", // doctor notes when responding

@@ -5,6 +5,9 @@ import {
   listPendingConsultations,
   updateConsultation,
   getMyConsultations,
+  getDoctorConsultations,
+  deleteConsultation,
+  rejectConsultation,
 } from "../controllers/consultationController.js";
 
 const router = express.Router();
@@ -19,6 +22,14 @@ router.get("/pending", listPendingConsultations);
 router.patch("/:id", updateConsultation);
 router.get("/my",getMyConsultations);
 
+
+// Doctor sees only his consultations
+router.get("/doctor/my",  getDoctorConsultations);
+
+// routes/consultationRoutes.js
+router.delete("/:id", deleteConsultation);
+// routes/consultationRoutes.js
+router.put("/:id/reject",  rejectConsultation);
 
 
 

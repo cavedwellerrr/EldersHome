@@ -1,3 +1,4 @@
+// frontend/src/pages/staff/DoctorElder.jsx
 import { useEffect, useState } from "react";
 import api from "../../api";
 
@@ -11,15 +12,14 @@ const DoctorElder = () => {
   const [genderFilter, setGenderFilter] = useState("All");
   const [sortOption, setSortOption] = useState("nameAsc");
 
-  // ✅ fetch elders (wrapped in function for refresh)
+  // ✅ fetch elders
   const fetchActiveElders = async () => {
     try {
       setLoading(true);
-      let token = localStorage.getItem("staffToken");
-      if (!token) {
-        token =
-          localStorage.getItem("token") || localStorage.getItem("authToken");
-      }
+      let token =
+        localStorage.getItem("staffToken") ||
+        localStorage.getItem("token") ||
+        localStorage.getItem("authToken");
 
       if (!token) {
         setError("No staff token found. Please log in as staff.");
@@ -96,145 +96,140 @@ const DoctorElder = () => {
   };
 
   return (
-    <div className="p-6 bg-white rounded-2xl shadow-lg">
-      <h2 className="text-3xl font-bold text-orange-600 mb-6 text-center">
-        Activated Elders
-      </h2>
+    <div className="p-6 space-y-6">
+      {/* Page Header */}
+      <h1 className="text-3xl font-bold text-orange-600">All Elders</h1>
+      <p className="text-gray-600">View all active elders and their details</p>
 
-      {/* Filters + Actions */}
-      <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-6">
-        {/* Search */}
-        <input
-          type="text"
-          placeholder="Search by name..."
-          value={searchTerm}
-          onChange={(e) => setSearchTerm(e.target.value)}
-          className="border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-orange-400 w-full md:w-1/3"
-        />
-
-        {/* Gender Filter */}
-        <select
-          value={genderFilter}
-          onChange={(e) => setGenderFilter(e.target.value)}
-          className="border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-orange-400 w-full md:w-1/4"
-        >
-          <option value="All">All Genders</option>
-          <option value="Male">Male</option>
-          <option value="Female">Female</option>
-          <option value="Other">Other</option>
-        </select>
-
-        {/* Sort Filter */}
-        <select
-          value={sortOption}
-          onChange={(e) => setSortOption(e.target.value)}
-          className="border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-orange-400 w-full md:w-1/4"
-        >
-          <option value="nameAsc">Sort by Name (A → Z)</option>
-          <option value="nameDesc">Sort by Name (Z → A)</option>
-          <option value="dobAsc">Sort by DOB (Oldest First)</option>
-          <option value="dobDesc">Sort by DOB (Youngest First)</option>
-        </select>
-
-        {/* Action Buttons */}
-        <div className="flex gap-2">
-          <button
-            onClick={handleReset}
-            className="bg-orange-400 hover:bg-orange-500 text-white px-4 py-2 rounded-lg shadow transition"
-          >
-            Reset Filters
-          </button>
-          <button
-            onClick={fetchActiveElders}
-            className="bg-orange-500 hover:bg-orange-600 text-white px-4 py-2 rounded-lg shadow transition"
-          >
-            Refresh
-          </button>
+      {/* Elders Table */}
+      <section className="rounded-lg border shadow">
+        <div className="bg-orange-500 text-white p-3 rounded-t-lg font-semibold">
+          All Elders
         </div>
-      </div>
+        <div className="p-4 overflow-x-auto">
+          {/* Filters */}
+          <div className="flex flex-col md:flex-row gap-3 mb-4">
+            <input
+              type="text"
+              placeholder="Search by name..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="p-2 border rounded-lg w-full md:w-1/3"
+            />
+            <select
+              value={genderFilter}
+              onChange={(e) => setGenderFilter(e.target.value)}
+              className="p-2 border rounded-lg"
+            >
+              <option value="All">All Genders</option>
+              <option value="Male">Male</option>
+              <option value="Female">Female</option>
+              <option value="Other">Other</option>
+            </select>
+            <select
+              value={sortOption}
+              onChange={(e) => setSortOption(e.target.value)}
+              className="p-2 border rounded-lg"
+            >
+              <option value="nameAsc">Sort: Name (A → Z)</option>
+              <option value="nameDesc">Sort: Name (Z → A)</option>
+              <option value="dobAsc">Sort: DOB (Oldest)</option>
+              <option value="dobDesc">Sort: DOB (Youngest)</option>
+            </select>
+            <button
+              onClick={handleReset}
+              className="px-3 py-1 bg-gray-400 text-white rounded-lg hover:bg-gray-500"
+            >
+              Reset
+            </button>
+            <button
+              onClick={fetchActiveElders}
+              className="px-3 py-1 bg-orange-500 text-white rounded-lg hover:bg-orange-600"
+            >
+              Refresh
+            </button>
+          </div>
 
-      {/* Table */}
-      <div className="overflow-x-auto">
-        <table className="w-full border-collapse rounded-xl overflow-hidden shadow-md">
-          <thead className="bg-gradient-to-r from-orange-300 to-orange-500 text-white">
-            <tr>
-              <th className="p-3 text-left rounded-tl-xl">Name</th>
-              <th className="p-3 text-left">DOB</th>
-              <th className="p-3 text-left">Gender</th>
-              <th className="p-3 text-left">Medical Notes</th>
-              <th className="p-3 text-left">Guardian</th>
-              <th className="p-3 text-left rounded-tr-xl">Caretaker</th>
-            </tr>
-          </thead>
-          <tbody>
-            {filteredElders.length > 0 ? (
-              filteredElders.map((elder, index) => (
-                <tr
-                  key={elder._id}
-                  className={`transition ${
-                    index % 2 === 0 ? "bg-orange-50" : "bg-white"
-                  } hover:bg-orange-100`}
-                >
-                  <td className="p-3 border-b border-gray-200">
-                    {elder.fullName}
-                  </td>
-                  <td className="p-3 border-b border-gray-200">
-                    {new Date(elder.dob).toLocaleDateString()}
-                  </td>
-                  <td className="p-3 border-b border-gray-200">{elder.gender}</td>
-
-                  {/* ✅ Medical Notes: show text + file download */}
-                  <td className="p-3 border-b border-gray-200">
-                    <div className="flex flex-col">
-                      <span className="text-gray-700">
-                        {elder.medicalNotes || "No notes"}
-                      </span>
-                      {elder.medicalNotesFile ? (() => {
-                        // Smart check: ensure URL starts with "uploads/"
-                        const filePath = elder.medicalNotesFile.startsWith("uploads/")
-                          ? elder.medicalNotesFile
-                          : `uploads/${elder.medicalNotesFile}`;
-                        const fileUrl = `http://localhost:5000/${filePath}`;
-                        return (
-                          <a
-                            href={fileUrl}
-                            download
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="text-blue-600 hover:underline mt-1"
-                          >
-                            Download File
-                          </a>
-                        );
-                      })() : (
-                        <span className="text-gray-400 mt-1">No File</span>
-                      )}
-                    </div>
-                  </td>
-
-                  <td className="p-3 border-b border-gray-200">
-                    {elder.guardian?.name || "N/A"}
-                  </td>
-                  <td className="p-3 border-b border-gray-200">
-                    {elder.caretaker?.name || "Not Assigned"}
+          {/* Table */}
+          <table className="min-w-full text-sm">
+            <thead className="bg-gray-100">
+              <tr>
+                <Th>Name</Th>
+                <Th>DOB</Th>
+                <Th>Gender</Th>
+                <Th>Medical Notes</Th>
+                <Th>Guardian</Th>
+                <Th>Caretaker</Th>
+              </tr>
+            </thead>
+            <tbody>
+              {filteredElders.length > 0 ? (
+                filteredElders.map((elder, idx) => (
+                  <tr
+                    key={elder._id}
+                    className={idx % 2 === 0 ? "bg-white" : "bg-gray-50"}
+                  >
+                    <Td>{elder.fullName}</Td>
+                    <Td>
+                      {elder.dob
+                        ? new Date(elder.dob).toLocaleDateString()
+                        : "—"}
+                    </Td>
+                    <Td>{elder.gender}</Td>
+                    <Td>
+                      <div className="flex flex-col">
+                        <span className="text-gray-700">
+                          {elder.medicalNotes || "No notes"}
+                        </span>
+                        {elder.medicalNotesFile ? (() => {
+                          const filePath = elder.medicalNotesFile.startsWith("uploads/")
+                            ? elder.medicalNotesFile
+                            : `uploads/${elder.medicalNotesFile}`;
+                          const fileUrl = `http://localhost:5000/${filePath}`;
+                          return (
+                            <a
+                              href={fileUrl}
+                              download
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="text-blue-600 hover:underline mt-1"
+                            >
+                              Download File
+                            </a>
+                          );
+                        })() : (
+                          <span className="text-gray-400 mt-1">No File</span>
+                        )}
+                      </div>
+                    </Td>
+                    <Td>{elder.guardian?.name || "N/A"}</Td>
+                    <Td>{elder.caretaker?.name || "Not Assigned"}</Td>
+                  </tr>
+                ))
+              ) : (
+                <tr>
+                  <td
+                    colSpan="6"
+                    className="text-center p-6 text-gray-500 font-medium"
+                  >
+                    No elders match your search/filter.
                   </td>
                 </tr>
-              ))
-            ) : (
-              <tr>
-                <td
-                  colSpan="6"
-                  className="text-center p-6 text-gray-500 font-medium"
-                >
-                  No elders match your search/filter.
-                </td>
-              </tr>
-            )}
-          </tbody>
-        </table>
-      </div>
+              )}
+            </tbody>
+          </table>
+        </div>
+      </section>
     </div>
   );
 };
 
 export default DoctorElder;
+
+// ---------- SMALL COMPONENTS ----------
+function Th({ children }) {
+  return <th className="px-3 py-2 font-semibold text-left">{children}</th>;
+}
+function Td({ children, className = "" }) {
+  return <td className={`px-3 py-2 ${className}`}>{children}</td>;
+}
