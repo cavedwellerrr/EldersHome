@@ -12,6 +12,11 @@ import {
   CheckCircle,
   ArrowRight,
 } from "lucide-react";
+import OurStory from "../assets/our-story.jpg"
+import doctor1 from "../assets/doctor1.jpg"
+import nurse1 from "../assets/nurse1.jpg"
+import coordinator1 from "../assets/coordinator1.jpg"
+
 
 const AboutUs = () => {
   const stats = [
@@ -76,19 +81,19 @@ const AboutUs = () => {
       name: "Dr. Sarah Johnson",
       role: "Medical Director",
       experience: "15+ years in geriatric medicine",
-      image: "/images/doctor1.jpg",
+      image: doctor1,
     },
     {
       name: "Maria Rodriguez",
       role: "Head of Nursing",
       experience: "12+ years in senior care",
-      image: "/images/nurse1.jpg",
+      image: nurse1,
     },
     {
       name: "James Chen",
       role: "Activities Coordinator",
       experience: "8+ years in recreational therapy",
-      image: "/images/coordinator1.jpg",
+      image: coordinator1,
     },
   ];
 
@@ -145,14 +150,14 @@ const AboutUs = () => {
       <section className="py-20 bg-white">
         <div className="max-w-6xl mx-auto px-6 grid md:grid-cols-2 gap-12 items-center">
           <img
-            src="/images/our-story.jpg"
+            src={OurStory}
             alt="Our Story"
             className="rounded-3xl shadow-xl w-full object-cover"
           />
           <div>
             <h2 className="text-4xl font-bold text-gray-800 mb-6">Our Story</h2>
             <p className="text-lg text-gray-600 leading-relaxed mb-6">
-              Founded in 2008, Senora Elder Care began with a vision to provide
+              Founded in 2008,  ElderCare began with a vision to provide
               exceptional care and create a nurturing environment for seniors.
               What started as a small initiative has now grown into a
               comprehensive elder care community serving hundreds of residents
@@ -252,7 +257,7 @@ const AboutUs = () => {
           <div className="text-center mb-16">
             <h2 className="text-4xl font-bold text-gray-800 mb-4">Our Team</h2>
             <p className="text-lg text-gray-600 max-w-3xl mx-auto">
-              Meet the dedicated professionals who make Senora Elder Care a
+              Meet the dedicated professionals who make ElderCare a
               trusted home for our residents.
             </p>
           </div>
@@ -265,7 +270,7 @@ const AboutUs = () => {
                 <img
                   src={member.image}
                   alt={member.name}
-                  className="w-full h-64 object-cover"
+                  className="w-full h-64 object-cover object-top"
                 />
                 <div className="p-6">
                   <h3 className="text-xl font-bold text-gray-800 mb-1">
