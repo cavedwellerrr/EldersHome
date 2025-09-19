@@ -12,6 +12,48 @@ const Donations = () => {
   const [quantity, setQuantity] = useState(1);
   const [listAcknowledgment, setListAcknowledgment] = useState(false);
   const [donors, setDonors] = useState([]);
+  const [emailError, setEmailError] = useState("");
+  const [nameError, setNameError] = useState("");
+
+  // Email validation function
+  const validateEmail = (email) => {
+    if (!email.trim()) {
+      return "Email is required";
+    }
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email)) {
+      return "Please enter a valid email address";
+    }
+    return "";
+  };
+
+  // Name validation function
+  const validateName = (name) => {
+    if (!name.trim()) {
+      return "Name is required";
+    }
+    if (name.trim().length < 2) {
+      return "Name must be at least 2 characters";
+    }
+    if (!/^[a-zA-Z\s]+$/.test(name.trim())) {
+      return "Name can only contain letters and spaces";
+    }
+    return "";
+  };
+
+  // Handle email change with validation
+  const handleEmailChange = (value) => {
+    setDonorEmail(value);
+    const error = validateEmail(value);
+    setEmailError(error);
+  };
+
+  // Handle name change with validation
+  const handleNameChange = (value) => {
+    setDonorName(value);
+    const error = validateName(value);
+    setNameError(error);
+  };
 
   // Fetch donor list on load
   useEffect(() => {
@@ -33,13 +75,20 @@ const Donations = () => {
   const handleSubmit = async (e) => {
     if (e && e.preventDefault) e.preventDefault();
 
+    // Validate all fields before submission
+    const nameValidationError = validateName(donorName);
+    const emailValidationError = validateEmail(donorEmail);
+
+    setNameError(nameValidationError);
+    setEmailError(emailValidationError);
+
     if (!donationType) {
       toast.error("Please select a donation type");
       return;
     }
 
-    if (!donorName || !donorEmail) {
-      toast.error("Please provide your name and email");
+    if (nameValidationError || emailValidationError) {
+      toast.error("Please fix the errors in the form");
       return;
     }
 
@@ -76,6 +125,8 @@ const Donations = () => {
         setItemName("");
         setQuantity(1);
         setListAcknowledgment(false);
+        setEmailError("");
+        setNameError("");
         // Refetch donor list
         const res = await api.get("/donors");
         setDonors(res.data);
@@ -90,6 +141,14 @@ const Donations = () => {
     document.getElementById('donation-form').scrollIntoView({ 
       behavior: 'smooth' 
     });
+  };
+
+  // Get input class name based on error state
+  const getInputClassName = (hasError) => {
+    const baseClass = "input input-bordered w-full h-14 bg-gray-50 border-gray-200 focus:bg-white rounded-xl text-lg transition-colors";
+    return hasError 
+      ? `${baseClass} border-red-300 focus:border-red-500` 
+      : `${baseClass} focus:border-orange-500`;
   };
 
   return (
@@ -247,10 +306,13 @@ const Donations = () => {
                         type="text"
                         placeholder="Enter your name"
                         value={donorName}
-                        onChange={(e) => setDonorName(e.target.value)}
-                        className="input input-bordered w-full h-14 bg-gray-50 border-gray-200 focus:bg-white focus:border-orange-500 rounded-xl text-lg"
+                        onChange={(e) => handleNameChange(e.target.value)}
+                        className={getInputClassName(nameError)}
                         required
                       />
+                      {nameError && (
+                        <p className="text-red-600 text-sm mt-1">{nameError}</p>
+                      )}
                     </div>
                     <div className="space-y-2">
                       <label className="text-sm font-semibold text-gray-700">Email Address</label>
@@ -258,10 +320,13 @@ const Donations = () => {
                         type="email"
                         placeholder="Enter your email"
                         value={donorEmail}
-                        onChange={(e) => setDonorEmail(e.target.value)}
-                        className="input input-bordered w-full h-14 bg-gray-50 border-gray-200 focus:bg-white focus:border-orange-500 rounded-xl text-lg"
+                        onChange={(e) => handleEmailChange(e.target.value)}
+                        className={getInputClassName(emailError)}
                         required
                       />
+                      {emailError && (
+                        <p className="text-red-600 text-sm mt-1">{emailError}</p>
+                      )}
                     </div>
                   </div>
 
@@ -453,9 +518,6 @@ const Donations = () => {
           </button>
         </div>
       </div>
-        
-                    
-      
     </div>
   );
 };

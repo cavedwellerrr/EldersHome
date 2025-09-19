@@ -9,10 +9,13 @@ const Register = () => {
   const [phone, setPhone] = useState("");
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
   const [error, setError] = useState("");
   const [fieldErrors, setFieldErrors] = useState({});
   const [touched, setTouched] = useState({});
   const [isLoading, setIsLoading] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const navigate = useNavigate();
 
   // Validation rules
@@ -37,8 +40,10 @@ const Register = () => {
       
       case 'phone':
         if (!value.trim()) return "Phone number is required";
-        const phoneRegex = /^[\+]?[1-9][\d]{0,15}$/;
-        if (!phoneRegex.test(value.replace(/[\s\-\(\)]/g, ''))) return "Please enter a valid phone number";
+        // Updated regex to allow numbers starting with 0
+        const phoneRegex = /^[0-9+][\d\s\-\(\)]{7,20}$/;
+        const cleanPhone = value.replace(/[\s\-\(\)]/g, '');
+        if (!phoneRegex.test(cleanPhone)) return "Please enter a valid phone number";
         return "";
       
       case 'username':
@@ -56,6 +61,11 @@ const Register = () => {
         if (!/(?=.*\d)/.test(value)) return "Password must contain at least one number";
         return "";
       
+      case 'confirmPassword':
+        if (!value) return "Please confirm your password";
+        if (value !== password) return "Passwords don't match";
+        return "";
+      
       default:
         return "";
     }
@@ -69,7 +79,18 @@ const Register = () => {
       case 'email': setEmail(value); break;
       case 'phone': setPhone(value); break;
       case 'username': setUsername(value); break;
-      case 'password': setPassword(value); break;
+      case 'password': 
+        setPassword(value);
+        // Re-validate confirm password if it has been touched
+        if (touched.confirmPassword && confirmPassword) {
+          const confirmError = value !== confirmPassword ? "Passwords don't match" : "";
+          setFieldErrors(prev => ({
+            ...prev,
+            confirmPassword: confirmError
+          }));
+        }
+        break;
+      case 'confirmPassword': setConfirmPassword(value); break;
     }
 
     // Validate field if it has been touched
@@ -99,8 +120,8 @@ const Register = () => {
   };
 
   const validateForm = () => {
-    const fields = ['name', 'address', 'email', 'phone', 'username', 'password'];
-    const values = { name, address, email, phone, username, password };
+    const fields = ['name', 'address', 'email', 'phone', 'username', 'password', 'confirmPassword'];
+    const values = { name, address, email, phone, username, password, confirmPassword };
     const errors = {};
     
     fields.forEach(field => {
@@ -143,7 +164,7 @@ const Register = () => {
   };
 
   const getInputClassName = (field) => {
-    const baseClass = "w-full px-4 py-3 border rounded-lg focus:ring-2 transition-colors bg-gray-50 focus:bg-white";
+    const baseClass = "w-full px-4 py-3 pr-12 border rounded-lg focus:ring-2 transition-colors bg-gray-50 focus:bg-white";
     const hasError = fieldErrors[field] && touched[field];
     
     if (hasError) {
@@ -151,6 +172,14 @@ const Register = () => {
     }
     
     return `${baseClass} border-gray-200 focus:ring-orange-500 focus:border-orange-500`;
+  };
+
+  const togglePasswordVisibility = (field) => {
+    if (field === 'password') {
+      setShowPassword(!showPassword);
+    } else if (field === 'confirmPassword') {
+      setShowConfirmPassword(!showConfirmPassword);
+    }
   };
 
   return (
@@ -313,7 +342,7 @@ const Register = () => {
                 <label className="text-sm font-medium text-gray-700">Password</label>
                 <div className="relative">
                   <input
-                    type="password"
+                    type={showPassword ? "text" : "password"}
                     value={password}
                     onChange={(e) => handleFieldChange('password', e.target.value)}
                     onBlur={(e) => handleFieldBlur('password', e.target.value)}
@@ -322,14 +351,62 @@ const Register = () => {
                     required
                     disabled={isLoading}
                   />
-                  <div className="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
-                    <svg className="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
-                    </svg>
-                  </div>
+                  <button
+                    type="button"
+                    onClick={() => togglePasswordVisibility('password')}
+                    className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-400 hover:text-gray-600 focus:outline-none"
+                    disabled={isLoading}
+                  >
+                    {showPassword ? (
+                      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.878 9.878L8.464 8.464M14.12 14.12l1.414 1.414M14.12 14.12L9.878 9.878" />
+                      </svg>
+                    ) : (
+                      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                      </svg>
+                    )}
+                  </button>
                 </div>
                 {fieldErrors.password && touched.password && (
                   <p className="text-red-600 text-sm mt-1">{fieldErrors.password}</p>
+                )}
+              </div>
+
+              <div className="space-y-1">
+                <label className="text-sm font-medium text-gray-700">Confirm Password</label>
+                <div className="relative">
+                  <input
+                    type={showConfirmPassword ? "text" : "password"}
+                    value={confirmPassword}
+                    onChange={(e) => handleFieldChange('confirmPassword', e.target.value)}
+                    onBlur={(e) => handleFieldBlur('confirmPassword', e.target.value)}
+                    className={getInputClassName('confirmPassword')}
+                    placeholder="Confirm your password"
+                    required
+                    disabled={isLoading}
+                  />
+                  <button
+                    type="button"
+                    onClick={() => togglePasswordVisibility('confirmPassword')}
+                    className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-400 hover:text-gray-600 focus:outline-none"
+                    disabled={isLoading}
+                  >
+                    {showConfirmPassword ? (
+                      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.878 9.878L8.464 8.464M14.12 14.12l1.414 1.414M14.12 14.12L9.878 9.878" />
+                      </svg>
+                    ) : (
+                      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                      </svg>
+                    )}
+                  </button>
+                </div>
+                {fieldErrors.confirmPassword && touched.confirmPassword && (
+                  <p className="text-red-600 text-sm mt-1">{fieldErrors.confirmPassword}</p>
                 )}
               </div>
             </div>
