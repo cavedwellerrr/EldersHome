@@ -66,7 +66,7 @@ export default function DoctorDashboard() {
   return (
     <div className="p-6 bg-gray-50 min-h-screen">
       <h1 className="text-3xl font-bold text-orange-600 mb-2">
-        Welcome,  {localStorage.getItem("staffName") || "User"}
+        Welcome, Dr. {localStorage.getItem("staffName") || "User"}
       </h1>
       <p className="text-gray-700 mb-6">
         Here’s an overview of your current work:

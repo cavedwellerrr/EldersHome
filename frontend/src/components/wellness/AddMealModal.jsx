@@ -62,6 +62,17 @@ const AddMealModal = ({ open, onClose }) => {
 
     const handleSubmit = async (e) => {
         e.preventDefault();
+
+        //  simple validations
+        if (name.trim().length < 3) {
+            toast.error("Meal name must be at least 3 characters");
+            return;
+        }
+        if (description.trim().length > 200) {
+            toast.error("Description must be under 200 characters");
+            return;
+        }
+
         setLoading(true);
         try {
             const payload = { name, description, category, restrictions: { toInclude, toAvoid } };

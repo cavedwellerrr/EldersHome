@@ -44,8 +44,16 @@ export default function RoomFormModal({ open, onClose, initial, onSaved }) {
     const handleSubmit = async (e) => {
         e.preventDefault();
         setSaving(true);
+
+        // ✅ Validate format: Letter(s)-Number
+        const roomIdPattern = /^[A-Za-z]+-\d+$/;
+        if (!roomIdPattern.test(room_id.trim())) {
+            toast.error("Room ID must follow format: Letter(s)-Number (e.g., G-1, A-12)");
+            setSaving(false);
+            return;
+        }
         try {
-            const payload = { room_id, floor, type, status };
+            const payload = { room_id: room_id.trim().toUpperCase(), floor, type, status };
             if (initial?._id) {
                 await api.put(`/rooms/${initial._id}`, payload);
                 toast.success("Room updated");

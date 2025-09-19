@@ -94,9 +94,11 @@ const EditMealModal = ({ open, onClose, meal, onUpdated }) => {
         try {
             const payload = { name, description, category, restrictions: { toInclude, toAvoid } };
             const { data } = await api.put(`/meals/${meal._id}`, payload);
-            toast.success("Meal updated successfully!");
-            onUpdated?.(data);
-            onClose?.();
+            toast.success("Meal updated successfully!", { duration: 5000 }); onUpdated?.(data);
+            setTimeout(() => {
+                onUpdated?.(data);
+                onClose?.();
+            }, 300);
         } catch (error) {
             console.error(error);
             toast.error(error?.response?.data?.message || "Failed to update meal");
