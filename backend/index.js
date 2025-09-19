@@ -21,6 +21,12 @@ import assignmentRoutes from "./routes/assignment_routes.js";
 import eventRoutes from "./routes/event.route.js";
 import eventEnrollmentRoutes from "./routes/eventEnrollments.route.js";
 
+import consultationRoutes from "./routes/consultationRoutes.js";
+import doctorRoutes from "./routes/doctorRoutes.js";
+import appointmentRoutes from "./routes/appointmentRoutes.js";
+
+
+
 
 // Derive __dirname equivalent for ES Modules
 const __filename = fileURLToPath(import.meta.url);
@@ -57,8 +63,20 @@ app.use("/api/rooms", roomRoutes);//rooms
 app.use("/api/caretaker/elders", caretakerElderRoutes);
 app.use("/api/assign", assignmentRoutes);//to asiign meal and rooms
 
+//Consultation Routes
+app.use("/api/consultations", consultationRoutes);
+
+//event routes
 app.use("/api/events", eventRoutes);
 app.use("/api/event-enrollments", eventEnrollmentRoutes);
+
+//doctor routes
+app.use("/api/doctors", doctorRoutes);
+
+//Appointments Route
+app.use("/api/appointments", appointmentRoutes);
+
+
 
 app.get("/", (req, res) => res.send("API working"));
 

@@ -66,6 +66,17 @@ const CaretakerNavbar = () => {
           >
             Events
           </Link>
+          <Link
+            to="/staff/caretaker-dashboard/consultations"
+            className={`transition ${
+              isActive("/staff/caretaker-dashboard/consultations")
+                ? "font-bold text-yellow-300"
+                : "hover:text-yellow-200"
+            }`}
+          >
+            Consultations
+          </Link>
+
         </div>
 
         {/* Right side profile + logout */}

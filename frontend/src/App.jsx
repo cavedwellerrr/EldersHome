@@ -32,11 +32,12 @@ import CaretakerEvents from "./pages/staff/CaretakerEvents";
 // import CaretakerRooms from "./pages/staff/CaretakerRooms";
 import AssignedElders from "./pages/staff/AssignedElders";
 import ElderProfile from "./pages/staff/ElderProfile";
+import CaretakerConsultations from "./pages/staff/CaretakerConsultations";
 
 //Doctor
 import DoctorAppointments from "./pages/staff/DoctorAppointments";
 import DoctorConsultations from "./pages/staff/DoctorConsultations";
-import DoctorElders from "./pages/staff/DoctorElders";
+
 
 //Operator
 import AssignCaretakers from "./pages/staff/AssignCaretakers";
@@ -124,6 +125,7 @@ const App = () => {
                   <Route path="meals" element={<CaretakerMeals />} />
                   {/* <Route path="rooms" element={<CaretakerRooms />} /> */}
                   <Route path="events" element={<CaretakerEvents />} />
+                  <Route path="consultations" element={<CaretakerConsultations />} />
                   <Route path="elders/:id" element={<ElderProfile />} />
                   </Routes>
                 </CaretakerLayout>
@@ -137,7 +139,7 @@ const App = () => {
                 <DoctorLayout>
                   <Routes>
                     <Route index element={<DoctorDashboard />} />
-                    <Route path="elders" element={<DoctorElders />} />
+                   
                     {/* <Route path="elders/:elderId" element={<ElderProfile />} /> */}
                     <Route path="appointments" element={<DoctorAppointments />} />
                     <Route path="consultations" element={<DoctorConsultations />} />

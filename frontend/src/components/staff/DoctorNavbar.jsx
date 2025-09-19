@@ -30,7 +30,7 @@ const DoctorNavbar = () => {
           >
             Doctor Portal
           </Link>
-          <Link
+          {/* <Link
             to="/staff/doctor-dashboard/elders"
             className={`transition ${
               isActive("/staff/doctor-dashboard/elders")
@@ -39,7 +39,7 @@ const DoctorNavbar = () => {
             }`}
           >
             Elders
-          </Link>
+          </Link> */}
           <Link
             to="/staff/doctor-dashboard/appointments"
             className={`transition ${
