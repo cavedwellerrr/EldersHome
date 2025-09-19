@@ -24,7 +24,7 @@ export default function CaretakerConsultations() {
   const [apptDate, setApptDate] = useState("");
   const [sortLatest, setSortLatest] = useState(true);
 
-  // ✅ New state for consultations sort
+  //  New state for consultations sort
   const [consultSortLatest, setConsultSortLatest] = useState(true);
 
   // ---------- HELPERS ----------
@@ -346,7 +346,7 @@ export default function CaretakerConsultations() {
                 {f}
               </button>
             ))}
-            {/* ✅ New Sort Toggle */}
+            {/*  New Sort Toggle */}
             <button
               onClick={() => setConsultSortLatest(!consultSortLatest)}
               className="px-3 py-1 rounded-lg bg-orange-500 text-white hover:bg-orange-600 ml-auto"

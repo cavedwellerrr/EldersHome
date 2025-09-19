@@ -43,7 +43,7 @@ export const requestConsultation = async (req, res) => {
   }
 };
 
-// ✅ Doctor views pending consultations
+//  Doctor views pending consultations
 export const listPendingConsultations = async (req, res) => {
   try {
     const consultations = await Consultation.find({ status: "Pending" })
@@ -64,8 +64,8 @@ export const listPendingConsultations = async (req, res) => {
   }
 };
 
-// ✅ Doctor updates consultation (Approve/Reject)
-// ✅ Doctor updates consultation (Approve/Reject)
+//  Doctor updates consultation (Approve/Reject)
+//  Doctor updates consultation (Approve/Reject)
 export const updateConsultation = async (req, res) => {
   try {
     const { id } = req.params;
@@ -125,7 +125,7 @@ export const updateConsultation = async (req, res) => {
 };
 
 //get Consultss
-// 🚨 TEST ONLY: Return all consultations (no role check)
+// 
 export const getMyConsultations = async (req, res) => {
   try {
     const consultations = await Consultation.find()

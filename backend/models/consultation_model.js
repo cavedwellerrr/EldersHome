@@ -34,7 +34,7 @@ const consultationSchema = new mongoose.Schema(
     },
     requestDate: {
     type: Date,
-    default: Date.now, // ✅ Auto-set when request is created
+    default: Date.now, //  Auto-set when request is created
   },
     responseNotes: {
       type: String,
