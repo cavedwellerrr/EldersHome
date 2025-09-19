@@ -1,58 +1,83 @@
+
 import React, { useEffect, useState } from "react";
-import axios from "axios";
-import { Clock, Search, RefreshCw, Calendar, MapPin, Heart } from "lucide-react";
+import { Clock, Search, RefreshCw, MapPin, Heart } from "lucide-react";
 
 // ✅ Import images from src/assets
 import healthImg from "../assets/health.jpg";
 import movieImg from "../assets/movie.jpg";
 import cardImg from "../assets/card.jpg";
-import yogaImg from "../assets/yoga.jpg";       // replace with correct yoga image if needed
+import yogaImg from "../assets/yoga.jpg";
 import gardeningImg from "../assets/gardening.jpg";
 
-// ✅ Use imported images in the map
-const imagesMap = {
-  "Health Checkup Camp": healthImg,
-  "Weekend Movie Night": movieImg,
-  "Friendly Card Game Evening": cardImg,
-  "Morning Yoga": yogaImg,
-  "Gardening Workshop": gardeningImg,
-};
-
 const Events = () => {
+  // Static events data with imported images
+  const staticEvents = [
+    {
+      _id: "1",
+      title: "Health Checkup Camp",
+      description:
+        "Comprehensive health screening and consultation with qualified medical professionals. Regular health monitoring is essential for maintaining wellness in our golden years.",
+      location: "Medical Center - Room A",
+      start_time: "2025-09-20T09:00:00Z",
+      end_time: "2025-09-20T12:00:00Z",
+      image: healthImg,
+    },
+    {
+      _id: "2",
+      title: "Weekend Movie Night",
+      description:
+        "Enjoy classic films in our comfortable theater room with popcorn and refreshments. A perfect evening for relaxation and entertainment with friends.",
+      location: "Community Theater",
+      start_time: "2025-09-21T19:00:00Z",
+      end_time: "2025-09-21T21:30:00Z",
+      image: movieImg,
+    },
+    {
+      _id: "3",
+      title: "Friendly Card Game Evening",
+      description:
+        "Join us for an evening of bridge, poker, and other classic card games. Meet new friends and enjoy friendly competition in a relaxed atmosphere.",
+      location: "Game Room B",
+      start_time: "2025-09-22T15:00:00Z",
+      end_time: "2025-09-22T18:00:00Z",
+      image: cardImg,
+    },
+    {
+      _id: "4",
+      title: "Morning Yoga",
+      description:
+        "Start your day with gentle yoga exercises designed for seniors. Improve flexibility, balance, and mental well-being in a supportive group environment.",
+      location: "Garden Pavilion",
+      start_time: "2025-09-23T08:00:00Z",
+      end_time: "2025-09-23T09:30:00Z",
+      image: yogaImg,
+    },
+    {
+      _id: "5",
+      title: "Gardening Workshop",
+      description:
+        "Learn about seasonal gardening, plant care, and herb cultivation. Get your hands dirty and create something beautiful while connecting with nature.",
+      location: "Community Garden",
+      start_time: "2025-09-24T10:00:00Z",
+      end_time: "2025-09-24T12:00:00Z",
+      image: gardeningImg,
+    },
+  ];
+
   const [events, setEvents] = useState([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
-  const [time, setTime] = useState(new Date());
 
-  // Fetch Events with Polling
+  // Simulate loading and set static events
   useEffect(() => {
-    const fetchEvents = async () => {
-      try {
-        const res = await axios.get("http://localhost:5000/api/events");
-        const data = res.data.data || res.data;
-
-        const eventsWithImages = data.map((event) => ({
-          ...event,
-          image: imagesMap[event.title] || event.image, // ❌ no default fallback
-        }));
-
-        setEvents(eventsWithImages);
-      } catch (err) {
-        console.error("Error fetching events:", err.response?.data || err.message);
-      } finally {
+    const loadEvents = () => {
+      setTimeout(() => {
+        setEvents(staticEvents);
         setLoading(false);
-      }
+      }, 1000); // Simulate loading time
     };
 
-    fetchEvents();
-    const interval = setInterval(fetchEvents, 30000); // Poll every 30 seconds
-    return () => clearInterval(interval);
-  }, []);
-
-  // Update Time Every Second
-  useEffect(() => {
-    const timer = setInterval(() => setTime(new Date()), 1000);
-    return () => clearInterval(timer);
+    loadEvents();
   }, []);
 
   // Filter Events Based on Search
@@ -91,60 +116,11 @@ const Events = () => {
             Dive into a world of vibrant activities, joyful celebrations, and
             heartwarming community moments—updated in real-time!
           </p>
-          <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
-            <button className="px-8 py-4 bg-orange-500 text-white font-semibold rounded-full hover:bg-orange-600 transition-all duration-300 shadow-lg hover:shadow-xl">
-              Join the Fun
-            </button>
-            <div className="flex items-center space-x-2 text-gray-600">
-              <div className="w-12 h-12 bg-orange-100 rounded-full flex items-center justify-center">
-                <Calendar className="w-6 h-6 text-orange-500" />
-              </div>
-              <span>View All Events</span>
-            </div>
-          </div>
         </div>
       </div>
 
-      {/* Stats Section */}
-      <div className="py-16 bg-orange-50">
-        <div className="max-w-6xl mx-auto px-6">
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-8 text-center">
-            <div className="space-y-2">
-              <div className="text-4xl font-bold text-orange-500">1,452</div>
-              <div className="text-gray-600">Happy Residents</div>
-            </div>
-            <div className="space-y-2">
-              <div className="text-4xl font-bold text-orange-500">3,452</div>
-              <div className="text-gray-600">Events Hosted</div>
-            </div>
-            <div className="space-y-2">
-              <div className="text-4xl font-bold text-orange-500">15</div>
-              <div className="text-gray-600">Years Experience</div>
-            </div>
-            <div className="space-y-2">
-              <div className="text-4xl font-bold text-orange-500">72</div>
-              <div className="text-gray-600">Staff Members</div>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* Events Section */}
-      <div className="max-w-7xl mx-auto px-6 py-20">
-        <div className="text-center mb-12">
-          <div className="inline-flex items-center space-x-2 bg-orange-100 px-4 py-2 rounded-full mb-4">
-            <Calendar className="w-5 h-5 text-orange-500" />
-            <span className="text-orange-600 font-semibold">UPCOMING EVENTS</span>
-          </div>
-          <h2 className="text-4xl md:text-5xl font-bold text-gray-800 mb-4">
-            Upcoming Events ({filteredEvents.length})
-          </h2>
-          <p className="text-lg text-gray-600 max-w-3xl mx-auto">
-            Join our vibrant community activities designed to bring joy and connection to your daily life.
-          </p>
-        </div>
-
-        {/* Search Bar */}
+      {/* Search Bar */}
+      <div className="max-w-7xl mx-auto px-6 py-10">
         <div className="flex justify-center mb-12">
           <div className="relative max-w-md w-full">
             <input
@@ -171,7 +147,9 @@ const Events = () => {
             {filteredEvents.map((event, index) => (
               <div
                 key={event._id || index}
-                className="bg-white rounded-2xl shadow-lg hover:shadow-2xl transition-all duration-300 overflow-hidden border border-gray-100 group hover:-translate-y-2"
+                className="bg-white rounded-2xl shadow-lg hover:shadow-2xl transition-all duration-300 
+                           overflow-hidden border-2 border-orange-200 hover:border-orange-400 
+                           group hover:-translate-y-2"
               >
                 <div className="relative">
                   <img
@@ -179,12 +157,6 @@ const Events = () => {
                     alt={event.title}
                     className="w-full h-64 object-cover transition-transform duration-500 group-hover:scale-110"
                   />
-                  <div className="absolute top-4 right-4">
-                    <div className="bg-orange-500 text-white text-sm font-semibold px-3 py-1 rounded-full flex items-center">
-                      <Calendar className="w-3 h-3 mr-1" />
-                      New
-                    </div>
-                  </div>
                 </div>
 
                 <div className="p-6 flex flex-col gap-4 min-h-[300px]">
@@ -204,11 +176,15 @@ const Events = () => {
                     </div>
                     <div className="flex items-center space-x-3">
                       <Clock className="w-4 h-4 text-orange-500 flex-shrink-0" />
-                      <span>Start: {new Date(event.start_time).toLocaleString()}</span>
+                      <span>
+                        Start: {new Date(event.start_time).toLocaleString()}
+                      </span>
                     </div>
                     <div className="flex items-center space-x-3">
                       <Clock className="w-4 h-4 text-orange-500 flex-shrink-0" />
-                      <span>End: {new Date(event.end_time).toLocaleString()}</span>
+                      <span>
+                        End: {new Date(event.end_time).toLocaleString()}
+                      </span>
                     </div>
                   </div>
                 </div>
@@ -221,9 +197,12 @@ const Events = () => {
       {/* Call to Action */}
       <div className="py-20 bg-gradient-to-r from-orange-500 to-orange-600 text-white">
         <div className="max-w-4xl mx-auto text-center px-6">
-          <h2 className="text-4xl font-bold mb-6">Ready to Join Our Community?</h2>
+          <h2 className="text-4xl font-bold mb-6">
+            Ready to Join Our Community?
+          </h2>
           <p className="text-xl mb-8 opacity-90">
-            Experience the warmth of belonging and create beautiful memories with us every day.
+            Experience the warmth of belonging and create beautiful memories
+            with us every day.
           </p>
           <button className="px-10 py-4 bg-white text-orange-500 font-semibold rounded-full hover:bg-gray-100 transition-all duration-300 shadow-lg hover:shadow-xl">
             Get Started Today

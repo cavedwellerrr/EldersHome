@@ -5,13 +5,12 @@ import {
   Shield,
   Award,
   Clock,
-  MapPin,
-  Phone,
-  Mail,
-  Star,
   CheckCircle,
   ArrowRight,
 } from "lucide-react";
+
+// ✅ Import image correctly from src/assets
+import ehomeImg from "../assets/ehome.jpg";
 
 const AboutUs = () => {
   const stats = [
@@ -94,15 +93,15 @@ const AboutUs = () => {
 
   return (
     <div className="w-full min-h-screen bg-white">
-      {/* ✅ Removed navbar */}
-
       {/* Hero Section */}
       <div className="relative bg-gradient-to-r from-orange-50 via-white to-orange-50 py-20">
         <div className="max-w-7xl mx-auto px-6">
           <div className="text-center mb-16">
             <div className="inline-flex items-center space-x-2 bg-orange-100 px-4 py-2 rounded-full mb-6">
               <Heart className="w-5 h-5 text-orange-500" />
-              <span className="text-orange-600 font-semibold">ABOUT SENORA</span>
+              <span className="text-orange-600 font-semibold">
+                ABOUT ELDERCARE
+              </span>
             </div>
             <h1 className="text-5xl md:text-6xl font-bold text-gray-800 mb-6 leading-tight">
               Makes The Rest Of Your
@@ -112,7 +111,7 @@ const AboutUs = () => {
               till end
             </h1>
             <p className="text-xl text-gray-600 max-w-4xl mx-auto leading-relaxed">
-              At Senora Elder Care, we believe every senior deserves to live
+              At Eldercare, we believe every senior deserves to live
               with dignity, joy, and purpose. For over 15 years, we've been
               creating a loving community where golden years truly shine.
             </p>
@@ -145,14 +144,14 @@ const AboutUs = () => {
       <section className="py-20 bg-white">
         <div className="max-w-6xl mx-auto px-6 grid md:grid-cols-2 gap-12 items-center">
           <img
-            src="/images/our-story.jpg"
+            src={ehomeImg}
             alt="Our Story"
             className="rounded-3xl shadow-xl w-full object-cover"
           />
           <div>
             <h2 className="text-4xl font-bold text-gray-800 mb-6">Our Story</h2>
             <p className="text-lg text-gray-600 leading-relaxed mb-6">
-              Founded in 2008, Senora Elder Care began with a vision to provide
+              Founded in 2008, Eldercare began with a vision to provide
               exceptional care and create a nurturing environment for seniors.
               What started as a small initiative has now grown into a
               comprehensive elder care community serving hundreds of residents
@@ -252,7 +251,7 @@ const AboutUs = () => {
           <div className="text-center mb-16">
             <h2 className="text-4xl font-bold text-gray-800 mb-4">Our Team</h2>
             <p className="text-lg text-gray-600 max-w-3xl mx-auto">
-              Meet the dedicated professionals who make Senora Elder Care a
+              Meet the dedicated professionals who make Eldercare a
               trusted home for our residents.
             </p>
           </div>
@@ -287,8 +286,8 @@ const AboutUs = () => {
         <div className="max-w-4xl mx-auto px-6">
           <h2 className="text-4xl font-bold mb-6">Join Our Loving Community</h2>
           <p className="text-xl mb-8">
-            Discover the comfort, care, and companionship that make Senora Elder
-            Care truly special.
+            Discover the comfort, care, and companionship that make Eldercare
+            truly special.
           </p>
           <button className="bg-white text-orange-600 px-8 py-4 rounded-full font-semibold text-lg hover:bg-gray-100 transition inline-flex items-center space-x-2">
             <span>Contact Us Today</span>
@@ -296,45 +295,6 @@ const AboutUs = () => {
           </button>
         </div>
       </section>
-
-      {/* ✅ Footer */}
-      <footer className="bg-gray-900 text-gray-400 py-12">
-        <div className="max-w-7xl mx-auto px-6 grid md:grid-cols-3 gap-12">
-          <div>
-            <h3 className="text-white text-xl font-bold mb-4">Senora Elder Care</h3>
-            <p className="text-gray-400">
-              Creating joyful memories and compassionate care for over 15 years.
-            </p>
-          </div>
-          <div>
-            <h4 className="text-white font-semibold mb-4">Quick Links</h4>
-            <ul className="space-y-2">
-              <li>About Us</li>
-              <li>Our Services</li>
-              <li>Our Team</li>
-              <li>Contact</li>
-            </ul>
-          </div>
-          <div>
-            <h4 className="text-white font-semibold mb-4">Contact Us</h4>
-            <p className="flex items-center space-x-2">
-              <MapPin className="w-4 h-4 text-orange-400" />
-              <span>123 Care Street, Colombo</span>
-            </p>
-            <p className="flex items-center space-x-2 mt-2">
-              <Phone className="w-4 h-4 text-orange-400" />
-              <span>+94 11 234 5678</span>
-            </p>
-            <p className="flex items-center space-x-2 mt-2">
-              <Mail className="w-4 h-4 text-orange-400" />
-              <span>info@senora.com</span>
-            </p>
-          </div>
-        </div>
-        <div className="border-t border-gray-800 mt-8 pt-6 text-center text-gray-500 text-sm">
-          © {new Date().getFullYear()} Senora Elder Care. All rights reserved.
-        </div>
-      </footer>
     </div>
   );
 };
