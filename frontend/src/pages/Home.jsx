@@ -92,51 +92,82 @@ const Home = () => {
               <Heart className="w-8 h-8 text-orange-500" />
               <span className="text-2xl font-bold text-gray-800">ElderCare</span>
             </div>
-           
           </div>
         </div>
       </nav>
 
-      {/* Hero Section */}
-      <section id="section-hero" className="relative bg-gradient-to-br from-orange-50 to-white py-20">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="grid md:grid-cols-2 gap-12 items-center">
-            <div className={`transform transition-all duration-1000 ${isVisible['section-hero'] ? 'translate-x-0 opacity-100' : '-translate-x-10 opacity-0'}`}>
-              <h1 className="text-5xl md:text-6xl font-bold text-gray-800 leading-tight mb-6">
+      {/* Hero Section - Full Width Image with Text Overlay */}
+      <section id="section-hero" className="relative h-screen w-full overflow-hidden">
+        {/* Background Image */}
+        <div className="absolute inset-0">
+          <img 
+            src={happyman} 
+            alt="Happy seniors with caregiver"
+            className="w-full h-full object-cover"
+          />
+          {/* Dark overlay for better text readability */}
+          <div className="absolute inset-0 bg-black bg-opacity-40"></div>
+        </div>
+
+        {/* Content Overlay */}
+        <div className="relative z-10 h-full flex items-center">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 w-full">
+            <div className={`max-w-4xl transform transition-all duration-1000 ${isVisible['section-hero'] ? 'translate-y-0 opacity-100' : 'translate-y-10 opacity-0'}`}>
+              <h1 className="text-5xl md:text-7xl font-bold text-white leading-tight mb-6 drop-shadow-lg">
                 Makes The Rest Of Your
-                <span className="text-orange-500"> Life Have a Happy Memory</span> till end
+                <span className="text-orange-400 block mt-2"> Life Have a Happy Memory</span> 
+                <span className="text-white block mt-2">till end</span>
               </h1>
-              <p className="text-xl text-gray-600 mb-8">
+              <p className="text-xl md:text-2xl text-white mb-8 max-w-3xl drop-shadow-md leading-relaxed">
                 Experience compassionate care in a warm, family-like environment where every day brings joy, comfort, and meaningful connections.
               </p>
-              <div className="flex flex-col sm:flex-row gap-4">
+              
+              {/* CTA Buttons */}
+              <div className="flex flex-col sm:flex-row gap-4 mb-12">
                 <a href="/login">
-                <button className="bg-orange-500 text-white px-8 py-4 rounded-lg font-semibold hover:bg-orange-600 transform hover:scale-105 transition-all duration-300 shadow-lg">
-                  Get Started
+                  <button className="bg-orange-500 text-white px-10 py-4 rounded-lg font-semibold hover:bg-orange-600 transform hover:scale-105 transition-all duration-300 shadow-xl text-lg">
+                    Get Started
+                  </button>
+                </a>
+                <button className="bg-transparent border-2 border-white text-white px-10 py-4 rounded-lg font-semibold hover:bg-white hover:text-gray-800 transition-all duration-300 shadow-xl text-lg">
+                  Schedule a Visit
                 </button>
-              </a>
               </div>
-            </div>
-            <div className={`transform transition-all duration-1000 delay-300 ${isVisible['section-hero'] ? 'translate-x-0 opacity-100' : 'translate-x-10 opacity-0'}`}>
-              <div className="relative">
-                <img 
-                  src={happyman} 
-                  alt="Happy seniors with caregiver"
-                  className="rounded-2xl shadow-2xl w-full h-[500px] object-cover"
-                />
-                <div className="absolute -bottom-6 -left-6 bg-white p-6 rounded-xl shadow-lg">
-                  <div className="flex items-center space-x-3">
-                    <div className="w-12 h-12 bg-orange-500 rounded-full flex items-center justify-center">
-                      <Star className="w-6 h-6 text-white" />
-                    </div>
-                    <div>
-                      <p className="font-bold text-gray-800">4.9/5 Rating</p>
-                      <p className="text-sm text-gray-600">From 1,200+ families</p>
-                    </div>
+
+              {/* Stats Cards Overlay */}
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                {stats.slice(0, 4).map((stat, index) => (
+                  <div 
+                    key={index}
+                    className="bg-white bg-opacity-90 backdrop-blur-sm rounded-xl p-4 text-center shadow-lg transform hover:scale-105 transition-all duration-300"
+                    style={{ animationDelay: `${index * 100}ms` }}
+                  >
+                    <div className="text-2xl md:text-3xl font-bold text-orange-500 mb-1">{stat.number}+</div>
+                    <div className="text-gray-700 text-sm font-medium">{stat.label}</div>
                   </div>
-                </div>
+                ))}
               </div>
             </div>
+          </div>
+        </div>
+
+        {/* Rating Badge - Floating Element */}
+        <div className={`absolute bottom-8 right-8 bg-white p-6 rounded-xl shadow-2xl transform transition-all duration-1000 delay-500 ${isVisible['section-hero'] ? 'translate-y-0 opacity-100' : 'translate-y-10 opacity-0'}`}>
+          <div className="flex items-center space-x-3">
+            <div className="w-12 h-12 bg-orange-500 rounded-full flex items-center justify-center">
+              <Star className="w-6 h-6 text-white" />
+            </div>
+            <div>
+              <p className="font-bold text-gray-800">4.9/5 Rating</p>
+              <p className="text-sm text-gray-600">From 1,200+ families</p>
+            </div>
+          </div>
+        </div>
+
+        {/* Scroll Indicator */}
+        <div className="absolute bottom-8 left-1/2 transform -translate-x-1/2 animate-bounce">
+          <div className="w-6 h-10 border-2 border-white rounded-full flex justify-center">
+            <div className="w-1 h-3 bg-white rounded-full mt-2 animate-pulse"></div>
           </div>
         </div>
       </section>
@@ -249,7 +280,6 @@ const Home = () => {
                   <span>Physical and occupational therapy</span>
                 </div>
               </div>
-            
             </div>
             <div className="relative">
               <img 
@@ -298,8 +328,6 @@ const Home = () => {
           </div>
         </div>
       </section>
-
-     
     </div>
   );
 };

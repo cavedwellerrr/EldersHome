@@ -311,7 +311,7 @@ const AdminDonations = () => {
                 {donations.map((donation, index) => (
                   <tr key={donation._id} className={`hover:bg-orange-50 transition-colors ${index % 2 === 0 ? 'bg-white' : 'bg-gray-50'}`}>
                     <td className="font-medium text-gray-900">{donation.donorName}</td>
-                    <td className="text-gray-600">{donation.donorEmail}</td>
+                    <td className="text-gray-600 max-w-[150px] truncate">{donation.donorEmail}</td>
                     <td>
                       <span className={`px-3 py-1 rounded-full text-xs font-semibold ${donation.donationType === 'cash'
                           ? 'bg-green-100 text-green-700'

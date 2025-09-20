@@ -1,6 +1,7 @@
 import Donation from "../models/donations.js";
 import DonorList from "../models/donorList.js";
 import Stripe from "stripe";
+import nodemailer from "nodemailer";
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
 
@@ -94,6 +95,7 @@ export const createDonation = async (req, res) => {
     return res.status(500).json({ message: error.message });
   }
 };
+
 // Get all donations
 export const getAllDonations = async (req, res) => {
   try {
@@ -131,6 +133,34 @@ export const updateDonationStatus = async (req, res) => {
     }
 
     await donation.save();
+
+    // ✅ Send thank-you email only when donation is marked as "received"
+    if (donation.status === "received" && donation.donorEmail) {
+      const transporter = nodemailer.createTransport({
+        host: "smtp.gmail.com",
+        port: 587,
+        secure: false,
+        auth: {
+          user: process.env.GMAIL_USER,
+          pass: process.env.GMAIL_APP_PASSWORD,
+        },
+      });
+
+      await transporter.sendMail({
+        from: `"Elder Care Home" <${process.env.GMAIL_USER}>`,
+        to: donation.donorEmail,
+        subject: "Thank You for Your Donation",
+        text: `Dear ${donation.donorName || "Donor"},\n\nThank you for your ${
+          donation.donationType
+        } donation. It is greatly appreciated and will make a meaningful difference.\n\nWith gratitude,\nElder Care Home`,
+        html: `<p>Dear ${donation.donorName || "Donor"},</p>
+               <p>Thank you for your <strong>${donation.donationType}</strong> donation. It is greatly appreciated and will make a meaningful difference.</p>
+               <p>With gratitude,<br/>Elder Care Home</p>`,
+      });
+    }
+
+
+
     res.json({ message: "Donation updated successfully", donation });
   } catch (error) {
     console.error(error);
@@ -192,6 +222,32 @@ export const verifyPayment = async (req, res) => {
       donation.paymentId = session.payment_intent;
       await donation.save();
       console.log("Payment verified, donation updated:", { donationId: donation._id, paymentId: donation.paymentId });
+
+      // ✅ Send thank-you email here too
+      if (donation.donorEmail) {
+        const transporter = nodemailer.createTransport({
+          host: "smtp.gmail.com",
+          port: 587,
+          secure: false,
+          auth: {
+            user: process.env.GMAIL_USER,
+            pass: process.env.GMAIL_APP_PASSWORD,
+          },
+        });
+
+        await transporter.sendMail({
+          from: `"Elder Care Home" <${process.env.GMAIL_USER}>`,
+          to: donation.donorEmail,
+          subject: "Thank You for Your Donation",
+          text: `Dear ${donation.donorName || "Donor"},\n\nThank you for your ${
+            donation.donationType
+          } donation. It is greatly appreciated and will make a meaningful difference.\n\nWith gratitude,\nElder Care Home`,
+          html: `<p>Dear ${donation.donorName || "Donor"},</p>
+                 <p>Thank you for your <strong>${donation.donationType}</strong> donation. It is greatly appreciated and will make a meaningful difference.</p>
+                 <p>With gratitude,<br/>Elder Care Home</p>`,
+        });
+      }
+      
       return res.status(200).json({ message: "Payment verified", donation });
     } else {
       console.log("Payment not completed, status:", session.payment_status);
@@ -202,3 +258,4 @@ export const verifyPayment = async (req, res) => {
     res.status(500).json({ message: "Server error verifying payment" });
   }
 };
+
