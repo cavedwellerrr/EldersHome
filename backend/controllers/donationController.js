@@ -142,11 +142,43 @@ export const createDonation = async (req, res) => {
   }
 };
 
-// Get all donations
+// Get all donations with calculated stats
 export const getAllDonations = async (req, res) => {
   try {
-    const donations = await Donation.find().sort({ createdAt: -1 });
-    res.status(200).json(donations);
+    // Get active donations for display
+    const donations = await Donation.find({ deleted: { $ne: true } }).sort({ createdAt: -1 });
+    
+    // Calculate total cash amount from ALL received cash donations (including deleted ones)
+    const totalCashReceived = await Donation.aggregate([
+      {
+        $match: {
+          donationType: "cash",
+          status: "received"
+          // Note: We don't filter out deleted donations here to preserve total amount
+        }
+      },
+      {
+        $group: {
+          _id: null,
+          total: { $sum: "$amount" }
+        }
+      }
+    ]);
+    
+    const totalAmount = totalCashReceived.length > 0 ? totalCashReceived[0].total : 0;
+    
+    // Calculate current active donation stats
+    const stats = {
+      totalDonations: donations.length,
+      totalAmount: totalAmount, // Includes all cash donations ever received
+      pendingCount: donations.filter(d => d.status === 'pending').length,
+      receivedCount: donations.filter(d => d.status === 'received').length
+    };
+    
+    res.status(200).json({
+      donations,
+      stats
+    });
   } catch (error) {
     console.error("Error fetching donations:", error);
     res.status(500).json({ message: "Server error while fetching donations" });
@@ -201,7 +233,7 @@ export const updateDonationStatus = async (req, res) => {
       }
     });
 
-    // ✅ After response is sent
+    // After response is sent
     if (wasStatusUpdatedToReceived) {
       // Add item donations to inventory
       if (donation.donationType === "item") {
@@ -220,8 +252,7 @@ export const updateDonationStatus = async (req, res) => {
   }
 };
 
-
-// Delete donation
+// Soft delete donation (keeps cash in total calculation)
 export const deleteDonation = async (req, res) => {
   try {
     const donation = await Donation.findById(req.params.id);
@@ -234,6 +265,7 @@ export const deleteDonation = async (req, res) => {
       const donorDonations = await Donation.find({
         donorName: donation.donorName,
         _id: { $ne: donation._id },
+        deleted: { $ne: true },
       });
 
       if (donorDonations.length === 0) {
@@ -241,33 +273,19 @@ export const deleteDonation = async (req, res) => {
       }
     }
 
-    // ✅ If it's an item donation and already received, update inventory
-    if (donation.donationType === "item" && donation.status === "received") {
-      const inventoryItem = await Inventory.findOne({ itemName: donation.itemName });
-      if (inventoryItem) {
-        inventoryItem.totalQuantity -= donation.quantity;
+    // Soft delete: only mark as deleted
+    // Cash amount remains in total calculation since we don't filter by deleted in aggregation
+    donation.deleted = true;
+    await donation.save();
 
-        if (inventoryItem.totalQuantity <= 0) {
-          // remove item entirely if quantity goes to zero
-          await inventoryItem.deleteOne();
-          console.log(`Inventory item ${donation.itemName} removed (quantity zero)`);
-        } else {
-          await inventoryItem.save();
-          console.log(
-            `Inventory updated: ${donation.itemName}, -${donation.quantity}, new qty: ${inventoryItem.totalQuantity}`
-          );
-        }
-      }
-    }
-
-    await donation.deleteOne();
-    res.json({ message: "Donation deleted successfully" });
+    res.json({
+      message: "Donation marked as deleted (cash total preserved in records)",
+    });
   } catch (error) {
     console.error("Error deleting donation:", error);
     res.status(500).json({ message: "Server error while deleting donation" });
   }
 };
-
 
 // Verify payment
 export const verifyPayment = async (req, res) => {

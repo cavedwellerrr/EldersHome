@@ -33,7 +33,8 @@ const donationSchema = new mongoose.Schema({
     type: Boolean,
     default: false,
   },
-
+  financiallyProcessed: { type: Boolean, default: false },
+  deleted: { type: Boolean, default: false },
   createdAt: { type: Date, default: Date.now },
 });
 

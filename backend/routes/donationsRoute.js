@@ -8,7 +8,7 @@ const router = express.Router();
 
 router.post("/", createDonation);
 router.get("/", getAllDonations);
-router.post("/delete/:id", deleteDonation);
+router.delete("/:id", deleteDonation);
 router.put("/:id", updateDonationStatus);
 router.get("/verify-payment", verifyPayment);
 
