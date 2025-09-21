@@ -26,7 +26,7 @@ import assignmentRoutes from "./routes/assignment_routes.js";
 //donation routes
 import donationsRoutes from "./routes/donationsRoute.js";
 import donorListRoutes from "./routes/donorListRoutes.js";
-
+import inventoryRoutes from "./routes/inventoryRoutes.js"
 
 //event routes
 import eventRoutes from "./routes/event.route.js";
@@ -67,6 +67,7 @@ app.use("/api/caretakers", caretakerRoutes);
 //donation routes
 app.use("/api/donations", donationsRoutes);
 app.use("/api/donors", donorListRoutes);
+app.use("/api/inventory", inventoryRoutes);
 
 //meal routes
 app.use("/api/meals", mealRoutes);//meal

@@ -14,7 +14,7 @@ const donationSchema = new mongoose.Schema({
   amount: { type: Number },
 
   // For item donations
-  itemName: { type: String },
+  itemName: { type: String, lowercase: true },
   quantity: { type: Number },
 
   // Stripe payment id for cash donations

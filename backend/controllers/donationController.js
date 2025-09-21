@@ -2,6 +2,7 @@ import Donation from "../models/donations.js";
 import DonorList from "../models/donorList.js";
 import Stripe from "stripe";
 import nodemailer from "nodemailer";
+import { addDonationToInventory } from "./inventoryController.js";
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
 
@@ -196,13 +197,17 @@ export const updateDonationStatus = async (req, res) => {
       message: "Donation updated successfully", 
       donation: {
         ...donation.toObject(),
-        // Include computed fields if needed
       }
     });
 
-    // Send email asynchronously AFTER response is sent
+    // ✅ After response is sent
     if (wasStatusUpdatedToReceived) {
-      // Fire and forget - don't await
+      // Add item donations to inventory
+      if (donation.donationType === "item") {
+        addDonationToInventory(donation._id);
+      }
+
+      // Send thank-you email
       sendThankYouEmail(donation).catch(error => {
         console.error("Background email sending failed:", error);
       });
@@ -213,6 +218,7 @@ export const updateDonationStatus = async (req, res) => {
     res.status(500).json({ message: "Server error updating donation" });
   }
 };
+
 
 // Delete donation
 export const deleteDonation = async (req, res) => {
