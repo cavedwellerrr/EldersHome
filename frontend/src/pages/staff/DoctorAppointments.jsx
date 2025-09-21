@@ -135,7 +135,7 @@ export default function DoctorAppointments() {
 
   return (
     <div className="p-6 space-y-6">
-      <h1 className="text-3xl font-bold text-orange-600">Doctor Dashboard</h1>
+      <h1 className="text-3xl font-bold text-orange-600">Doctor Appointments</h1>
       <p className="text-gray-600">Manage your upcoming appointments</p>
 
       <section className="rounded-lg border shadow">

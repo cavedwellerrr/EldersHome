@@ -19,7 +19,7 @@ const appointmentSchema = new mongoose.Schema(
     },
     caretaker: {
       type: mongoose.Schema.Types.ObjectId,
-      ref: "Staff", // assuming caretaker is a staff
+      ref: "Staff", 
       required: true,
     },
     date: {
@@ -32,7 +32,7 @@ const appointmentSchema = new mongoose.Schema(
       default: "pending",
     },
     prescription: {
-      type: String, // can store URL/file path if uploaded
+      type: String, 
       default: "",
     },
     notes: {

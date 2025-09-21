@@ -1,48 +1,48 @@
-// Import mongoose
+
 import mongoose from "mongoose";
 
-// Consultation Schema
+
 const consultationSchema = new mongoose.Schema(
   {
     elder: {
       type: mongoose.Schema.Types.ObjectId,
-      ref: "Elder", // link to elder
+      ref: "Elder",
       required: true,
     },
     caretaker: {
       type: mongoose.Schema.Types.ObjectId,
-      ref: "Caretaker", // caretaker requesting
+      ref: "Caretaker", 
       required: true,
     },
     doctor: {
       type: mongoose.Schema.Types.ObjectId,
-      ref: "Doctor", // doctor who responds
+      ref: "Doctor", 
     },
     reason: {
       type: String,
-      required: true, // caretaker must give reason
+      required: true,
     },
     priority: {
       type: String,
-      enum: ["Normal", "Urgent"], // only two levels
+      enum: ["Normal", "Urgent"],
       default: "Normal",
     },
     status: {
       type: String,
-      enum: ["Pending", "Approved", "Rejected"], // workflow
+      enum: ["Pending", "Approved", "Rejected"], 
       default: "Pending",
     },
     requestDate: {
     type: Date,
-    default: Date.now, //  Auto-set when request is created
+    default: Date.now, 
   },
     responseNotes: {
       type: String,
-      default: "", // doctor notes when responding
+      default: "", 
     },
   },
-  { timestamps: true } // createdAt, updatedAt
+  { timestamps: true } 
 );
 
-// Export model
+
 export default mongoose.model("Consultation", consultationSchema);
