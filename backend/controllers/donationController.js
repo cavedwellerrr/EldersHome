@@ -3,6 +3,7 @@ import DonorList from "../models/donorList.js";
 import Stripe from "stripe";
 import nodemailer from "nodemailer";
 import { addDonationToInventory } from "./inventoryController.js";
+import Inventory from "../models/inventory_model.js";
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
 
@@ -240,6 +241,25 @@ export const deleteDonation = async (req, res) => {
       }
     }
 
+    // ✅ If it's an item donation and already received, update inventory
+    if (donation.donationType === "item" && donation.status === "received") {
+      const inventoryItem = await Inventory.findOne({ itemName: donation.itemName });
+      if (inventoryItem) {
+        inventoryItem.totalQuantity -= donation.quantity;
+
+        if (inventoryItem.totalQuantity <= 0) {
+          // remove item entirely if quantity goes to zero
+          await inventoryItem.deleteOne();
+          console.log(`Inventory item ${donation.itemName} removed (quantity zero)`);
+        } else {
+          await inventoryItem.save();
+          console.log(
+            `Inventory updated: ${donation.itemName}, -${donation.quantity}, new qty: ${inventoryItem.totalQuantity}`
+          );
+        }
+      }
+    }
+
     await donation.deleteOne();
     res.json({ message: "Donation deleted successfully" });
   } catch (error) {
@@ -247,6 +267,7 @@ export const deleteDonation = async (req, res) => {
     res.status(500).json({ message: "Server error while deleting donation" });
   }
 };
+
 
 // Verify payment
 export const verifyPayment = async (req, res) => {
