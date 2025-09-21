@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import MealHeader from "../../components/wellness/MealHeader.jsx";
 import api from "../../api.js";
 import toast from "react-hot-toast";
+import { Toaster } from "react-hot-toast";
 import MealCard from "../../components/wellness/MealCard.jsx";
 
 const CATEGORY_ORDER = ["breakfast", "lunch", "dinner", "snack", "special", "other", "uncategorized"];
@@ -192,7 +193,8 @@ const CaretakerMeals = () => {
             <div className="p-6">
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 {visibleMeals.map((meal) => (
-                  <MealCard key={meal._id} meal={meal} onUpdated={() => window.location.reload()} />
+                  <MealCard key={meal._id} meal={meal}
+                    onUpdated={() => setTimeout(() => window.location.reload(), 1000)} />
                 ))}
               </div>
             </div>
@@ -210,6 +212,35 @@ const CaretakerMeals = () => {
           </div>
         )}
       </div>
+
+
+      <Toaster
+        position="top-right"
+        toastOptions={{
+          className: "border rounded-xl shadow-lg text-sm font-medium tracking-tight",
+          style: {
+            background: "#FFFFFF",   // white card
+            color: "#1F2937",        // gray-800 text
+            borderColor: "#FED7AA",  // orange-200 border
+          },
+          success: {
+            iconTheme: {
+              primary: "#F97316",    // orange-500
+              secondary: "#FFFFFF",
+            },
+          },
+          error: {
+            iconTheme: {
+              primary: "#EF4444",    // red-500
+              secondary: "#FFFFFF",
+            },
+          },
+        }}
+      />
+
+
+
+
     </div>
   );
 };

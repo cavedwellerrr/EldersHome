@@ -26,8 +26,10 @@ const MealCard = ({ meal, onUpdated }) => {
         if (!window.confirm("Delete this meal?")) return;
         try {
             await api.delete(`/meals/${mealId}`);
-            toast.success("Meal deleted");
-            onUpdated?.();
+            toast.success("Meal deleted", { duration: 5000 });
+            setTimeout(() => {
+                onUpdated?.();
+            }, 300);
         } catch (error) {
             console.error(error);
             toast.error(error?.response?.data?.message || "Failed to delete meal");
