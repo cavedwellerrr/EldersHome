@@ -23,7 +23,7 @@ const getTransporter = () => {
   return transporter;
 };
 
-// Async email function that doesn't block responses
+// send email
 const sendThankYouEmail = async (donation) => {
   try {
     if (!donation.donorEmail) return;

@@ -21,14 +21,14 @@ const donationSchema = new mongoose.Schema({
   paymentId: { type: String },
   sessionId: {type: String},
 
-  // Status: pending (form filled, awaiting action) OR received (confirmed by admin)
+  // Status
   status: {
     type: String,
     enum: ["pending", "received"],
     default: "pending",
   },
 
-  // Whether donor wants their name listed publicly
+  
   listAcknowledgment: {
     type: Boolean,
     default: false,
