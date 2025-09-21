@@ -17,7 +17,7 @@ import caretakerAssignedEldersRoutes from "./routes/caretakerAssignedEldersRoute
 import doctorRoutes from "./routes/doctorRoutes.js";
 import appointmentRoutes from "./routes/appointmentRoutes.js";
 
-
+import prescriptionRoutes from "./routes/prescriptionRoutes.js";
 
 
 // Derive __dirname equivalent for ES Modules
@@ -65,3 +65,4 @@ app.use("/api/appointments", appointmentRoutes);
 app.get("/", (req, res) => res.send("API working"));
 
 app.listen(port, () => console.log(`Server started on port: ${port}`));
+app.use("/api/prescriptions", prescriptionRoutes);

@@ -3,6 +3,8 @@ import { useEffect, useMemo, useState } from "react";
 import api from "../../api";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
+import jsPDF from "jspdf"; //  added for PDF
+import { FaDownload } from "react-icons/fa"; //  added for download icon
 
 export default function CaretakerConsultations() {
   // ---------- STATE ----------
@@ -11,6 +13,7 @@ export default function CaretakerConsultations() {
   const [consultations, setConsultations] = useState([]);
   const [appointments, setAppointments] = useState([]);
   const [doctors, setDoctors] = useState([]);
+  const [prescriptions, setPrescriptions] = useState([]); 
 
   const [selectedElder, setSelectedElder] = useState(null);
   const [reason, setReason] = useState("");
@@ -93,12 +96,24 @@ export default function CaretakerConsultations() {
       toast.error("Failed to load appointments");
     }
   };
+  const fetchPrescriptions = async () => {
+  try {
+    const token = getToken();
+    const res = await api.get("/prescriptions/caretaker/my", {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    setPrescriptions(res.data || []);
+  } catch {
+    toast.error("Failed to load prescriptions");
+  }
+};
 
   useEffect(() => {
     fetchElders();
     fetchConsultations();
     fetchDoctors();
     fetchAppointments();
+    fetchPrescriptions();
   }, []);
 
   // ---------- SUBMIT ----------
@@ -128,6 +143,24 @@ export default function CaretakerConsultations() {
       setSubmitting(false);
     }
   };
+  
+  //delete Appontmetn
+  const handleDeleteAppointment = async (id) => {
+  if (!window.confirm("Are you sure you want to delete this appointment?")) return;
+
+  try {
+    const token = getToken();
+    await api.delete(`/appointments/${id}`, {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    toast.success("Appointment deleted successfully!");
+    setAppointments((prev) => prev.filter((a) => a._id !== id)); // remove locally
+  } catch (err) {
+    console.error("DELETE /appointments/:id failed:", err?.response?.status, err?.response?.data);
+    toast.error(err?.response?.data?.message || "Failed to delete appointment");
+  }
+};
+
 
   // ---------- DELETE ----------
   const handleDelete = async (id) => {
@@ -144,6 +177,39 @@ export default function CaretakerConsultations() {
       toast.error(err?.response?.data?.message || "Failed to delete consultation");
     }
   };
+
+  // ---------- PDF EXPORT (appointment slip) ----------
+const downloadAppointmentPDF = (appt) => {
+  const doc = new jsPDF();
+
+  // Header
+  doc.setFontSize(16);
+  doc.text("Elders Home", 105, 15, { align: "center" });
+
+  // Title
+  doc.setFontSize(20);
+  doc.text("Appointment Slip", 105, 30, { align: "center" });
+
+  // Draw a box around details
+  doc.rect(10, 40, 190, 80); // x, y, width, height
+
+  // Appointment Details
+  doc.setFontSize(12);
+  doc.text(`Elder: ${appt.elder?.fullName || "—"}`, 20, 55);
+  doc.text(`Doctor: ${appt.doctor?.staff?.name || "—"}`, 20, 65);
+  doc.text(`Specialization: ${appt.doctor?.specialization || "—"}`, 20, 75);
+  doc.text(`Date: ${new Date(appt.date).toLocaleString()}`, 20, 85);
+
+
+  
+
+  // Footer note
+  doc.setFontSize(10);
+
+
+  doc.save(`Appointment_${appt._id}.pdf`);
+};
+
 
   // ---------- FILTER & SORT ----------
   const filteredConsultations = useMemo(() => {
@@ -185,6 +251,8 @@ export default function CaretakerConsultations() {
     return list;
   }, [appointments, apptSearch, apptDate, sortLatest]);
 
+  
+
   // ---------- RENDER ----------
   return (
     <div className="p-6 space-y-8">
@@ -223,7 +291,7 @@ export default function CaretakerConsultations() {
                 <Th>Name</Th>
                 <Th>Age</Th>
                 <Th>Guardian</Th>
-                <Th>Action</Th>
+                <Th>Request a Consultation</Th>
               </tr>
             </thead>
             <tbody>
@@ -285,6 +353,8 @@ export default function CaretakerConsultations() {
                   <Th>Doctor</Th>
                   <Th>Date</Th>
                   <Th>Status</Th>
+                  <Th>Download Appointment</Th>
+                  <Th>Action</Th>
                 </tr>
               </thead>
               <tbody>
@@ -311,11 +381,29 @@ export default function CaretakerConsultations() {
                         {a.status}
                       </span>
                     </Td>
+                    <Td>
+                      <button
+                        onClick={() => downloadAppointmentPDF(a)}
+                        className="text-blue-600 hover:text-blue-800"
+                        title="Download Appointment Slip"
+                      >
+                        <FaDownload />
+                      </button>
+                    </Td>
+                    <Td>
+                    <button
+                      onClick={() => handleDeleteAppointment(a._id)}
+                      className="px-2 py-1 bg-red-500 text-white rounded-lg hover:bg-red-600"
+                    >
+                      Delete
+                    </button>
+                  </Td>
+                    
                   </tr>
                 ))}
                 {filteredAppointments.length === 0 && (
                   <tr>
-                    <td colSpan={4} className="p-4 text-gray-500 text-center">
+                    <td colSpan={5} className="p-4 text-gray-500 text-center">
                       No appointments found
                     </td>
                   </tr>
@@ -402,6 +490,54 @@ export default function CaretakerConsultations() {
           </div>
         </div>
       </section>
+       <section className="rounded-lg border shadow">
+  <div className="bg-orange-500 text-white p-3 rounded-t-lg font-semibold">
+
+    {/* Prescription table */}
+    My Elders' Prescriptions
+  </div>
+  <div className="p-4 overflow-x-auto">
+    {prescriptions.length > 0 ? (
+      <table className="min-w-full text-sm">
+        <thead className="bg-gray-100">
+          <tr>
+            <Th>Elder</Th>
+            <Th>Doctor</Th>
+            <Th>Specialization</Th>
+            <Th>Date</Th>
+            <Th>Notes</Th>
+            <Th>Medicines</Th>
+          </tr>
+        </thead>
+        <tbody>
+          {prescriptions.map((p, idx) => (
+            <tr
+              key={p._id}
+              className={idx % 2 === 0 ? "bg-white" : "bg-gray-50"}
+            >
+              <Td>{p.elder?.fullName || "—"}</Td>
+              <Td>{p.doctor?.staff?.name || "—"}</Td>
+              <Td>{p.doctor?.specialization || "—"}</Td>
+              <Td>{new Date(p.createdAt).toLocaleString()}</Td>
+              <Td>{p.notes || "—"}</Td>
+              <Td>
+                {p.drugs?.map((d, i) => (
+                  <div key={i}>
+                    {d.name} – {d.dosage}, {d.frequency} for {d.duration}
+                  </div>
+                ))}
+              </Td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    ) : (
+      <p className="text-gray-500 text-center">No prescriptions found</p>
+    )}
+  </div>
+</section>
+         
+      
 
       {/* Modal */}
       {selectedElder && (
