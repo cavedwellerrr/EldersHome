@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useCallback, useRef } from "react";
 import api from "../../api";
 import { ToastContainer, toast } from "react-toastify";
 import { saveAs } from "file-saver";
@@ -16,94 +16,219 @@ const AdminDonations = () => {
     pendingCount: 0,
     receivedCount: 0
   });
+  const [updating, setUpdating] = useState(new Set()); // Track which items are being updated
+  const [donationSearchTerm, setDonationSearchTerm] = useState("");
+  const [donationMonthFilter, setDonationMonthFilter] = useState("");
+  const [donorSearchTerm, setDonorSearchTerm] = useState("");
+  const [donorMonthFilter, setDonorMonthFilter] = useState("");
+  const intervalRef = useRef(null);
+  const previousCountRef = useRef(0);
 
-  const fetchData = async () => {
+  // Filter functions
+  const getFilteredDonations = useCallback(() => {
+    return donations.filter(donation => {
+      const matchesSearch = !donationSearchTerm || 
+        donation.donorName?.toLowerCase().includes(donationSearchTerm.toLowerCase()) ||
+        donation.donorEmail?.toLowerCase().includes(donationSearchTerm.toLowerCase());
+      
+      const matchesMonth = !donationMonthFilter || 
+        new Date(donation.createdAt).toISOString().substr(0, 7) === donationMonthFilter;
+      
+      return matchesSearch && matchesMonth;
+    });
+  }, [donations, donationSearchTerm, donationMonthFilter]);
+
+  const getFilteredDonors = useCallback(() => {
+    return donors.filter(donor => {
+      const matchesSearch = !donorSearchTerm || 
+        donor.donorName?.toLowerCase().includes(donorSearchTerm.toLowerCase());
+      
+      const matchesMonth = !donorMonthFilter || 
+        (donor.donationDate && new Date(donor.donationDate).toISOString().substr(0, 7) === donorMonthFilter);
+      
+      return matchesSearch && matchesMonth;
+    });
+  }, [donors, donorSearchTerm, donorMonthFilter]);
+
+  const filteredDonations = getFilteredDonations();
+  const filteredDonors = getFilteredDonors();
+
+  const calculateStats = useCallback((donationsData) => {
+    const totalDonations = donationsData.length;
+    const totalAmount = donationsData
+      .filter(d => d.donationType === 'cash')
+      .reduce((sum, d) => sum + (d.amount || 0), 0);
+    const pendingCount = donationsData.filter(d => d.status === 'pending').length;
+    const receivedCount = donationsData.filter(d => d.status === 'received').length;
+
+    return { totalDonations, totalAmount, pendingCount, receivedCount };
+  }, []);
+
+  const fetchDonations = useCallback(async (showToast = false) => {
     try {
       const donationsRes = await api.get("/donations");
-      if (donationsRes.data.length > donations.length) {
+      const donationsData = donationsRes.data;
+      
+      // Check for new donations only if we have previous data
+      if (showToast && previousCountRef.current > 0 && donationsData.length > previousCountRef.current) {
         toast.info("New donation received!");
       }
-      setDonations(donationsRes.data);
+      
+      previousCountRef.current = donationsData.length;
+      setDonations(donationsData);
+      setStats(calculateStats(donationsData));
+      
+    } catch (err) {
+      console.error("Fetch donations error:", err);
+      if (!showToast) { // Only show error toast on initial load
+        setError(err.response?.data?.message || "Error fetching donations");
+        toast.error(err.response?.data?.message || "Error fetching donations");
+      }
+    }
+  }, [calculateStats]);
 
-      // Calculate stats
-      const totalDonations = donationsRes.data.length;
-      const totalAmount = donationsRes.data
-        .filter(d => d.donationType === 'cash')
-        .reduce((sum, d) => sum + (d.amount || 0), 0);
-      const pendingCount = donationsRes.data.filter(d => d.status === 'pending').length;
-      const receivedCount = donationsRes.data.filter(d => d.status === 'received').length;
-
-      setStats({ totalDonations, totalAmount, pendingCount, receivedCount });
-
+  const fetchDonors = useCallback(async () => {
+    try {
       const donorsRes = await api.get("/donors");
       setDonors(donorsRes.data);
     } catch (err) {
-      console.error("Fetch error:", err);
-      setError(err.response?.data?.message || "Error fetching data");
-      toast.error(err.response?.data?.message || "Error fetching data");
-    } finally {
-      setLoading(false);
+      console.error("Fetch donors error:", err);
+      // Don't show error toast for donor fetch failures during polling
     }
-  };
+  }, []);
+
+  const fetchAllData = useCallback(async (showToast = false) => {
+    try {
+      await Promise.all([
+        fetchDonations(showToast),
+        fetchDonors()
+      ]);
+    } catch (err) {
+      console.error("Fetch error:", err);
+    } finally {
+      if (!showToast) { // Only set loading false on initial load
+        setLoading(false);
+      }
+    }
+  }, [fetchDonations, fetchDonors]);
 
   useEffect(() => {
     // Initial fetch
-    fetchData();
+    fetchAllData(false);
 
-    // Set up polling every 10 seconds
-    const intervalId = setInterval(fetchData, 10000);
+    // Set up polling every 30 seconds (increased from 10s to reduce server load)
+    intervalRef.current = setInterval(() => {
+      fetchAllData(true);
+    }, 30000);
 
     // Clean up interval on component unmount
-    return () => clearInterval(intervalId);
-  }, [donations.length]); // Include donations.length to trigger toast on new donations
+    return () => {
+      if (intervalRef.current) {
+        clearInterval(intervalRef.current);
+      }
+    };
+  }, [fetchAllData]);
 
   const handleStatusChange = async (id, newStatus) => {
+    if (updating.has(id)) return; // Prevent duplicate requests
+
+    setUpdating(prev => new Set(prev).add(id));
+    
     try {
-      await api.put(`/donations/${id}`, { status: newStatus });
+      const response = await api.put(`/donations/${id}`, { status: newStatus });
+      
+      // Update local state immediately for better UX
       setDonations((prev) =>
         prev.map((donation) =>
           donation._id === id ? { ...donation, status: newStatus } : donation
         )
       );
+      
+      // Update stats
+      const updatedDonations = donations.map(donation => 
+        donation._id === id ? { ...donation, status: newStatus } : donation
+      );
+      setStats(calculateStats(updatedDonations));
+      
       toast.success(`Status updated to "${newStatus}"`);
     } catch (err) {
       console.error("Status update error:", err);
-      toast.error("Error updating status");
+      toast.error(err.response?.data?.message || "Error updating status");
+    } finally {
+      setUpdating(prev => {
+        const newSet = new Set(prev);
+        newSet.delete(id);
+        return newSet;
+      });
     }
   };
 
   const handleAddToDonorList = async (id, checked) => {
+    if (updating.has(id)) return; // Prevent duplicate requests
+
+    setUpdating(prev => new Set(prev).add(id));
+    
     try {
       await api.put(`/donations/${id}`, { addToDonorList: checked });
+      
+      // Update local state immediately
       setDonations((prev) =>
         prev.map((donation) =>
           donation._id === id ? { ...donation, addToDonorList: checked } : donation
         )
       );
 
-      // Refresh donor list
-      const donorsRes = await api.get("/donors");
-      setDonors(donorsRes.data);
+      // Refresh donor list after a short delay to ensure backend processing is complete
+      setTimeout(fetchDonors, 500);
 
       toast.success(
         checked ? "Added to donor list ✅" : "Removed from donor list ❌"
       );
     } catch (err) {
       console.error("Donor list update error:", err);
-      toast.error("Error updating donor list");
+      toast.error(err.response?.data?.message || "Error updating donor list");
+      
+      // Revert the local state on error
+      setDonations((prev) =>
+        prev.map((donation) =>
+          donation._id === id ? { ...donation, addToDonorList: !checked } : donation
+        )
+      );
+    } finally {
+      setUpdating(prev => {
+        const newSet = new Set(prev);
+        newSet.delete(id);
+        return newSet;
+      });
     }
   };
 
   const handleDeleteDonation = async (id) => {
     if (!window.confirm("Are you sure you want to delete this donation?")) return;
+    if (updating.has(id)) return;
+
+    setUpdating(prev => new Set(prev).add(id));
 
     try {
       await api.post(`/donations/delete/${id}`);
-      setDonations((prev) => prev.filter((donation) => donation._id !== id));
+      
+      const updatedDonations = donations.filter((donation) => donation._id !== id);
+      setDonations(updatedDonations);
+      setStats(calculateStats(updatedDonations));
+      
       toast.success("Donation deleted successfully");
+      
+      // Refresh donor list
+      fetchDonors();
     } catch (err) {
       console.error("Delete donation error:", err);
-      toast.error("Error deleting donation");
+      toast.error(err.response?.data?.message || "Error deleting donation");
+    } finally {
+      setUpdating(prev => {
+        const newSet = new Set(prev);
+        newSet.delete(id);
+        return newSet;
+      });
     }
   };
 
@@ -184,6 +309,16 @@ const AdminDonations = () => {
             </svg>
           </div>
           <p className="text-xl font-semibold text-red-600">{error}</p>
+          <button 
+            onClick={() => {
+              setError("");
+              setLoading(true);
+              fetchAllData(false);
+            }}
+            className="btn bg-orange-500 hover:bg-orange-600 text-white border-orange-500"
+          >
+            Try Again
+          </button>
         </div>
       </div>
     );
@@ -285,9 +420,61 @@ const AdminDonations = () => {
               <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 24 24">
                 <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" />
               </svg>
-              All Donations
+              All Donations ({filteredDonations.length})
             </h2>
             <p className="text-orange-100 mt-1">Manage and track donation status</p>
+          </div>
+
+          {/* Search and Filter Controls for Donations */}
+          <div className="px-6 py-4 bg-gray-50 border-b border-gray-200 flex flex-col sm:flex-row gap-4">
+            <div className="flex-1">
+              <div className="relative">
+                <input
+                  type="text"
+                  placeholder="Search by donor name or email..."
+                  value={donationSearchTerm}
+                  onChange={(e) => setDonationSearchTerm(e.target.value)}
+                  className="input input-bordered w-full bg-white border-gray-300 focus:border-orange-500 pl-10"
+                />
+                <svg
+                  className="w-5 h-5 text-gray-400 absolute left-3 top-1/2 transform -translate-y-1/2"
+                  fill="currentColor"
+                  viewBox="0 0 20 20"
+                >
+                  <path fillRule="evenodd" d="M8 4a4 4 0 100 8 4 4 0 000-8zM2 8a6 6 0 1110.89 3.476l4.817 4.817a1 1 0 01-1.414 1.414l-4.816-4.816A6 6 0 012 8z" clipRule="evenodd" />
+                </svg>
+              </div>
+            </div>
+            <div className="sm:w-48">
+              <select
+                value={donationMonthFilter}
+                onChange={(e) => setDonationMonthFilter(e.target.value)}
+                className="select select-bordered w-full bg-white border-gray-300 focus:border-orange-500"
+              >
+                <option value="">All Months</option>
+                {Array.from(new Set(donations.map(d => new Date(d.createdAt).toISOString().substr(0, 7))))
+                  .sort((a, b) => b.localeCompare(a))
+                  .map(month => {
+                    const date = new Date(month + '-01');
+                    const monthName = date.toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
+                    return (
+                      <option key={month} value={month}>{monthName}</option>
+                    );
+                  })
+                }
+              </select>
+            </div>
+            {(donationSearchTerm || donationMonthFilter) && (
+              <button
+                onClick={() => {
+                  setDonationSearchTerm("");
+                  setDonationMonthFilter("");
+                }}
+                className="btn btn-outline btn-sm border-gray-300 hover:bg-gray-100 text-gray-600"
+              >
+                Clear
+              </button>
+            )}
           </div>
 
           <div className="overflow-x-auto">
@@ -308,7 +495,7 @@ const AdminDonations = () => {
                 </tr>
               </thead>
               <tbody>
-                {donations.map((donation, index) => (
+                {filteredDonations.map((donation, index) => (
                   <tr key={donation._id} className={`hover:bg-orange-50 transition-colors ${index % 2 === 0 ? 'bg-white' : 'bg-gray-50'}`}>
                     <td className="font-medium text-gray-900">{donation.donorName}</td>
                     <td className="text-gray-600 max-w-[150px] truncate">{donation.donorEmail}</td>
@@ -342,7 +529,10 @@ const AdminDonations = () => {
                         onChange={(e) =>
                           handleStatusChange(donation._id, e.target.value)
                         }
-                        className="select select-bordered select-sm bg-white border-orange-200 focus:border-orange-500 rounded-lg"
+                        disabled={updating.has(donation._id)}
+                        className={`select select-bordered select-sm bg-white border-orange-200 focus:border-orange-500 rounded-lg ${
+                          updating.has(donation._id) ? 'opacity-50 cursor-not-allowed' : ''
+                        }`}
                       >
                         <option value="pending">⏳ Pending</option>
                         <option value="received">✅ Received</option>
@@ -358,7 +548,10 @@ const AdminDonations = () => {
                         onChange={(e) =>
                           handleAddToDonorList(donation._id, e.target.checked)
                         }
-                        className="checkbox checkbox-warning"
+                        disabled={updating.has(donation._id)}
+                        className={`checkbox checkbox-warning ${
+                          updating.has(donation._id) ? 'opacity-50 cursor-not-allowed' : ''
+                        }`}
                       />
                     </td>
                     <td className="text-center text-gray-600 text-sm">
@@ -367,7 +560,10 @@ const AdminDonations = () => {
                     <td className="text-center">
                       <button
                         onClick={() => handleDeleteDonation(donation._id)}
-                        className="btn btn-sm bg-red-100 hover:bg-red-200 text-red-600 border-red-200 hover:border-red-300 rounded-lg transition-all duration-200"
+                        disabled={updating.has(donation._id)}
+                        className={`btn btn-sm bg-red-100 hover:bg-red-200 text-red-600 border-red-200 hover:border-red-300 rounded-lg transition-all duration-200 ${
+                          updating.has(donation._id) ? 'opacity-50 cursor-not-allowed' : ''
+                        }`}
                         title="Delete donation"
                       >
                         🗑️
@@ -378,6 +574,26 @@ const AdminDonations = () => {
               </tbody>
             </table>
           </div>
+
+          {filteredDonations.length === 0 && donations.length > 0 && (
+            <div className="text-center py-12">
+              <div className="w-16 h-16 bg-gray-100 rounded-full mx-auto mb-4 flex items-center justify-center">
+                <svg className="w-8 h-8 text-gray-400" fill="currentColor" viewBox="0 0 24 24">
+                  <path fillRule="evenodd" d="M8 4a4 4 0 100 8 4 4 0 000-8zM2 8a6 6 0 1110.89 3.476l4.817 4.817a1 1 0 01-1.414 1.414l-4.816-4.816A6 6 0 012 8z" clipRule="evenodd" />
+                </svg>
+              </div>
+              <p className="text-gray-500 text-lg">No donations match your search criteria</p>
+              <button
+                onClick={() => {
+                  setDonationSearchTerm("");
+                  setDonationMonthFilter("");
+                }}
+                className="btn btn-outline btn-sm mt-3 border-gray-300 hover:bg-gray-100 text-gray-600"
+              >
+                Clear Filters
+              </button>
+            </div>
+          )}
 
           {donations.length === 0 && (
             <div className="text-center py-12">
@@ -399,7 +615,7 @@ const AdminDonations = () => {
                 <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 24 24">
                   <path d="M16 4c0-1.11.89-2 2-2s2 .89 2 2-.89 2-2 2-2-.89-2-2zm4 18v-6h2.5l-2.54-7.63A2.99 2.99 0 0 0 16.85 6c-.47 0-.91.17-1.25.47L14 7.75V12c0 1.11-.89 2-2 2s-2-.89-2-2V5c0-1.11.89-2 2-2s2 .89 2 2v3l4.05-2.76c.85-.58 2-.58 2.85 0L22 8v14h-2z" />
                 </svg>
-                Public Donor List
+                Public Donor List ({filteredDonors.length})
               </h2>
               <p className="text-orange-100 mt-1">Export and manage public donor recognition</p>
             </div>
@@ -420,6 +636,58 @@ const AdminDonations = () => {
             </div>
           </div>
 
+          {/* Search and Filter Controls for Donors */}
+          <div className="px-6 py-4 bg-gray-50 border-b border-gray-200 flex flex-col sm:flex-row gap-4">
+            <div className="flex-1">
+              <div className="relative">
+                <input
+                  type="text"
+                  placeholder="Search by donor name..."
+                  value={donorSearchTerm}
+                  onChange={(e) => setDonorSearchTerm(e.target.value)}
+                  className="input input-bordered w-full bg-white border-gray-300 focus:border-orange-500 pl-10"
+                />
+                <svg
+                  className="w-5 h-5 text-gray-400 absolute left-3 top-1/2 transform -translate-y-1/2"
+                  fill="currentColor"
+                  viewBox="0 0 20 20"
+                >
+                  <path fillRule="evenodd" d="M8 4a4 4 0 100 8 4 4 0 000-8zM2 8a6 6 0 1110.89 3.476l4.817 4.817a1 1 0 01-1.414 1.414l-4.816-4.816A6 6 0 012 8z" clipRule="evenodd" />
+                </svg>
+              </div>
+            </div>
+            <div className="sm:w-48">
+              <select
+                value={donorMonthFilter}
+                onChange={(e) => setDonorMonthFilter(e.target.value)}
+                className="select select-bordered w-full bg-white border-gray-300 focus:border-orange-500"
+              >
+                <option value="">All Months</option>
+                {Array.from(new Set(donors.filter(d => d.donationDate).map(d => new Date(d.donationDate).toISOString().substr(0, 7))))
+                  .sort((a, b) => b.localeCompare(a))
+                  .map(month => {
+                    const date = new Date(month + '-01');
+                    const monthName = date.toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
+                    return (
+                      <option key={month} value={month}>{monthName}</option>
+                    );
+                  })
+                }
+              </select>
+            </div>
+            {(donorSearchTerm || donorMonthFilter) && (
+              <button
+                onClick={() => {
+                  setDonorSearchTerm("");
+                  setDonorMonthFilter("");
+                }}
+                className="btn btn-outline btn-sm border-gray-300 hover:bg-gray-100 text-gray-600"
+              >
+                Clear
+              </button>
+            )}
+          </div>
+
           <div className="overflow-x-auto">
             <table className="table w-full">
               <thead className="bg-gray-50">
@@ -431,7 +699,7 @@ const AdminDonations = () => {
                 </tr>
               </thead>
               <tbody>
-                {donors.map((donor, index) => (
+                {filteredDonors.map((donor, index) => (
                   <tr key={donor._id} className={`hover:bg-orange-50 transition-colors ${index % 2 === 0 ? 'bg-white' : 'bg-gray-50'}`}>
                     <td className="font-semibold text-gray-700">{index + 1}</td>
                     <td>
@@ -471,6 +739,26 @@ const AdminDonations = () => {
               </tbody>
             </table>
           </div>
+
+          {filteredDonors.length === 0 && donors.length > 0 && (
+            <div className="text-center py-12">
+              <div className="w-16 h-16 bg-gray-100 rounded-full mx-auto mb-4 flex items-center justify-center">
+                <svg className="w-8 h-8 text-gray-400" fill="currentColor" viewBox="0 0 24 24">
+                  <path fillRule="evenodd" d="M8 4a4 4 0 100 8 4 4 0 000-8zM2 8a6 6 0 1110.89 3.476l4.817 4.817a1 1 0 01-1.414 1.414l-4.816-4.816A6 6 0 012 8z" clipRule="evenodd" />
+                </svg>
+              </div>
+              <p className="text-gray-500 text-lg">No donors match your search criteria</p>
+              <button
+                onClick={() => {
+                  setDonorSearchTerm("");
+                  setDonorMonthFilter("");
+                }}
+                className="btn btn-outline btn-sm mt-3 border-gray-300 hover:bg-gray-100 text-gray-600"
+              >
+                Clear Filters
+              </button>
+            </div>
+          )}
 
           {donors.length === 0 && (
             <div className="text-center py-12">

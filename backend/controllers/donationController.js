@@ -5,6 +5,50 @@ import nodemailer from "nodemailer";
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
 
+// Create a reusable transporter
+let transporter = null;
+
+const getTransporter = () => {
+  if (!transporter) {
+    transporter = nodemailer.createTransport({
+      host: "smtp.gmail.com",
+      port: 587,
+      secure: false,
+      auth: {
+        user: process.env.GMAIL_USER,
+        pass: process.env.GMAIL_APP_PASSWORD,
+      },
+    });
+  }
+  return transporter;
+};
+
+// Async email function that doesn't block responses
+const sendThankYouEmail = async (donation) => {
+  try {
+    if (!donation.donorEmail) return;
+
+    const emailTransporter = getTransporter();
+    
+    await emailTransporter.sendMail({
+      from: `"Elder Care Home" <${process.env.GMAIL_USER}>`,
+      to: donation.donorEmail,
+      subject: "Thank You for Your Donation",
+      text: `Dear ${donation.donorName || "Donor"},\n\nThank you for your ${
+        donation.donationType
+      } donation. It is greatly appreciated and will make a meaningful difference.\n\nWith gratitude,\nElder Care Home`,
+      html: `<p>Dear ${donation.donorName || "Donor"},</p>
+             <p>Thank you for your <strong>${donation.donationType}</strong> donation. It is greatly appreciated and will make a meaningful difference.</p>
+             <p>With gratitude,<br/>Elder Care Home</p>`,
+    });
+    
+    console.log(`Thank you email sent to: ${donation.donorEmail}`);
+  } catch (error) {
+    console.error("Email sending failed:", error);
+    // Don't throw error - email failure shouldn't break the donation process
+  }
+};
+
 // Create donation
 export const createDonation = async (req, res) => {
   try {
@@ -74,7 +118,7 @@ export const createDonation = async (req, res) => {
         metadata: { donationId: donation._id.toString() },
       });
 
-      // **Save sessionId to donation document**
+      // Save sessionId to donation document
       donation.sessionId = session.id;
       await donation.save();
 
@@ -114,56 +158,58 @@ export const updateDonationStatus = async (req, res) => {
     if (!donation) return res.status(404).json({ message: "Donation not found" });
 
     const { status, addToDonorList } = req.body;
+    let wasStatusUpdatedToReceived = false;
 
+    // Update status
     if (status && ["pending", "received"].includes(status)) {
+      wasStatusUpdatedToReceived = (donation.status !== "received" && status === "received");
       donation.status = status;
     }
 
+    // Handle donor list updates
     if (typeof addToDonorList === "boolean") {
       donation.addToDonorList = addToDonorList;
 
-      if (addToDonorList) {
-        const exists = await DonorList.findOne({ donorName: donation.donorName });
-        if (!exists) {
-          await DonorList.create({ donorName: donation.donorName, donationDate: new Date() });
+      try {
+        if (addToDonorList) {
+          const exists = await DonorList.findOne({ donorName: donation.donorName });
+          if (!exists) {
+            await DonorList.create({ 
+              donorName: donation.donorName, 
+              donationDate: new Date() 
+            });
+          }
+        } else {
+          await DonorList.deleteOne({ donorName: donation.donorName });
         }
-      } else {
-        await DonorList.deleteOne({ donorName: donation.donorName });
+      } catch (donorListError) {
+        console.error("Error updating donor list:", donorListError);
+        // Continue with donation update even if donor list update fails
       }
     }
 
+    // Save donation
     await donation.save();
 
-    // ✅ Send thank-you email only when donation is marked as "received"
-    if (donation.status === "received" && donation.donorEmail) {
-      const transporter = nodemailer.createTransport({
-        host: "smtp.gmail.com",
-        port: 587,
-        secure: false,
-        auth: {
-          user: process.env.GMAIL_USER,
-          pass: process.env.GMAIL_APP_PASSWORD,
-        },
-      });
+    // Send response immediately
+    res.json({ 
+      message: "Donation updated successfully", 
+      donation: {
+        ...donation.toObject(),
+        // Include computed fields if needed
+      }
+    });
 
-      await transporter.sendMail({
-        from: `"Elder Care Home" <${process.env.GMAIL_USER}>`,
-        to: donation.donorEmail,
-        subject: "Thank You for Your Donation",
-        text: `Dear ${donation.donorName || "Donor"},\n\nThank you for your ${
-          donation.donationType
-        } donation. It is greatly appreciated and will make a meaningful difference.\n\nWith gratitude,\nElder Care Home`,
-        html: `<p>Dear ${donation.donorName || "Donor"},</p>
-               <p>Thank you for your <strong>${donation.donationType}</strong> donation. It is greatly appreciated and will make a meaningful difference.</p>
-               <p>With gratitude,<br/>Elder Care Home</p>`,
+    // Send email asynchronously AFTER response is sent
+    if (wasStatusUpdatedToReceived) {
+      // Fire and forget - don't await
+      sendThankYouEmail(donation).catch(error => {
+        console.error("Background email sending failed:", error);
       });
     }
 
-
-
-    res.json({ message: "Donation updated successfully", donation });
   } catch (error) {
-    console.error(error);
+    console.error("Error updating donation:", error);
     res.status(500).json({ message: "Server error updating donation" });
   }
 };
@@ -176,6 +222,7 @@ export const deleteDonation = async (req, res) => {
       return res.status(404).json({ message: "Donation not found" });
     }
 
+    // Handle donor list cleanup
     if (donation.addToDonorList) {
       const donorDonations = await Donation.find({
         donorName: donation.donorName,
@@ -221,34 +268,17 @@ export const verifyPayment = async (req, res) => {
       donation.status = "received";
       donation.paymentId = session.payment_intent;
       await donation.save();
+      
       console.log("Payment verified, donation updated:", { donationId: donation._id, paymentId: donation.paymentId });
 
-      // ✅ Send thank-you email here too
-      if (donation.donorEmail) {
-        const transporter = nodemailer.createTransport({
-          host: "smtp.gmail.com",
-          port: 587,
-          secure: false,
-          auth: {
-            user: process.env.GMAIL_USER,
-            pass: process.env.GMAIL_APP_PASSWORD,
-          },
-        });
+      // Send response immediately
+      res.status(200).json({ message: "Payment verified", donation });
 
-        await transporter.sendMail({
-          from: `"Elder Care Home" <${process.env.GMAIL_USER}>`,
-          to: donation.donorEmail,
-          subject: "Thank You for Your Donation",
-          text: `Dear ${donation.donorName || "Donor"},\n\nThank you for your ${
-            donation.donationType
-          } donation. It is greatly appreciated and will make a meaningful difference.\n\nWith gratitude,\nElder Care Home`,
-          html: `<p>Dear ${donation.donorName || "Donor"},</p>
-                 <p>Thank you for your <strong>${donation.donationType}</strong> donation. It is greatly appreciated and will make a meaningful difference.</p>
-                 <p>With gratitude,<br/>Elder Care Home</p>`,
-        });
-      }
+      // Send email asynchronously AFTER response is sent
+      sendThankYouEmail(donation).catch(error => {
+        console.error("Background email sending failed:", error);
+      });
       
-      return res.status(200).json({ message: "Payment verified", donation });
     } else {
       console.log("Payment not completed, status:", session.payment_status);
       return res.status(400).json({ message: "Payment not completed" });
@@ -258,4 +288,3 @@ export const verifyPayment = async (req, res) => {
     res.status(500).json({ message: "Server error verifying payment" });
   }
 };
-
