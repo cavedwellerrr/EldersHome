@@ -2,6 +2,8 @@ import Donation from "../models/donations.js";
 import DonorList from "../models/donorList.js";
 import Stripe from "stripe";
 import nodemailer from "nodemailer";
+import { addDonationToInventory } from "./inventoryController.js";
+import Inventory from "../models/inventory_model.js";
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
 
@@ -23,7 +25,7 @@ const getTransporter = () => {
   return transporter;
 };
 
-// send email
+// Async email function that doesn't block responses
 const sendThankYouEmail = async (donation) => {
   try {
     if (!donation.donorEmail) return;
@@ -140,11 +142,43 @@ export const createDonation = async (req, res) => {
   }
 };
 
-// Get all donations
+// Get all donations with calculated stats
 export const getAllDonations = async (req, res) => {
   try {
-    const donations = await Donation.find().sort({ createdAt: -1 });
-    res.status(200).json(donations);
+    // Get active donations for display
+    const donations = await Donation.find({ deleted: { $ne: true } }).sort({ createdAt: -1 });
+    
+    // Calculate total cash amount from ALL received cash donations (including deleted ones)
+    const totalCashReceived = await Donation.aggregate([
+      {
+        $match: {
+          donationType: "cash",
+          status: "received"
+          // Note: We don't filter out deleted donations here to preserve total amount
+        }
+      },
+      {
+        $group: {
+          _id: null,
+          total: { $sum: "$amount" }
+        }
+      }
+    ]);
+    
+    const totalAmount = totalCashReceived.length > 0 ? totalCashReceived[0].total : 0;
+    
+    // Calculate current active donation stats
+    const stats = {
+      totalDonations: donations.length,
+      totalAmount: totalAmount, // Includes all cash donations ever received
+      pendingCount: donations.filter(d => d.status === 'pending').length,
+      receivedCount: donations.filter(d => d.status === 'received').length
+    };
+    
+    res.status(200).json({
+      donations,
+      stats
+    });
   } catch (error) {
     console.error("Error fetching donations:", error);
     res.status(500).json({ message: "Server error while fetching donations" });
@@ -196,13 +230,17 @@ export const updateDonationStatus = async (req, res) => {
       message: "Donation updated successfully", 
       donation: {
         ...donation.toObject(),
-        // Include computed fields if needed
       }
     });
 
-    // Send email asynchronously AFTER response is sent
+    // After response is sent
     if (wasStatusUpdatedToReceived) {
-      // Fire and forget - don't await
+      // Add item donations to inventory
+      if (donation.donationType === "item") {
+        addDonationToInventory(donation._id);
+      }
+
+      // Send thank-you email
       sendThankYouEmail(donation).catch(error => {
         console.error("Background email sending failed:", error);
       });
@@ -214,7 +252,7 @@ export const updateDonationStatus = async (req, res) => {
   }
 };
 
-// Delete donation
+// Soft delete donation (keeps cash in total calculation)
 export const deleteDonation = async (req, res) => {
   try {
     const donation = await Donation.findById(req.params.id);
@@ -227,6 +265,7 @@ export const deleteDonation = async (req, res) => {
       const donorDonations = await Donation.find({
         donorName: donation.donorName,
         _id: { $ne: donation._id },
+        deleted: { $ne: true },
       });
 
       if (donorDonations.length === 0) {
@@ -234,8 +273,14 @@ export const deleteDonation = async (req, res) => {
       }
     }
 
-    await donation.deleteOne();
-    res.json({ message: "Donation deleted successfully" });
+    // Soft delete: only mark as deleted
+    // Cash amount remains in total calculation since we don't filter by deleted in aggregation
+    donation.deleted = true;
+    await donation.save();
+
+    res.json({
+      message: "Donation marked as deleted (cash total preserved in records)",
+    });
   } catch (error) {
     console.error("Error deleting donation:", error);
     res.status(500).json({ message: "Server error while deleting donation" });

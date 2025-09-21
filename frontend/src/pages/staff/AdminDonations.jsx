@@ -17,6 +17,7 @@ const AdminDonations = () => {
     receivedCount: 0
   });
   const [updating, setUpdating] = useState(new Set()); // Track which items are being updated
+  const [deleting, setDeleting] = useState(new Set()); // Track which items are being deleted
   const [donationSearchTerm, setDonationSearchTerm] = useState("");
   const [donationMonthFilter, setDonationMonthFilter] = useState("");
   const [donorSearchTerm, setDonorSearchTerm] = useState("");
@@ -52,22 +53,11 @@ const AdminDonations = () => {
 
   const filteredDonations = getFilteredDonations();
   const filteredDonors = getFilteredDonors();
-
-  const calculateStats = useCallback((donationsData) => {
-    const totalDonations = donationsData.length;
-    const totalAmount = donationsData
-      .filter(d => d.donationType === 'cash')
-      .reduce((sum, d) => sum + (d.amount || 0), 0);
-    const pendingCount = donationsData.filter(d => d.status === 'pending').length;
-    const receivedCount = donationsData.filter(d => d.status === 'received').length;
-
-    return { totalDonations, totalAmount, pendingCount, receivedCount };
-  }, []);
-
+  
   const fetchDonations = useCallback(async (showToast = false) => {
     try {
       const donationsRes = await api.get("/donations");
-      const donationsData = donationsRes.data;
+      const { donations: donationsData, stats } = donationsRes.data;
       
       // Check for new donations only if we have previous data
       if (showToast && previousCountRef.current > 0 && donationsData.length > previousCountRef.current) {
@@ -76,7 +66,7 @@ const AdminDonations = () => {
       
       previousCountRef.current = donationsData.length;
       setDonations(donationsData);
-      setStats(calculateStats(donationsData));
+      setStats(stats); // Use stats from backend
       
     } catch (err) {
       console.error("Fetch donations error:", err);
@@ -85,7 +75,7 @@ const AdminDonations = () => {
         toast.error(err.response?.data?.message || "Error fetching donations");
       }
     }
-  }, [calculateStats]);
+  }, []);
 
   const fetchDonors = useCallback(async () => {
     try {
@@ -116,7 +106,7 @@ const AdminDonations = () => {
     // Initial fetch
     fetchAllData(false);
 
-    // Set up polling every 30 seconds (increased from 10s to reduce server load)
+    // Set up polling every 30 seconds
     intervalRef.current = setInterval(() => {
       fetchAllData(true);
     }, 30000);
@@ -137,18 +127,15 @@ const AdminDonations = () => {
     try {
       const response = await api.put(`/donations/${id}`, { status: newStatus });
       
-      // Update local state immediately for better UX
+      // Update local state with response data to ensure consistency
       setDonations((prev) =>
         prev.map((donation) =>
-          donation._id === id ? { ...donation, status: newStatus } : donation
+          donation._id === id ? { ...donation, ...response.data.donation } : donation
         )
       );
       
-      // Update stats
-      const updatedDonations = donations.map(donation => 
-        donation._id === id ? { ...donation, status: newStatus } : donation
-      );
-      setStats(calculateStats(updatedDonations));
+      // Refresh data to get updated stats from backend
+      setTimeout(() => fetchAllData(false), 100);
       
       toast.success(`Status updated to "${newStatus}"`);
     } catch (err) {
@@ -169,16 +156,16 @@ const AdminDonations = () => {
     setUpdating(prev => new Set(prev).add(id));
     
     try {
-      await api.put(`/donations/${id}`, { addToDonorList: checked });
+      const response = await api.put(`/donations/${id}`, { addToDonorList: checked });
       
-      // Update local state immediately
+      // Update local state with response data
       setDonations((prev) =>
         prev.map((donation) =>
-          donation._id === id ? { ...donation, addToDonorList: checked } : donation
+          donation._id === id ? { ...donation, ...response.data.donation } : donation
         )
       );
 
-      // Refresh donor list after a short delay to ensure backend processing is complete
+      // Refresh donor list after a short delay
       setTimeout(fetchDonors, 500);
 
       toast.success(
@@ -203,28 +190,41 @@ const AdminDonations = () => {
     }
   };
 
+  // FIXED DELETE FUNCTION
   const handleDeleteDonation = async (id) => {
-    if (!window.confirm("Are you sure you want to delete this donation?")) return;
-    if (updating.has(id)) return;
+    const donation = donations.find(d => d._id === id);
+    const confirmMessage = donation?.donationType === 'cash' 
+      ? "Are you sure you want to delete this donation? The cash amount will remain in your total records."
+      : "Are you sure you want to delete this donation?";
+    
+    if (!window.confirm(confirmMessage)) return;
+    if (updating.has(id) || deleting.has(id)) return;
 
-    setUpdating(prev => new Set(prev).add(id));
+    setDeleting(prev => new Set(prev).add(id));
 
     try {
-      await api.post(`/donations/delete/${id}`);
+      // Use the existing backend endpoint
+      await api.delete(`/donations/${id}`);
       
-      const updatedDonations = donations.filter((donation) => donation._id !== id);
-      setDonations(updatedDonations);
-      setStats(calculateStats(updatedDonations));
+      // Remove from local state immediately for better UX
+      setDonations(prevDonations => prevDonations.filter(d => d._id !== id));
+      
+      // Refresh data from backend to get updated stats
+      await fetchAllData(false);
       
       toast.success("Donation deleted successfully");
       
-      // Refresh donor list
-      fetchDonors();
+      // Refresh donor list in case donor was removed
+      await fetchDonors();
     } catch (err) {
       console.error("Delete donation error:", err);
+      
+      // On error, refresh data to restore correct state
+      await fetchAllData(false);
+      
       toast.error(err.response?.data?.message || "Error deleting donation");
     } finally {
-      setUpdating(prev => {
+      setDeleting(prev => {
         const newSet = new Set(prev);
         newSet.delete(id);
         return newSet;
@@ -233,13 +233,13 @@ const AdminDonations = () => {
   };
 
   const downloadDonorListCSV = () => {
-    if (donors.length === 0) {
+    if (filteredDonors.length === 0) {
       toast.warn("No donors to export");
       return;
     }
 
     const headers = ["#", "Name", "Donation Date"];
-    const rows = donors.map((d, index) => [
+    const rows = filteredDonors.map((d, index) => [
       index + 1,
       d.donorName,
       d.donationDate ? new Date(d.donationDate).toLocaleDateString() : "-",
@@ -251,7 +251,7 @@ const AdminDonations = () => {
   };
 
   const downloadDonorListPDF = () => {
-    if (donors.length === 0) {
+    if (filteredDonors.length === 0) {
       toast.warn("No donors to export");
       return;
     }
@@ -266,7 +266,7 @@ const AdminDonations = () => {
       }
 
       const tableColumn = ["#", "Name", "Donation Date"];
-      const tableRows = donors.map((donor, index) => [
+      const tableRows = filteredDonors.map((donor, index) => [
         index + 1,
         donor.donorName,
         donor.donationDate ? new Date(donor.donationDate).toLocaleDateString() : "-",
@@ -285,6 +285,20 @@ const AdminDonations = () => {
     } catch (err) {
       console.error("PDF generation error:", err);
       toast.error(`Error generating PDF: ${err.message}`);
+    }
+  };
+
+  // Enhanced donor deletion with proper error handling
+  const handleDeleteDonor = async (donorId) => {
+    if (!window.confirm("Are you sure you want to remove this donor from the public list?")) return;
+    
+    try {
+      await api.delete(`/donors/${donorId}`);
+      setDonors((prev) => prev.filter((d) => d._id !== donorId));
+      toast.success("Donor removed from list successfully");
+    } catch (err) {
+      console.error("Delete donor error:", err);
+      toast.error(err.response?.data?.message || "Error removing donor");
     }
   };
 
@@ -375,6 +389,7 @@ const AdminDonations = () => {
               <div>
                 <p className="text-sm font-medium text-gray-600">Total Amount</p>
                 <p className="text-3xl font-bold text-green-600">${stats.totalAmount.toLocaleString()}</p>
+                <p className="text-xs text-gray-500 mt-1">Permanently tracked total</p>
               </div>
               <div className="w-12 h-12 bg-green-100 rounded-xl flex items-center justify-center">
                 <svg className="w-6 h-6 text-green-500" fill="currentColor" viewBox="0 0 24 24">
@@ -529,9 +544,9 @@ const AdminDonations = () => {
                         onChange={(e) =>
                           handleStatusChange(donation._id, e.target.value)
                         }
-                        disabled={updating.has(donation._id)}
+                        disabled={updating.has(donation._id) || deleting.has(donation._id)}
                         className={`select select-bordered select-sm bg-white border-orange-200 focus:border-orange-500 rounded-lg ${
-                          updating.has(donation._id) ? 'opacity-50 cursor-not-allowed' : ''
+                          updating.has(donation._id) || deleting.has(donation._id) ? 'opacity-50 cursor-not-allowed' : ''
                         }`}
                       >
                         <option value="pending">⏳ Pending</option>
@@ -542,17 +557,24 @@ const AdminDonations = () => {
                       {donation.paymentId || "-"}
                     </td>
                     <td className="text-center">
-                      <input
-                        type="checkbox"
-                        checked={donation.addToDonorList || false}
-                        onChange={(e) =>
-                          handleAddToDonorList(donation._id, e.target.checked)
+                      <button
+                        onClick={() =>
+                          handleAddToDonorList(donation._id, true)
                         }
-                        disabled={updating.has(donation._id)}
-                        className={`checkbox checkbox-warning ${
-                          updating.has(donation._id) ? 'opacity-50 cursor-not-allowed' : ''
+                        disabled={updating.has(donation._id) || deleting.has(donation._id)}
+                        className={`btn btn-sm bg-green-100 hover:bg-green-200 text-green-600 border-green-200 hover:border-green-300 rounded-lg transition-all duration-200 ${
+                          updating.has(donation._id) || deleting.has(donation._id) 
+                            ? 'opacity-50 cursor-not-allowed' 
+                            : ''
                         }`}
-                      />
+                        title="Add to donor list"
+                      >
+                        {updating.has(donation._id) ? (
+                          <div className="w-4 h-4 border-2 border-green-600 border-t-transparent rounded-full animate-spin"></div>
+                        ) : (
+                          "Add"
+                        )}
+                      </button>
                     </td>
                     <td className="text-center text-gray-600 text-sm">
                       {new Date(donation.createdAt).toLocaleDateString()}
@@ -560,13 +582,17 @@ const AdminDonations = () => {
                     <td className="text-center">
                       <button
                         onClick={() => handleDeleteDonation(donation._id)}
-                        disabled={updating.has(donation._id)}
+                        disabled={updating.has(donation._id) || deleting.has(donation._id)}
                         className={`btn btn-sm bg-red-100 hover:bg-red-200 text-red-600 border-red-200 hover:border-red-300 rounded-lg transition-all duration-200 ${
-                          updating.has(donation._id) ? 'opacity-50 cursor-not-allowed' : ''
+                          updating.has(donation._id) || deleting.has(donation._id) ? 'opacity-50 cursor-not-allowed' : ''
                         }`}
                         title="Delete donation"
                       >
-                        🗑️
+                        {deleting.has(donation._id) ? (
+                          <div className="w-4 h-4 border-2 border-red-600 border-t-transparent rounded-full animate-spin"></div>
+                        ) : (
+                          "🗑️"
+                        )}
                       </button>
                     </td>
                   </tr>
@@ -717,17 +743,7 @@ const AdminDonations = () => {
                     </td>
                     <td className="text-center">
                       <button
-                        onClick={async () => {
-                          if (!window.confirm("Are you sure you want to remove this donor from the public list?")) return;
-                          try {
-                            await api.delete(`/donors/${donor._id}`);
-                            setDonors((prev) => prev.filter((d) => d._id !== donor._id));
-                            toast.success("Donor removed from list successfully");
-                          } catch (err) {
-                            console.error("Delete donor error:", err);
-                            toast.error("Error removing donor");
-                          }
-                        }}
+                        onClick={() => handleDeleteDonor(donor._id)}
                         className="btn btn-sm bg-red-100 hover:bg-red-200 text-red-600 border-red-200 hover:border-red-300 rounded-lg transition-all duration-200"
                         title="Remove from donor list"
                       >
