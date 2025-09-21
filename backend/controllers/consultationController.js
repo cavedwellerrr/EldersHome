@@ -2,7 +2,7 @@
 import Consultation from "../models/consultation_model.js";
 import Elder from "../models/elder_model.js";
 import Caretaker from "../models/caretaker_model.js";
-import Appointment from "../models/appointment_model.js"; // ✅ import appointment model
+import Appointment from "../models/Appointment_model.js"; //  import appointment model
 import Doctor from "../models/doctor_model.js";
 
 
@@ -78,14 +78,14 @@ export const updateConsultation = async (req, res) => {
       return res.status(404).json({ message: "Consultation not found" });
     }
 
-    // ✅ always update these fields
+    //  always update these fields
     if (status) consultation.status = status;
     if (responseNotes) consultation.responseNotes = responseNotes;
     if (doctorId) consultation.doctor = doctorId;
 
-    await consultation.save(); // ✅ make sure doctorId is saved in consultation
+    await consultation.save(); //  make sure doctorId is saved in consultation
 
-    // ✅ If Approved → create appointment
+    //  If Approved → create appointment
     if (status === "Approved" && date) {
       const caretakerDoc = await Caretaker.findById(consultation.caretaker)
         .populate("staff");
@@ -93,7 +93,7 @@ export const updateConsultation = async (req, res) => {
       const appointment = new Appointment({
         elder: consultation.elder._id,
         guardian: consultation.elder.guardian,
-        doctor: doctorId, // ✅ linked here as well
+        doctor: doctorId, //  linked here as well
         caretaker: caretakerDoc?.staff?._id,
         date,
         status: "pending",
@@ -109,7 +109,7 @@ export const updateConsultation = async (req, res) => {
       });
     }
 
-    // ✅ If Rejected
+    //  If Rejected
     if (status === "Rejected") {
       return res.json({
         message: "Consultation rejected",
@@ -200,7 +200,7 @@ export const rejectConsultation = async (req, res) => {
     }
 
     consultation.status = "Rejected";
-    consultation.responseNotes = note;   // ✅ save into responseNotes
+    consultation.responseNotes = note;   //  save into responseNotes
     await consultation.save();
 
     res.json({ message: "Consultation rejected", consultation });

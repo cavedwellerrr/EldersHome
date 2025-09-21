@@ -3,28 +3,40 @@ import cors from "cors";
 import "dotenv/config";
 import cookieParser from "cookie-parser";
 import connectDB from "./config/mongodb.js";
+
+//guardian routes
 import guardianRoutes from "./routes/guardianRoutes.js";
+
+//staff routes
 import staffRoutes from "./routes/staff_route.js";
+
+//elder route
 import elderRoutes from "./routes/elderRoutes.js";
 import path from "path";
 import { fileURLToPath } from "url";
 import { protect } from "./middleware/authGuardianMiddleware.js";
-import caretakerRoutes from "./routes/caretakerRoutes.js";
-import donationsRoutes from "./routes/donationsRoute.js";
-import donorListRoutes from "./routes/donorListRoutes.js";
-import caretakerElderRoutes from "./routes/caretaker_elder_routes.js";
 
+//caretaker routes
+import caretakerRoutes from "./routes/caretakerRoutes.js";
+import caretakerElderRoutes from "./routes/caretaker_elder_routes.js";
 import mealRoutes from "./routes/mealRoutes.js";
 import roomRoutes from "./routes/roomRoutes.js";
 import assignmentRoutes from "./routes/assignment_routes.js";
 
+//donation routes
+import donationsRoutes from "./routes/donationsRoute.js";
+import donorListRoutes from "./routes/donorListRoutes.js";
+
+
+//event routes
 import eventRoutes from "./routes/event.route.js";
 import eventEnrollmentRoutes from "./routes/eventEnrollments.route.js";
 
+//health routes
 import consultationRoutes from "./routes/consultationRoutes.js";
 import doctorRoutes from "./routes/doctorRoutes.js";
 import appointmentRoutes from "./routes/appointmentRoutes.js";
-
+import prescriptionRoutes from "./routes/prescriptionRoutes.js";
 
 
 
@@ -75,6 +87,7 @@ app.use("/api/doctors", doctorRoutes);
 
 //Appointments Route
 app.use("/api/appointments", appointmentRoutes);
+app.use("/api/prescriptions", prescriptionRoutes);
 
 
 
