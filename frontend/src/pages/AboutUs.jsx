@@ -117,7 +117,7 @@ const AboutUs = () => {
               till end
             </h1>
             <p className="text-xl text-gray-600 max-w-4xl mx-auto leading-relaxed">
-              At Senora Elder Care, we believe every senior deserves to live
+              At ElderCare, we believe every senior deserves to live
               with dignity, joy, and purpose. For over 15 years, we've been
               creating a loving community where golden years truly shine.
             </p>
@@ -161,7 +161,7 @@ const AboutUs = () => {
               exceptional care and create a nurturing environment for seniors.
               What started as a small initiative has now grown into a
               comprehensive elder care community serving hundreds of residents
-              with love and dedication.
+              with love and dedication. We have also become the best donation-based elder's home in the country.
             </p>
             <ul className="space-y-4">
               <li className="flex items-start space-x-3">

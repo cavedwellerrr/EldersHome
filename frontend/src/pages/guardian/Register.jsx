@@ -41,7 +41,7 @@ const Register = () => {
       case 'phone':
         if (!value.trim()) return "Phone number is required";
         // Updated regex to allow numbers starting with 0
-        const phoneRegex = /^[0-9+][\d\s\-\(\)]{7,20}$/;
+        const phoneRegex = /^\+?\d{10,15}$/;
         const cleanPhone = value.replace(/[\s\-\(\)]/g, '');
         if (!phoneRegex.test(cleanPhone)) return "Please enter a valid phone number";
         return "";
