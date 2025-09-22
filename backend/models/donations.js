@@ -2,7 +2,7 @@ import mongoose from "mongoose";
 
 const donationSchema = new mongoose.Schema({
   donorName: { type: String, required: true },
-  donorEmail: { type: String, required: true },
+  donorEmail: { type: String, required: true,  match: [/^\S+@\S+\.\S+$/, 'Please use a valid email address'] },
 
   donationType: {
     type: String,
