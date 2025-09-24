@@ -5,9 +5,20 @@ import api from "../../api";
 import jsPDF from 'jspdf';
 
 const Profile = () => {
-  const { auth, logout, loading } = useContext(AuthContext);
+  const { auth, logout, loading, setAuth } = useContext(AuthContext);
   const navigate = useNavigate();
   const [elders, setElders] = useState([]);
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [editFormData, setEditFormData] = useState({
+    name: "",
+    email: "",
+    username: "",
+    phone: "",
+    address: "",
+    password: ""
+  });
+  const [isUpdating, setIsUpdating] = useState(false);
+  const [updateMessage, setUpdateMessage] = useState("");
 
   useEffect(() => {
     if (!loading && !auth) {
@@ -28,6 +39,85 @@ const Profile = () => {
     };
     fetchElders();
   }, [auth]);
+
+  // Initialize edit form with current auth data
+  useEffect(() => {
+    if (auth) {
+      setEditFormData({
+        name: auth.name || "",
+        email: auth.email || "",
+        username: auth.username || "",
+        phone: auth.phone || "",
+        address: auth.address || "",
+        password: ""
+      });
+    }
+  }, [auth]);
+
+  // Handle edit form input changes
+  const handleEditInputChange = (e) => {
+    const { name, value } = e.target;
+    setEditFormData(prev => ({
+      ...prev,
+      [name]: value
+    }));
+  };
+
+  // Open edit modal
+  const openEditModal = () => {
+    setIsEditModalOpen(true);
+    setUpdateMessage("");
+  };
+
+  // Close edit modal
+  const closeEditModal = () => {
+    setIsEditModalOpen(false);
+    setUpdateMessage("");
+    // Reset form to current auth data
+    if (auth) {
+      setEditFormData({
+        name: auth.name || "",
+        email: auth.email || "",
+        username: auth.username || "",
+        phone: auth.phone || "",
+        address: auth.address || "",
+        password: ""
+      });
+    }
+  };
+
+  // Handle profile update
+  const handleUpdateProfile = async (e) => {
+    e.preventDefault();
+    setIsUpdating(true);
+    setUpdateMessage("");
+
+    try {
+      // Prepare update data (exclude empty password)
+      const updateData = { ...editFormData };
+      if (!updateData.password) {
+        delete updateData.password;
+      }
+
+      const response = await api.put('/guardians/updateProfile', updateData);
+      
+      // Update auth context with new data
+      setAuth(response.data);
+      
+      setUpdateMessage("Profile updated successfully!");
+      setTimeout(() => {
+        closeEditModal();
+      }, 1500);
+      
+    } catch (error) {
+      console.error("Failed to update profile:", error);
+      setUpdateMessage(
+        error.response?.data?.message || "Failed to update profile. Please try again."
+      );
+    } finally {
+      setIsUpdating(false);
+    }
+  };
 
   // PDF Download Function
   const downloadElderPDF = (elder) => {
@@ -326,6 +416,16 @@ const Profile = () => {
                 </div>
 
                 <div className="pt-4 space-y-3">
+                  <button
+                    onClick={openEditModal}
+                    className="btn btn-outline btn-primary w-full"
+                  >
+                    <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                    </svg>
+                    Edit Profile
+                  </button>
+                  
                   <Link
                     to="/elder-register"
                     className="btn btn-primary bg-orange-500 hover:bg-orange-600 border-orange-500 hover:border-orange-600 w-full text-white"
@@ -356,14 +456,14 @@ const Profile = () => {
               <div className="px-6 py-6 bg-gradient-to-r from-gray-50 to-gray-100 border-b border-gray-200">
                 <div className="flex items-center justify-between">
                   <div>
-                    <h3 className="text-2xl font-bold text-gray-900">My Elders</h3>
+                    <h3 className="text-2xl font-bold text-black">My Elders</h3>
                     <p className="text-gray-600 mt-1">
                       {elders.length === 0 ? "No elders registered yet" : `Managing ${elders.length} elder${elders.length > 1 ? 's' : ''}`}
                     </p>
                   </div>
                   <div className="stats bg-white shadow">
                     <div className="stat">
-                      <div className="stat-title text-xs">Total Elders</div>
+                      <div className="stat-title text-xs text-gray-900">Total Elders</div>
                       <div className="stat-value text-orange-500 text-2xl">{elders.length}</div>
                     </div>
                   </div>
@@ -413,7 +513,7 @@ const Profile = () => {
                                     {formatStatus(elder.status)}
                                   </div>
                                 </div>
-                                {/* PDF Download btn */}
+                                {/* PDF Download Button */}
                                 <button
                                   onClick={() => downloadElderPDF(elder)}
                                   className="btn btn-outline btn-sm bg-orange-500 hover:bg-orange-600 text-white border-orange-500 hover:border-orange-600"
@@ -491,6 +591,114 @@ const Profile = () => {
           </div>
         </div>
       </div>
+
+      {/* Edit Profile Modal */}
+      {isEditModalOpen && (
+        <div className="modal modal-open">
+          <div className="modal-box max-w-md bg-white">
+            <div className="flex items-center justify-between mb-6">
+              <h3 className="text-2xl font-bold text-orange-500">Edit Profile</h3>
+              <button
+                onClick={closeEditModal}
+                className="btn btn-ghost btn-sm btn-circle"
+              >
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+            </div>
+
+            {updateMessage && (
+              <div className={`alert mb-4 ${updateMessage.includes('success') ? 'alert-success' : 'alert-error'}`}>
+                <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                  <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd" />
+                </svg>
+                <span className="text-sm">{updateMessage}</span>
+              </div>
+            )}
+
+            <form onSubmit={handleUpdateProfile} className="space-y-4">
+              <div className="form-control">
+                <label className="label">
+                  <span className="label-text font-medium  text-orange-500">Full Name</span>
+                </label>
+                <input
+                  type="text"
+                  name="name"
+                  value={editFormData.name}
+                  onChange={handleEditInputChange}
+                  className="input input-bordered w-full  bg-orange-100 text-black"
+                  required
+                />
+              </div>
+
+              <div className="form-control">
+                <label className="label">
+                  <span className="label-text font-medium  text-orange-500">Email</span>
+                </label>
+                <input
+                  type="email"
+                  name="email"
+                  value={editFormData.email}
+                  onChange={handleEditInputChange}
+                  className="input input-bordered w-full  bg-orange-100 text-black"
+                  required
+                />
+              </div>
+
+
+              <div className="form-control">
+                <label className="label">
+                  <span className="label-text font-medium  text-orange-500">Phone Number</span>
+                </label>
+                <input
+                  type="tel"
+                  name="phone"
+                  value={editFormData.phone}
+                  onChange={handleEditInputChange}
+                  className="input input-bordered w-full  bg-orange-100 text-black"
+                  pattern="[0-9]{10,15}"
+                  required
+                />
+              </div>
+
+              <div className="form-control">
+                <label className="label">
+                  <span className="label-text font-medium  text-orange-500">Address</span>
+                </label>
+                <textarea
+                  name="address"
+                  value={editFormData.address}
+                  onChange={handleEditInputChange}
+                  className="textarea textarea-bordered w-full bg-orange-100 text-black"
+                  rows={3}
+                  required
+                />
+              </div>
+
+
+              <div className="flex gap-3 mt-8">
+                <button
+                  type="button"
+                  onClick={closeEditModal}
+                  className="btn btn-ghost flex-1"
+                  disabled={isUpdating}
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  className={`btn bg-orange-500 hover:bg-orange-600 text-white flex-1 ${isUpdating ? 'loading' : ''}`}
+                  disabled={isUpdating}
+                >
+                  {isUpdating ? 'Updating...' : 'Update Profile'}
+                </button>
+              </div>
+            </form>
+          </div>
+          <div className="modal-backdrop" onClick={closeEditModal}></div>
+        </div>
+      )}
     </div>
   );
 };
