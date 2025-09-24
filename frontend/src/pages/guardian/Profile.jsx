@@ -646,7 +646,7 @@ const Profile = () => {
       {/* Edit Profile Modal */}
       {isEditModalOpen && (
         <div className="modal modal-open">
-          <div className="modal-box max-w-md">
+          <div className="modal-box max-w-md bg-white">
             <div className="flex items-center justify-between mb-6">
               <h3 className="text-2xl font-bold text-gray-900">Edit Profile</h3>
               <button
@@ -671,56 +671,42 @@ const Profile = () => {
             <form onSubmit={handleUpdateProfile} className="space-y-4">
               <div className="form-control">
                 <label className="label">
-                  <span className="label-text font-medium">Full Name</span>
+                  <span className="label-text font-medium text-gray-900">Full Name</span>
                 </label>
                 <input
                   type="text"
                   name="name"
                   value={editFormData.name}
                   onChange={handleEditInputChange}
-                  className="input input-bordered w-full"
+                  className="input input-bordered w-full bg-orange-100 text-gray-800"
                   required
                 />
               </div>
 
               <div className="form-control">
                 <label className="label">
-                  <span className="label-text font-medium">Email</span>
+                  <span className="label-text font-medium  text-gray-900">Email</span>
                 </label>
                 <input
                   type="email"
                   name="email"
                   value={editFormData.email}
                   onChange={handleEditInputChange}
-                  className="input input-bordered w-full"
+                  className="input input-bordered w-full  bg-orange-100 text-gray-800"
                   required
                 />
               </div>
 
               <div className="form-control">
                 <label className="label">
-                  <span className="label-text font-medium">Username</span>
-                </label>
-                <input
-                  type="text"
-                  name="username"
-                  value={editFormData.username}
-                  onChange={handleEditInputChange}
-                  className="input input-bordered w-full"
-                  required
-                />
-              </div>
-
-              <div className="form-control">
-                <label className="label">
-                  <span className="label-text font-medium">Phone Number</span>
+                  <span className="label-text font-medium  text-gray-900">Phone Number</span>
                 </label>
                 <input
                   type="tel"
                   name="phone"
                   value={editFormData.phone}
                   onChange={handleEditInputChange}
-                  className="input input-bordered w-full"
+                  className="input input-bordered w-full  bg-orange-100 text-gray-800"
                   pattern="[0-9]{10,15}"
                   required
                 />
@@ -728,38 +714,24 @@ const Profile = () => {
 
               <div className="form-control">
                 <label className="label">
-                  <span className="label-text font-medium">Address</span>
+                  <span className="label-text font-medium  text-gray-900">Address</span>
                 </label>
                 <textarea
                   name="address"
                   value={editFormData.address}
                   onChange={handleEditInputChange}
-                  className="textarea textarea-bordered w-full"
+                  className="textarea textarea-bordered w-full  bg-orange-100 text-gray-800"
                   rows={3}
                   required
                 />
               </div>
 
-              <div className="form-control">
-                <label className="label">
-                  <span className="label-text font-medium">New Password</span>
-                  <span className="label-text-alt text-gray-500">(Leave blank to keep current)</span>
-                </label>
-                <input
-                  type="password"
-                  name="password"
-                  value={editFormData.password}
-                  onChange={handleEditInputChange}
-                  className="input input-bordered w-full"
-                  placeholder="Enter new password (optional)"
-                />
-              </div>
 
               <div className="flex gap-3 mt-8">
                 <button
                   type="button"
                   onClick={closeEditModal}
-                  className="btn btn-ghost flex-1"
+                  className="btn border-orange-400 bg-slate-100 text-gray-700 flex-1  hover:bg-gray-600 "
                   disabled={isUpdating}
                 >
                   Cancel
