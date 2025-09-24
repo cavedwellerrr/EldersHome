@@ -17,6 +17,13 @@ const AdminEvents = () => {
 
   const navigate = useNavigate();
 
+  // ✅ Get min datetime for input (no past times allowed)
+  const getMinDateTime = () => {
+    const now = new Date();
+    now.setMinutes(now.getMinutes() - now.getTimezoneOffset()); // Fix timezone offset
+    return now.toISOString().slice(0, 16); // Format: YYYY-MM-DDTHH:mm
+  };
+
   // Fetch all events
   const fetchEvents = async () => {
     try {
@@ -112,13 +119,10 @@ const AdminEvents = () => {
       `"${event.description}"`,
       `"${event.location}"`,
       `"${new Date(event.start_time).toLocaleString()}"`,
-      `"${new Date(event.end_time).toLocaleString()}"`
+      `"${new Date(event.end_time).toLocaleString()}"`,
     ]);
 
-    const csvContent = [
-      headers.join(","),
-      ...rows.map((row) => row.join(","))
-    ].join("\n");
+    const csvContent = [headers.join(","), ...rows.map((row) => row.join(","))].join("\n");
 
     const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
     const link = document.createElement("a");
@@ -158,16 +162,9 @@ const AdminEvents = () => {
         head: [tableColumn],
         body: tableRows,
         startY: 30,
-        styles: {
-          fontSize: 10
-        },
-        headStyles: {
-          fillColor: [245, 101, 57],
-          textColor: 255
-        }, // Orange color
-        alternateRowStyles: {
-          fillColor: [255, 247, 237]
-        }, // Light orange
+        styles: { fontSize: 10 },
+        headStyles: { fillColor: [245, 101, 57], textColor: 255 },
+        alternateRowStyles: { fillColor: [255, 247, 237] },
       });
 
       doc.save("event_list.pdf");
@@ -179,7 +176,6 @@ const AdminEvents = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-orange-50 via-white to-orange-100">
-      {/* Header Section with Total Events Display */}
       <div className="max-w-7xl mx-auto px-6 py-8">
         <div className="flex items-center justify-between mb-8">
           <div>
@@ -187,7 +183,9 @@ const AdminEvents = () => {
               <span className="text-5xl">⚡</span>
               Admin Events
             </h1>
-            <p className="text-gray-600 text-lg">Manage and organize your events seamlessly</p>
+            <p className="text-gray-600 text-lg">
+              Manage and organize your events seamlessly
+            </p>
           </div>
           <div className="bg-white rounded-lg shadow-lg p-4 border border-orange-200">
             <p className="text-gray-800 font-semibold text-lg">{events.length} Events</p>
@@ -204,7 +202,7 @@ const AdminEvents = () => {
             <span className="text-xl group-hover:scale-110 transition-transform">🎓</span>
             Go to Event Enrollments
           </button>
-          
+
           <button
             onClick={exportToCSV}
             className="group bg-gradient-to-r from-orange-500 to-orange-400 hover:from-orange-600 hover:to-orange-500 text-white px-6 py-3 rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1 flex items-center gap-2"
@@ -231,7 +229,7 @@ const AdminEvents = () => {
             </h2>
             <p className="text-orange-100 mt-1">Create amazing events for your community</p>
           </div>
-          
+
           <div className="p-8">
             <form onSubmit={handleCreate} className="grid md:grid-cols-2 gap-6">
               <div className="md:col-span-2">
@@ -246,7 +244,7 @@ const AdminEvents = () => {
                   required
                 />
               </div>
-              
+
               <div className="md:col-span-2">
                 <label className="block text-gray-700 font-semibold mb-2">Description</label>
                 <textarea
@@ -259,7 +257,7 @@ const AdminEvents = () => {
                   required
                 />
               </div>
-              
+
               <div>
                 <label className="block text-gray-700 font-semibold mb-2">Location</label>
                 <input
@@ -272,7 +270,7 @@ const AdminEvents = () => {
                   required
                 />
               </div>
-              
+
               <div>
                 <label className="block text-gray-700 font-semibold mb-2">Start Time</label>
                 <input
@@ -280,11 +278,12 @@ const AdminEvents = () => {
                   name="start_time"
                   value={formData.start_time}
                   onChange={handleChange}
+                  min={getMinDateTime()} // ✅ Prevent past time
                   className="w-full border-2 border-orange-200 bg-white p-4 rounded-xl focus:ring-4 focus:ring-orange-200 focus:border-orange-400 transition-all duration-300 text-gray-700"
                   required
                 />
               </div>
-              
+
               <div>
                 <label className="block text-gray-700 font-semibold mb-2">End Time</label>
                 <input
@@ -292,11 +291,12 @@ const AdminEvents = () => {
                   name="end_time"
                   value={formData.end_time}
                   onChange={handleChange}
+                  min={formData.start_time || getMinDateTime()} // ✅ Must be after start_time
                   className="w-full border-2 border-orange-200 bg-white p-4 rounded-xl focus:ring-4 focus:ring-orange-200 focus:border-orange-400 transition-all duration-300 text-gray-700"
                   required
                 />
               </div>
-              
+
               <div className="md:col-span-2">
                 <button
                   type="submit"
@@ -324,10 +324,13 @@ const AdminEvents = () => {
                 <span className="text-orange-500">📋</span>
                 Your Events ({events.length})
               </h3>
-              
+
               <div className="grid gap-6">
                 {events.map((event) => (
-                  <div key={event._id} className="bg-white rounded-2xl shadow-lg hover:shadow-xl border border-orange-100 overflow-hidden transition-all duration-300 transform hover:-translate-y-1">
+                  <div
+                    key={event._id}
+                    className="bg-white rounded-2xl shadow-lg hover:shadow-xl border border-orange-100 overflow-hidden transition-all duration-300 transform hover:-translate-y-1"
+                  >
                     {editingEvent === event._id ? (
                       // Edit Mode
                       <div>
@@ -337,7 +340,7 @@ const AdminEvents = () => {
                             Editing Event
                           </h3>
                         </div>
-                        
+
                         <div className="p-8">
                           <form onSubmit={handleUpdate} className="grid md:grid-cols-2 gap-6">
                             <div className="md:col-span-2">
@@ -350,9 +353,11 @@ const AdminEvents = () => {
                                 className="w-full border-2 border-orange-200 bg-white p-3 rounded-xl focus:ring-4 focus:ring-orange-200 focus:border-orange-400 transition-all duration-300"
                               />
                             </div>
-                            
+
                             <div className="md:col-span-2">
-                              <label className="block text-gray-700 font-semibold mb-2">Description</label>
+                              <label className="block text-gray-700 font-semibold mb-2">
+                                Description
+                              </label>
                               <textarea
                                 name="description"
                                 value={formData.description}
@@ -361,9 +366,11 @@ const AdminEvents = () => {
                                 className="w-full border-2 border-orange-200 bg-white p-3 rounded-xl focus:ring-4 focus:ring-orange-200 focus:border-orange-400 transition-all duration-300 resize-none"
                               />
                             </div>
-                            
+
                             <div>
-                              <label className="block text-gray-700 font-semibold mb-2">Location</label>
+                              <label className="block text-gray-700 font-semibold mb-2">
+                                Location
+                              </label>
                               <input
                                 type="text"
                                 name="location"
@@ -372,29 +379,35 @@ const AdminEvents = () => {
                                 className="w-full border-2 border-orange-200 bg-white p-3 rounded-xl focus:ring-4 focus:ring-orange-200 focus:border-orange-400 transition-all duration-300"
                               />
                             </div>
-                            
+
                             <div>
-                              <label className="block text-gray-700 font-semibold mb-2">Start Time</label>
+                              <label className="block text-gray-700 font-semibold mb-2">
+                                Start Time
+                              </label>
                               <input
                                 type="datetime-local"
                                 name="start_time"
                                 value={formData.start_time}
                                 onChange={handleChange}
+                                min={getMinDateTime()}
                                 className="w-full border-2 border-orange-200 bg-white p-3 rounded-xl focus:ring-4 focus:ring-orange-200 focus:border-orange-400 transition-all duration-300"
                               />
                             </div>
-                            
+
                             <div>
-                              <label className="block text-gray-700 font-semibold mb-2">End Time</label>
+                              <label className="block text-gray-700 font-semibold mb-2">
+                                End Time
+                              </label>
                               <input
                                 type="datetime-local"
                                 name="end_time"
                                 value={formData.end_time}
                                 onChange={handleChange}
+                                min={formData.start_time || getMinDateTime()}
                                 className="w-full border-2 border-orange-200 bg-white p-3 rounded-xl focus:ring-4 focus:ring-orange-200 focus:border-orange-400 transition-all duration-300"
                               />
                             </div>
-                            
+
                             <div className="md:col-span-2 flex gap-4">
                               <button
                                 type="submit"
@@ -423,56 +436,40 @@ const AdminEvents = () => {
                             <span>{new Date(event.start_time).toLocaleDateString()}</span>
                           </div>
                         </div>
-                        
+
                         <div className="p-8">
                           <div className="space-y-4 mb-6">
-                            <p className="text-gray-700 text-lg leading-relaxed">{event.description}</p>
-                            
-                            <div className="grid md:grid-cols-3 gap-4">
-                              <div className="bg-orange-50 rounded-xl p-4">
-                                <div className="flex items-center gap-2 text-orange-600 font-semibold mb-1">
-                                  <span className="text-lg">📍</span>
-                                  Location
-                                </div>
-                                <p className="text-gray-700">{event.location}</p>
+                            <p className="text-gray-700 text-lg leading-relaxed">
+                              {event.description}
+                            </p>
+
+                            <div className="flex flex-wrap gap-6 text-gray-600">
+                              <div className="flex items-center gap-2">
+                                <span className="text-xl">📍</span>
+                                <span>{event.location}</span>
                               </div>
-                              
-                              <div className="bg-orange-50 rounded-xl p-4">
-                                <div className="flex items-center gap-2 text-orange-600 font-semibold mb-1">
-                                  <span className="text-lg">⏰</span>
-                                  Start Time
-                                </div>
-                                <p className="text-gray-700 text-sm">
-                                  {new Date(event.start_time).toLocaleString()}
-                                </p>
-                              </div>
-                              
-                              <div className="bg-orange-50 rounded-xl p-4">
-                                <div className="flex items-center gap-2 text-orange-600 font-semibold mb-1">
-                                  <span className="text-lg">⏰</span>
-                                  End Time
-                                </div>
-                                <p className="text-gray-700 text-sm">
+                              <div className="flex items-center gap-2">
+                                <span className="text-xl">⏰</span>
+                                <span>
+                                  {new Date(event.start_time).toLocaleString()} -{" "}
                                   {new Date(event.end_time).toLocaleString()}
-                                </p>
+                                </span>
                               </div>
                             </div>
                           </div>
-                          
+
                           <div className="flex gap-4">
                             <button
                               onClick={() => handleEdit(event)}
-                              className="flex-1 bg-gradient-to-r from-orange-500 to-orange-400 hover:from-orange-600 hover:to-orange-500 text-white px-6 py-3 rounded-xl font-bold shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1 flex items-center justify-center gap-2"
+                              className="flex-1 bg-gradient-to-r from-orange-500 to-orange-400 hover:from-orange-600 hover:to-orange-500 text-white px-6 py-3 rounded-xl font-bold shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1"
                             >
-                              <span className="text-lg">✏️</span>
-                              Edit Event
+                              ✏️ Edit
                             </button>
                             <button
                               onClick={() => handleDelete(event._id)}
-                              className="flex-1 bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 text-white px-6 py-3 rounded-xl font-bold shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1 flex items-center justify-center gap-2"
+                              className="flex-1 bg-gradient-to-r from-red-500 to-red-400 hover:from-red-600 hover:to-red-500 text-white px-6 py-3 rounded-xl font-bold shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1"
                             >
-                              <span className="text-lg">🗑️</span>
-                              Delete
+                              🗑️ Delete
                             </button>
                           </div>
                         </div>
