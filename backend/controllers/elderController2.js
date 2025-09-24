@@ -260,3 +260,27 @@ export const listEldersByGuardian = async (req, res) => {
     res.status(500).json({ message: error.message });
   }
 };
+
+//delete elder
+export const deleteElder = async (req, res) => {
+  try {
+    const elder = await Elder.findById(req.params.id);
+
+    if (!elder) {
+      return res.status(404).json({ message: "Elder not found" });
+    }
+
+    // Check if the requesting guardian owns this elder
+    if (elder.guardian.toString() !== req.guardian._id.toString()) {
+      return res
+        .status(403)
+        .json({ message: "Not authorized to delete this elder" });
+    }
+
+    await Elder.findByIdAndDelete(req.params.id);
+
+    res.json({ message: "Elder deleted successfully" });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};

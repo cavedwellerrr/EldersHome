@@ -13,6 +13,7 @@ import {
   markPaymentSuccess,
   listActiveElders,
   listEldersByGuardian,
+  deleteElder,
 } from "../controllers/elderController2.js";
 import multer from "multer";
 
@@ -61,6 +62,9 @@ router.post(
   },
   createElderRequest
 );
+
+// In your elder routes file
+router.delete("/:id", protect, deleteElder);
 
 // Operator routes
 router.get("/pending", protectStaff, listPendingReview);

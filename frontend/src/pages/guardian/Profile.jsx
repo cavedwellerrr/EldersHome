@@ -19,6 +19,7 @@ const Profile = () => {
   });
   const [isUpdating, setIsUpdating] = useState(false);
   const [updateMessage, setUpdateMessage] = useState("");
+  const [deletingElderId, setDeletingElderId] = useState(null);
 
   useEffect(() => {
     if (!loading && !auth) {
@@ -116,6 +117,32 @@ const Profile = () => {
       );
     } finally {
       setIsUpdating(false);
+    }
+  };
+
+  // Handle elder deletion
+  const handleDeleteElder = async (elderId, elderName) => {
+    // Show confirmation dialog
+    const isConfirmed = window.confirm(
+      `Are you sure you want to delete ${elderName}'s record? This action cannot be undone.`
+    );
+
+    if (!isConfirmed) return;
+
+    setDeletingElderId(elderId);
+
+    try {
+      // Make API call to delete elder
+      await api.delete(`/elders/${elderId}`);
+      
+      // Remove elder from local state
+      setElders(prevElders => prevElders.filter(elder => elder._id !== elderId));
+      
+    } catch (error) {
+      console.error("Failed to delete elder:", error);
+      alert("Failed to delete elder. Please try again.");
+    } finally {
+      setDeletingElderId(null);
     }
   };
 
@@ -456,14 +483,14 @@ const Profile = () => {
               <div className="px-6 py-6 bg-gradient-to-r from-gray-50 to-gray-100 border-b border-gray-200">
                 <div className="flex items-center justify-between">
                   <div>
-                    <h3 className="text-2xl font-bold text-black">My Elders</h3>
+                    <h3 className="text-2xl font-bold text-gray-900">My Elders</h3>
                     <p className="text-gray-600 mt-1">
                       {elders.length === 0 ? "No elders registered yet" : `Managing ${elders.length} elder${elders.length > 1 ? 's' : ''}`}
                     </p>
                   </div>
                   <div className="stats bg-white shadow">
                     <div className="stat">
-                      <div className="stat-title text-xs text-gray-900">Total Elders</div>
+                      <div className="stat-title text-xs">Total Elders</div>
                       <div className="stat-value text-orange-500 text-2xl">{elders.length}</div>
                     </div>
                   </div>
@@ -513,17 +540,41 @@ const Profile = () => {
                                     {formatStatus(elder.status)}
                                   </div>
                                 </div>
-                                {/* PDF Download Button */}
-                                <button
-                                  onClick={() => downloadElderPDF(elder)}
-                                  className="btn btn-outline btn-sm bg-orange-500 hover:bg-orange-600 text-white border-orange-500 hover:border-orange-600"
-                                  title="Download Elder Report"
-                                >
-                                  <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                                  </svg>
-                                  Download PDF
-                                </button>
+                                {/* Action Buttons */}
+                                <div className="flex gap-2">
+                                  {/* PDF Download Button */}
+                                  <button
+                                    onClick={() => downloadElderPDF(elder)}
+                                    className="btn btn-outline btn-sm bg-orange-500 hover:bg-orange-600 text-white border-orange-500 hover:border-orange-600"
+                                    title="Download Elder Report"
+                                  >
+                                    <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                                    </svg>
+                                    PDF
+                                  </button>
+                                  
+                                  {/* Delete Button - Only show for rejected elders */}
+                                  {elder.status === "REJECTED" && (
+                                    <button
+                                      onClick={() => handleDeleteElder(elder._id, elder.fullName)}
+                                      className={`btn btn-outline btn-sm btn-error ${deletingElderId === elder._id ? 'loading' : ''}`}
+                                      disabled={deletingElderId === elder._id}
+                                      title="Delete Elder Record"
+                                    >
+                                      {deletingElderId === elder._id ? (
+                                        <span className="loading loading-spinner loading-xs"></span>
+                                      ) : (
+                                        <>
+                                          <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                                          </svg>
+                                          Delete
+                                        </>
+                                      )}
+                                    </button>
+                                  )}
+                                </div>
                               </div>
 
                               {elder.status === "REJECTED" && elder.rejectionReason && (
@@ -595,9 +646,9 @@ const Profile = () => {
       {/* Edit Profile Modal */}
       {isEditModalOpen && (
         <div className="modal modal-open">
-          <div className="modal-box max-w-md bg-white">
+          <div className="modal-box max-w-md">
             <div className="flex items-center justify-between mb-6">
-              <h3 className="text-2xl font-bold text-orange-500">Edit Profile</h3>
+              <h3 className="text-2xl font-bold text-gray-900">Edit Profile</h3>
               <button
                 onClick={closeEditModal}
                 className="btn btn-ghost btn-sm btn-circle"
@@ -620,43 +671,56 @@ const Profile = () => {
             <form onSubmit={handleUpdateProfile} className="space-y-4">
               <div className="form-control">
                 <label className="label">
-                  <span className="label-text font-medium  text-orange-500">Full Name</span>
+                  <span className="label-text font-medium">Full Name</span>
                 </label>
                 <input
                   type="text"
                   name="name"
                   value={editFormData.name}
                   onChange={handleEditInputChange}
-                  className="input input-bordered w-full  bg-orange-100 text-black"
+                  className="input input-bordered w-full"
                   required
                 />
               </div>
 
               <div className="form-control">
                 <label className="label">
-                  <span className="label-text font-medium  text-orange-500">Email</span>
+                  <span className="label-text font-medium">Email</span>
                 </label>
                 <input
                   type="email"
                   name="email"
                   value={editFormData.email}
                   onChange={handleEditInputChange}
-                  className="input input-bordered w-full  bg-orange-100 text-black"
+                  className="input input-bordered w-full"
                   required
                 />
               </div>
 
+              <div className="form-control">
+                <label className="label">
+                  <span className="label-text font-medium">Username</span>
+                </label>
+                <input
+                  type="text"
+                  name="username"
+                  value={editFormData.username}
+                  onChange={handleEditInputChange}
+                  className="input input-bordered w-full"
+                  required
+                />
+              </div>
 
               <div className="form-control">
                 <label className="label">
-                  <span className="label-text font-medium  text-orange-500">Phone Number</span>
+                  <span className="label-text font-medium">Phone Number</span>
                 </label>
                 <input
                   type="tel"
                   name="phone"
                   value={editFormData.phone}
                   onChange={handleEditInputChange}
-                  className="input input-bordered w-full  bg-orange-100 text-black"
+                  className="input input-bordered w-full"
                   pattern="[0-9]{10,15}"
                   required
                 />
@@ -664,18 +728,32 @@ const Profile = () => {
 
               <div className="form-control">
                 <label className="label">
-                  <span className="label-text font-medium  text-orange-500">Address</span>
+                  <span className="label-text font-medium">Address</span>
                 </label>
                 <textarea
                   name="address"
                   value={editFormData.address}
                   onChange={handleEditInputChange}
-                  className="textarea textarea-bordered w-full bg-orange-100 text-black"
+                  className="textarea textarea-bordered w-full"
                   rows={3}
                   required
                 />
               </div>
 
+              <div className="form-control">
+                <label className="label">
+                  <span className="label-text font-medium">New Password</span>
+                  <span className="label-text-alt text-gray-500">(Leave blank to keep current)</span>
+                </label>
+                <input
+                  type="password"
+                  name="password"
+                  value={editFormData.password}
+                  onChange={handleEditInputChange}
+                  className="input input-bordered w-full"
+                  placeholder="Enter new password (optional)"
+                />
+              </div>
 
               <div className="flex gap-3 mt-8">
                 <button
