@@ -17,6 +17,7 @@ const elderSchema = new mongoose.Schema(
       enum: ["Male", "Female", "Other"],
       default: "Other",
     },
+    address: { type: String, required: true },
     medicalNotes: { type: String, default: "" },
     pdfPath: { type: String, default: null },
     guardian: {

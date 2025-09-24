@@ -2,6 +2,7 @@ import React, { useContext, useEffect, useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { AuthContext } from "../../context/AuthContext";
 import api from "../../api";
+import jsPDF from 'jspdf';
 
 const Profile = () => {
   const { auth, logout, loading } = useContext(AuthContext);
@@ -27,6 +28,153 @@ const Profile = () => {
     };
     fetchElders();
   }, [auth]);
+
+  // PDF Download Function
+  const downloadElderPDF = (elder) => {
+    const doc = new jsPDF();
+    const pageHeight = doc.internal.pageSize.height;
+    let yPosition = 20;
+
+    // Helper function to add text with line wrapping
+    const addWrappedText = (text, x, y, maxWidth, lineHeight = 6) => {
+      const lines = doc.splitTextToSize(text, maxWidth);
+      lines.forEach((line, index) => {
+        doc.text(line, x, y + (index * lineHeight));
+      });
+      return y + (lines.length * lineHeight);
+    };
+
+    // Header
+    doc.setFontSize(18);
+    doc.setTextColor(255, 140, 0); // Orange color
+    doc.text('Elder Care Report', 20, yPosition);
+    yPosition += 15;
+
+    // Date
+    doc.setFontSize(10);
+    doc.setTextColor(100, 100, 100);
+    doc.text(`Generated on: ${new Date().toLocaleDateString()}`, 20, yPosition);
+    yPosition += 20;
+
+    // Guardian Information
+    doc.setFontSize(14);
+    doc.setTextColor(0, 0, 0);
+    doc.text('Guardian Information', 20, yPosition);
+    yPosition += 10;
+
+    doc.setFontSize(11);
+    doc.text(`Name: ${auth.name}`, 25, yPosition);
+    yPosition += 7;
+    doc.text(`Email: ${auth.email}`, 25, yPosition);
+    yPosition += 7;
+    doc.text(`Phone: ${auth.phone}`, 25, yPosition);
+    yPosition += 7;
+    yPosition = addWrappedText(`Address: ${auth.address}`, 25, yPosition, 160);
+    yPosition += 15;
+
+    // Elder Information
+    doc.setFontSize(14);
+    doc.setTextColor(255, 140, 0);
+    doc.text('Elder Information', 20, yPosition);
+    yPosition += 10;
+
+    doc.setFontSize(11);
+    doc.setTextColor(0, 0, 0);
+    doc.text(`Full Name: ${elder.fullName}`, 25, yPosition);
+    yPosition += 7;
+    
+    doc.text(`Status: ${formatStatus(elder.status)}`, 25, yPosition);
+    yPosition += 7;
+
+    if (elder.age) {
+      doc.text(`Age: ${elder.age}`, 25, yPosition);
+      yPosition += 7;
+    }
+
+    if (elder.gender) {
+      doc.text(`Gender: ${elder.gender}`, 25, yPosition);
+      yPosition += 7;
+    }
+
+    if (elder.medicalConditions) {
+      yPosition = addWrappedText(`Medical Conditions: ${elder.medicalConditions}`, 25, yPosition, 160);
+      yPosition += 5;
+    }
+
+    if (elder.emergencyContact) {
+      yPosition = addWrappedText(`Emergency Contact: ${elder.emergencyContact}`, 25, yPosition, 160);
+      yPosition += 5;
+    }
+
+    if (elder.specialRequirements) {
+      yPosition = addWrappedText(`Special Requirements: ${elder.specialRequirements}`, 25, yPosition, 160);
+      yPosition += 5;
+    }
+
+    // Rejection reason if applicable
+    if (elder.status === "REJECTED" && elder.rejectionReason) {
+      yPosition += 5;
+      doc.setTextColor(255, 0, 0);
+      yPosition = addWrappedText(`Rejection Reason: ${elder.rejectionReason}`, 25, yPosition, 160);
+      doc.setTextColor(0, 0, 0);
+    }
+
+    yPosition += 15;
+
+    // Check if we need a new page
+    if (yPosition > pageHeight - 60) {
+      doc.addPage();
+      yPosition = 20;
+    }
+
+    // Caretaker Information
+    doc.setFontSize(14);
+    doc.setTextColor(255, 140, 0);
+    doc.text('Caretaker Information', 20, yPosition);
+    yPosition += 10;
+
+    doc.setFontSize(11);
+    doc.setTextColor(0, 0, 0);
+
+    if (elder.caretaker && elder.caretaker.staff) {
+      const caretaker = elder.caretaker.staff;
+      doc.text(`Name: ${caretaker.name}`, 25, yPosition);
+      yPosition += 7;
+      doc.text(`Email: ${caretaker.email}`, 25, yPosition);
+      yPosition += 7;
+      doc.text(`Phone: ${caretaker.phone}`, 25, yPosition);
+      yPosition += 7;
+      
+      if (caretaker.specialization) {
+        doc.text(`Specialization: ${caretaker.specialization}`, 25, yPosition);
+        yPosition += 7;
+      }
+
+      if (caretaker.experience) {
+        doc.text(`Experience: ${caretaker.experience}`, 25, yPosition);
+        yPosition += 7;
+      }
+
+      // Assignment date if available
+      if (elder.caretaker.assignedAt) {
+        doc.text(`Assigned Date: ${new Date(elder.caretaker.assignedAt).toLocaleDateString()}`, 25, yPosition);
+        yPosition += 7;
+      }
+    } else {
+      doc.setTextColor(100, 100, 100);
+      doc.text('No caretaker assigned yet', 25, yPosition);
+      yPosition += 7;
+    }
+
+    // Footer
+    yPosition = pageHeight - 20;
+    doc.setFontSize(8);
+    doc.setTextColor(150, 150, 150);
+    doc.text('This document is generated automatically by Elder Care Management System', 20, yPosition);
+
+    // Save the PDF
+    doc.save(`${elder.fullName.replace(/\s+/g, '_')}_elder_report.pdf`);
+  };
 
   if (loading) return (
     <div className="min-h-screen bg-gradient-to-br from-orange-50 to-orange-100 flex items-center justify-center">
@@ -257,7 +405,7 @@ const Profile = () => {
                                     </span>
                                   </div>
                                 </div>
-                                <div>
+                                <div className="flex-1">
                                   <h4 className="text-xl font-bold text-gray-900">
                                     {elder.fullName}
                                   </h4>
@@ -265,6 +413,17 @@ const Profile = () => {
                                     {formatStatus(elder.status)}
                                   </div>
                                 </div>
+                                {/* PDF Download btn */}
+                                <button
+                                  onClick={() => downloadElderPDF(elder)}
+                                  className="btn btn-outline btn-sm bg-orange-500 hover:bg-orange-600 text-white border-orange-500 hover:border-orange-600"
+                                  title="Download Elder Report"
+                                >
+                                  <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                                  </svg>
+                                  Download PDF
+                                </button>
                               </div>
 
                               {elder.status === "REJECTED" && elder.rejectionReason && (
