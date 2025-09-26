@@ -69,6 +69,16 @@ const AdminNavbar = () => {
           >
             Events
           </Link>
+          <Link
+            to="/staff/admin-dashboard/inventory"
+            className={`transition ${
+              isActive("/staff/admin-dashboard/inventory")
+                ? "font-bold text-yellow-300"
+                : "hover:text-yellow-200"
+            }`}
+          >
+            Inventory
+          </Link>
         </div>
 
         {/* Right side profile + logout */}
