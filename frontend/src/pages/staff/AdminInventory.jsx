@@ -10,7 +10,7 @@ const AdminInventory = () => {
   const [error, setError] = useState("");
   const [editingItem, setEditingItem] = useState(null);
   const [editForm, setEditForm] = useState({ itemName: "", totalQuantity: 0 });
-<<<<<<< HEAD
+
   const [updating, setUpdating] = useState(new Set()); // Track which items are being updated
   const [deleting, setDeleting] = useState(new Set()); // Track which items are being deleted
   const [searchTerm, setSearchTerm] = useState("");
