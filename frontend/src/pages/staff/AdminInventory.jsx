@@ -1,6 +1,8 @@
+
 import React, { useEffect, useState, useCallback, useRef } from "react";
 import api from "../../api";
 import { ToastContainer, toast } from "react-toastify";
+
 
 const AdminInventory = () => {
   const [inventory, setInventory] = useState([]);
@@ -8,6 +10,7 @@ const AdminInventory = () => {
   const [error, setError] = useState("");
   const [editingItem, setEditingItem] = useState(null);
   const [editForm, setEditForm] = useState({ itemName: "", totalQuantity: 0 });
+<<<<<<< HEAD
   const [updating, setUpdating] = useState(new Set()); // Track which items are being updated
   const [deleting, setDeleting] = useState(new Set()); // Track which items are being deleted
   const [searchTerm, setSearchTerm] = useState("");
@@ -18,12 +21,14 @@ const AdminInventory = () => {
     return inventory.filter(item => 
       !searchTerm || 
       item.itemName?.toLowerCase().includes(searchTerm.toLowerCase())
+
     );
   }, [inventory, searchTerm]);
 
   const filteredInventory = getFilteredInventory();
 
   // Fetch inventory
+
   const fetchInventory = useCallback(async (showToast = false) => {
     try {
       const response = await api.get("/inventory");
@@ -35,6 +40,7 @@ const AdminInventory = () => {
         setError(err.response?.data?.message || "Error fetching inventory");
         toast.error(err.response?.data?.message || "Error fetching inventory");
       }
+
     } finally {
       if (!showToast) { // Only set loading false on initial load
         setLoading(false);
@@ -43,6 +49,7 @@ const AdminInventory = () => {
   }, []);
 
   useEffect(() => {
+
     // Initial fetch
     fetchInventory(false);
 
@@ -57,6 +64,7 @@ const AdminInventory = () => {
         clearInterval(intervalRef.current);
       }
     };
+
   }, [fetchInventory]);
 
   // Start editing an item
@@ -70,10 +78,12 @@ const AdminInventory = () => {
 
   // Save edited item
   const saveEdit = async () => {
+
     if (updating.has(editingItem)) return; // Prevent duplicate requests
 
     setUpdating(prev => new Set(prev).add(editingItem));
     
+
     try {
       const response = await api.put(`/inventory/${editingItem}`, editForm);
       
@@ -87,9 +97,11 @@ const AdminInventory = () => {
       setEditingItem(null);
       setEditForm({ itemName: "", totalQuantity: 0 });
       toast.success("Item updated successfully");
+
     } catch (err) {
       console.error("Error updating item:", err);
       toast.error(err.response?.data?.message || "Failed to update item");
+
     } finally {
       setUpdating(prev => {
         const newSet = new Set(prev);
@@ -111,7 +123,9 @@ const AdminInventory = () => {
       return;
     }
 
+
     if (updating.has(id) || deleting.has(id)) return; // Prevent duplicate requests
+
 
     setDeleting(prev => new Set(prev).add(id));
 
@@ -119,15 +133,19 @@ const AdminInventory = () => {
       await api.delete(`/inventory/${id}`);
       setInventory(prev => prev.filter(item => item._id !== id));
       toast.success("Item deleted successfully");
+
     } catch (err) {
       console.error("Error deleting item:", err);
       toast.error(err.response?.data?.message || "Failed to delete item");
+
     } finally {
       setDeleting(prev => {
         const newSet = new Set(prev);
         newSet.delete(id);
         return newSet;
       });
+
+
     }
   };
 
@@ -156,7 +174,9 @@ const AdminInventory = () => {
             onClick={() => {
               setError("");
               setLoading(true);
+
               fetchInventory(false);
+
             }}
             className="btn bg-orange-500 hover:bg-orange-600 text-white border-orange-500"
           >
@@ -179,17 +199,21 @@ const AdminInventory = () => {
               <h1 className="text-3xl font-bold text-gray-900 flex items-center gap-3">
                 <div className="w-10 h-10 bg-gradient-to-br from-orange-500 to-orange-600 rounded-xl flex items-center justify-center">
                   <svg className="w-6 h-6 text-white" fill="currentColor" viewBox="0 0 24 24">
+
                     <path d="M4 6H2v14c0 1.1.9 2 2 2h14v-2H4V6zm16-4H8c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm-1 9H9V9h10v2zm-4 4H9v-2h6v2zm4-8H9V5h10v2z" />
+
                   </svg>
                 </div>
                 Inventory Management
               </h1>
+
               <p className="text-gray-600 mt-2">Track and manage donated items in stock</p>
             </div>
 
             <div className="flex items-center gap-3">
               <div className="w-3 h-3 bg-green-500 rounded-full animate-pulse"></div>
               <span className="text-sm text-gray-600 font-medium">Live Updates</span>
+
             </div>
           </div>
         </div>
@@ -198,16 +222,20 @@ const AdminInventory = () => {
       <div className="max-w-7xl mx-auto px-6 py-8 space-y-8">
 
         {/* Stats Cards */}
+
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+
           <div className="bg-white rounded-2xl p-6 shadow-lg border border-orange-100 hover:shadow-xl transition-all duration-300">
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm font-medium text-gray-600">Total Items</p>
+
                 <p className="text-3xl font-bold text-gray-900">{inventory.length}</p>
               </div>
               <div className="w-12 h-12 bg-blue-100 rounded-xl flex items-center justify-center">
                 <svg className="w-6 h-6 text-blue-500" fill="currentColor" viewBox="0 0 24 24">
                   <path d="M4 6H2v14c0 1.1.9 2 2 2h14v-2H4V6zm16-4H8c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm-1 9H9V9h10v2zm-4 4H9v-2h6v2zm4-8H9V5h10v2z" />
+
                 </svg>
               </div>
             </div>
@@ -217,6 +245,7 @@ const AdminInventory = () => {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm font-medium text-gray-600">Total Quantity</p>
+
                 <p className="text-3xl font-bold text-green-600">
                   {inventory.reduce((sum, item) => sum + item.totalQuantity, 0)}
                 </p>
@@ -224,6 +253,7 @@ const AdminInventory = () => {
               <div className="w-12 h-12 bg-green-100 rounded-xl flex items-center justify-center">
                 <svg className="w-6 h-6 text-green-500" fill="currentColor" viewBox="0 0 24 24">
                   <path d="M7,4V2C7,1.45 7.45,1 8,1H16C16.55,1 17,1.45 17,2V4H20V6H19V19C19,20.1 18.1,21 17,21H7C5.9,21 5,20.1 5,19V6H4V4H7M9,3V4H15V3H9M7,6V19H17V6H7Z" />
+
                 </svg>
               </div>
             </div>
@@ -232,6 +262,7 @@ const AdminInventory = () => {
           <div className="bg-white rounded-2xl p-6 shadow-lg border border-orange-100 hover:shadow-xl transition-all duration-300">
             <div className="flex items-center justify-between">
               <div>
+
                 <p className="text-sm font-medium text-gray-600">Low Stock Items</p>
                 <p className="text-3xl font-bold text-orange-600">
                   {inventory.filter(item => item.totalQuantity <= 5).length}
@@ -241,6 +272,7 @@ const AdminInventory = () => {
               <div className="w-12 h-12 bg-orange-100 rounded-xl flex items-center justify-center">
                 <svg className="w-6 h-6 text-orange-500" fill="currentColor" viewBox="0 0 24 24">
                   <path d="M13,14H11V10H13M13,18H11V16H13M1,21H23L12,2L1,21Z" />
+
                 </svg>
               </div>
             </div>
@@ -249,6 +281,7 @@ const AdminInventory = () => {
 
         {/* Inventory Table */}
         <div className="bg-white rounded-2xl shadow-xl border border-orange-100 overflow-hidden">
+
           <div className="bg-gradient-to-r from-orange-500 to-orange-600 px-6 py-4">
             <h2 className="text-2xl font-bold text-white flex items-center gap-3">
               <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 24 24">
@@ -449,6 +482,7 @@ const AdminInventory = () => {
                 </div>
               )}
             </>
+
           )}
         </div>
       </div>
