@@ -16,8 +16,8 @@ const AdminDonations = () => {
     pendingCount: 0,
     receivedCount: 0
   });
-  const [updating, setUpdating] = useState(new Set()); // Track which items are being updated
-  const [deleting, setDeleting] = useState(new Set()); // Track which items are being deleted
+  const [updating, setUpdating] = useState(new Set());
+  const [deleting, setDeleting] = useState(new Set());
   const [donationSearchTerm, setDonationSearchTerm] = useState("");
   const [donationMonthFilter, setDonationMonthFilter] = useState("");
   const [donorSearchTerm, setDonorSearchTerm] = useState("");
@@ -28,49 +28,48 @@ const AdminDonations = () => {
   // Filter functions
   const getFilteredDonations = useCallback(() => {
     return donations.filter(donation => {
-      const matchesSearch = !donationSearchTerm || 
+      const matchesSearch = !donationSearchTerm ||
         donation.donorName?.toLowerCase().includes(donationSearchTerm.toLowerCase()) ||
         donation.donorEmail?.toLowerCase().includes(donationSearchTerm.toLowerCase());
-      
-      const matchesMonth = !donationMonthFilter || 
+
+      const matchesMonth = !donationMonthFilter ||
         new Date(donation.createdAt).toISOString().substr(0, 7) === donationMonthFilter;
-      
+
       return matchesSearch && matchesMonth;
     });
   }, [donations, donationSearchTerm, donationMonthFilter]);
 
   const getFilteredDonors = useCallback(() => {
     return donors.filter(donor => {
-      const matchesSearch = !donorSearchTerm || 
+      const matchesSearch = !donorSearchTerm ||
         donor.donorName?.toLowerCase().includes(donorSearchTerm.toLowerCase());
-      
-      const matchesMonth = !donorMonthFilter || 
+
+      const matchesMonth = !donorMonthFilter ||
         (donor.donationDate && new Date(donor.donationDate).toISOString().substr(0, 7) === donorMonthFilter);
-      
+
       return matchesSearch && matchesMonth;
     });
   }, [donors, donorSearchTerm, donorMonthFilter]);
 
   const filteredDonations = getFilteredDonations();
   const filteredDonors = getFilteredDonors();
-  
+
   const fetchDonations = useCallback(async (showToast = false) => {
     try {
       const donationsRes = await api.get("/donations");
       const { donations: donationsData, stats } = donationsRes.data;
-      
-      // Check for new donations only if we have previous data
+
       if (showToast && previousCountRef.current > 0 && donationsData.length > previousCountRef.current) {
         toast.info("New donation received!");
       }
-      
+
       previousCountRef.current = donationsData.length;
       setDonations(donationsData);
-      setStats(stats); // Use stats from backend
-      
+      setStats(stats);
+
     } catch (err) {
       console.error("Fetch donations error:", err);
-      if (!showToast) { // Only show error toast on initial load
+      if (!showToast) {
         setError(err.response?.data?.message || "Error fetching donations");
         toast.error(err.response?.data?.message || "Error fetching donations");
       }
@@ -83,7 +82,6 @@ const AdminDonations = () => {
       setDonors(donorsRes.data);
     } catch (err) {
       console.error("Fetch donors error:", err);
-      // Don't show error toast for donor fetch failures during polling
     }
   }, []);
 
@@ -96,22 +94,19 @@ const AdminDonations = () => {
     } catch (err) {
       console.error("Fetch error:", err);
     } finally {
-      if (!showToast) { // Only set loading false on initial load
+      if (!showToast) {
         setLoading(false);
       }
     }
   }, [fetchDonations, fetchDonors]);
 
   useEffect(() => {
-    // Initial fetch
     fetchAllData(false);
 
-    // Set up polling every 30 seconds
     intervalRef.current = setInterval(() => {
       fetchAllData(true);
     }, 30000);
 
-    // Clean up interval on component unmount
     return () => {
       if (intervalRef.current) {
         clearInterval(intervalRef.current);
@@ -120,23 +115,21 @@ const AdminDonations = () => {
   }, [fetchAllData]);
 
   const handleStatusChange = async (id, newStatus) => {
-    if (updating.has(id)) return; // Prevent duplicate requests
+    if (updating.has(id)) return;
 
     setUpdating(prev => new Set(prev).add(id));
-    
+
     try {
       const response = await api.put(`/donations/${id}`, { status: newStatus });
-      
-      // Update local state with response data to ensure consistency
+
       setDonations((prev) =>
         prev.map((donation) =>
           donation._id === id ? { ...donation, ...response.data.donation } : donation
         )
       );
-      
-      // Refresh data to get updated stats from backend
+
       setTimeout(() => fetchAllData(false), 100);
-      
+
       toast.success(`Status updated to "${newStatus}"`);
     } catch (err) {
       console.error("Status update error:", err);
@@ -151,21 +144,19 @@ const AdminDonations = () => {
   };
 
   const handleAddToDonorList = async (id, checked) => {
-    if (updating.has(id)) return; // Prevent duplicate requests
+    if (updating.has(id)) return;
 
     setUpdating(prev => new Set(prev).add(id));
-    
+
     try {
       const response = await api.put(`/donations/${id}`, { addToDonorList: checked });
-      
-      // Update local state with response data
+
       setDonations((prev) =>
         prev.map((donation) =>
           donation._id === id ? { ...donation, ...response.data.donation } : donation
         )
       );
 
-      // Refresh donor list after a short delay
       setTimeout(fetchDonors, 500);
 
       toast.success(
@@ -174,8 +165,7 @@ const AdminDonations = () => {
     } catch (err) {
       console.error("Donor list update error:", err);
       toast.error(err.response?.data?.message || "Error updating donor list");
-      
-      // Revert the local state on error
+
       setDonations((prev) =>
         prev.map((donation) =>
           donation._id === id ? { ...donation, addToDonorList: !checked } : donation
@@ -190,38 +180,32 @@ const AdminDonations = () => {
     }
   };
 
-  // FIXED DELETE FUNCTION
   const handleDeleteDonation = async (id) => {
     const donation = donations.find(d => d._id === id);
-    const confirmMessage = donation?.donationType === 'cash' 
+    const confirmMessage = donation?.donationType === 'cash'
       ? "Are you sure you want to delete this donation? The cash amount will remain in your total records."
       : "Are you sure you want to delete this donation?";
-    
+
     if (!window.confirm(confirmMessage)) return;
     if (updating.has(id) || deleting.has(id)) return;
 
     setDeleting(prev => new Set(prev).add(id));
 
     try {
-      // Use the existing backend endpoint
       await api.delete(`/donations/${id}`);
-      
-      // Remove from local state immediately for better UX
+
       setDonations(prevDonations => prevDonations.filter(d => d._id !== id));
-      
-      // Refresh data from backend to get updated stats
+
       await fetchAllData(false);
-      
+
       toast.success("Donation deleted successfully");
-      
-      // Refresh donor list in case donor was removed
+
       await fetchDonors();
     } catch (err) {
       console.error("Delete donation error:", err);
-      
-      // On error, refresh data to restore correct state
+
       await fetchAllData(false);
-      
+
       toast.error(err.response?.data?.message || "Error deleting donation");
     } finally {
       setDeleting(prev => {
@@ -277,8 +261,8 @@ const AdminDonations = () => {
         body: tableRows,
         startY: 30,
         styles: { fontSize: 10 },
-        headStyles: { fillColor: [245, 101, 57], textColor: 255 }, // Orange color
-        alternateRowStyles: { fillColor: [255, 247, 237] }, // Light orange
+        headStyles: { fillColor: [245, 101, 57], textColor: 255 },
+        alternateRowStyles: { fillColor: [255, 247, 237] },
       });
 
       doc.save("monthly_donor_list.pdf");
@@ -288,10 +272,9 @@ const AdminDonations = () => {
     }
   };
 
-  // Enhanced donor deletion with proper error handling
   const handleDeleteDonor = async (donorId) => {
     if (!window.confirm("Are you sure you want to remove this donor from the public list?")) return;
-    
+
     try {
       await api.delete(`/donors/${donorId}`);
       setDonors((prev) => prev.filter((d) => d._id !== donorId));
@@ -323,7 +306,7 @@ const AdminDonations = () => {
             </svg>
           </div>
           <p className="text-xl font-semibold text-red-600">{error}</p>
-          <button 
+          <button
             onClick={() => {
               setError("");
               setLoading(true);
@@ -367,7 +350,6 @@ const AdminDonations = () => {
       </div>
 
       <div className="max-w-7xl mx-auto px-6 py-8 space-y-8">
-
         {/* Stats Cards */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
           <div className="bg-white rounded-2xl p-6 shadow-lg border border-orange-100 hover:shadow-xl transition-all duration-300">
@@ -440,7 +422,6 @@ const AdminDonations = () => {
             <p className="text-orange-100 mt-1">Manage and track donation status</p>
           </div>
 
-          {/* Search and Filter Controls for Donations */}
           <div className="px-6 py-4 bg-gray-50 border-b border-gray-200 flex flex-col sm:flex-row gap-4">
             <div className="flex-1">
               <div className="relative">
@@ -516,15 +497,15 @@ const AdminDonations = () => {
                     <td className="text-gray-600 max-w-[150px] truncate">{donation.donorEmail}</td>
                     <td>
                       <span className={`px-3 py-1 rounded-full text-xs font-semibold ${donation.donationType === 'cash'
-                          ? 'bg-green-100 text-green-700'
-                          : 'bg-blue-100 text-blue-700'
+                        ? 'bg-green-100 text-green-700'
+                        : 'bg-blue-100 text-blue-700'
                         }`}>
                         {donation.donationType === 'cash' ? '💰 Cash' : '📦 Item'}
                       </span>
                     </td>
                     <td className="font-semibold text-gray-900">
                       {donation.donationType === "cash"
-                        ? `$${donation.amount?.toLocaleString()}`
+                        ? `$${Number(donation.amount || 0).toLocaleString()}`
                         : donation.itemName}
                     </td>
                     <td className="text-center text-gray-600">
@@ -532,8 +513,8 @@ const AdminDonations = () => {
                     </td>
                     <td className="text-center">
                       <span className={`px-2 py-1 rounded-full text-xs font-semibold ${donation.listAcknowledgment
-                          ? 'bg-green-100 text-green-700'
-                          : 'bg-gray-100 text-gray-700'
+                        ? 'bg-green-100 text-green-700'
+                        : 'bg-gray-100 text-gray-700'
                         }`}>
                         {donation.listAcknowledgment ? "Yes" : "No"}
                       </span>
@@ -545,9 +526,8 @@ const AdminDonations = () => {
                           handleStatusChange(donation._id, e.target.value)
                         }
                         disabled={updating.has(donation._id) || deleting.has(donation._id)}
-                        className={`select select-bordered select-sm bg-white border-orange-200 focus:border-orange-500 rounded-lg ${
-                          updating.has(donation._id) || deleting.has(donation._id) ? 'opacity-50 cursor-not-allowed' : ''
-                        }`}
+                        className={`select select-bordered select-sm bg-white border-orange-200 focus:border-orange-500 rounded-lg ${updating.has(donation._id) || deleting.has(donation._id) ? 'opacity-50 cursor-not-allowed' : ''
+                          }`}
                       >
                         <option value="pending">⏳ Pending</option>
                         <option value="received">✅ Received</option>
@@ -562,11 +542,10 @@ const AdminDonations = () => {
                           handleAddToDonorList(donation._id, true)
                         }
                         disabled={updating.has(donation._id) || deleting.has(donation._id)}
-                        className={`btn btn-sm bg-green-100 hover:bg-green-200 text-green-600 border-green-200 hover:border-green-300 rounded-lg transition-all duration-200 ${
-                          updating.has(donation._id) || deleting.has(donation._id) 
-                            ? 'opacity-50 cursor-not-allowed' 
+                        className={`btn btn-sm bg-green-100 hover:bg-green-200 text-green-600 border-green-200 hover:border-green-300 rounded-lg transition-all duration-200 ${updating.has(donation._id) || deleting.has(donation._id)
+                            ? 'opacity-50 cursor-not-allowed'
                             : ''
-                        }`}
+                          }`}
                         title="Add to donor list"
                       >
                         {updating.has(donation._id) ? (
@@ -583,9 +562,8 @@ const AdminDonations = () => {
                       <button
                         onClick={() => handleDeleteDonation(donation._id)}
                         disabled={updating.has(donation._id) || deleting.has(donation._id)}
-                        className={`btn btn-sm bg-red-100 hover:bg-red-200 text-red-600 border-red-200 hover:border-red-300 rounded-lg transition-all duration-200 ${
-                          updating.has(donation._id) || deleting.has(donation._id) ? 'opacity-50 cursor-not-allowed' : ''
-                        }`}
+                        className={`btn btn-sm bg-red-100 hover:bg-red-200 text-red-600 border-red-200 hover:border-red-300 rounded-lg transition-all duration-200 ${updating.has(donation._id) || deleting.has(donation._id) ? 'opacity-50 cursor-not-allowed' : ''
+                          }`}
                         title="Delete donation"
                       >
                         {deleting.has(donation._id) ? (
@@ -662,7 +640,6 @@ const AdminDonations = () => {
             </div>
           </div>
 
-          {/* Search and Filter Controls for Donors */}
           <div className="px-6 py-4 bg-gray-50 border-b border-gray-200 flex flex-col sm:flex-row gap-4">
             <div className="flex-1">
               <div className="relative">
