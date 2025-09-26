@@ -4,7 +4,7 @@ import toast from "react-hot-toast";
 
 const FLOOR_OPTIONS = ["Ground", "1", "2", "3"];
 const TYPE_OPTIONS = ["AC", "Non-AC"];
-const STATUS_OPTIONS = ["available", "maintenance", "reserved"]; // 'occupied' intentionally excluded
+const STATUS_OPTIONS = ["available", "maintenance", "reserved"];
 
 const fieldBase =
     "w-full rounded-xl border border-neutral-200 bg-white/90 focus:outline-none focus:ring-2 focus:ring-[#F29B77] py-2.5 px-3";
@@ -45,7 +45,7 @@ export default function RoomFormModal({ open, onClose, initial, onSaved }) {
         e.preventDefault();
         setSaving(true);
 
-        // ✅ Validate format: Letter(s)-Number
+
         const roomIdPattern = /^[A-Za-z]+-\d+$/;
         if (!roomIdPattern.test(room_id.trim())) {
             toast.error("Room ID must follow format: Letter(s)-Number (e.g., G-1, A-12)");
@@ -144,7 +144,7 @@ export default function RoomFormModal({ open, onClose, initial, onSaved }) {
                 </div>
             </div>
 
-            {/* click outside to close */}
+
             <form method="dialog" className="modal-backdrop" onClick={close}>
                 <button>close</button>
             </form>

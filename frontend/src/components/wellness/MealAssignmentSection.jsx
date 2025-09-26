@@ -31,7 +31,7 @@ export default function MealAssignmentSection({ elderId }) {
     const load = async () => {
         setLoading(true);
         try {
-            // categories (filter out "Other")
+            // categories 
             const cRes = await api.get(`/assign/meals/categories`, {
                 headers: { Authorization: `Bearer ${token}` },
             });
@@ -455,7 +455,7 @@ export default function MealAssignmentSection({ elderId }) {
                         </div>
                     )}
 
-                    {/* Save/Cancel buttons at the bottom */}
+
                     <div className="p-4 bg-orange-50 border-t border-orange-200">
                         <div className="flex justify-end gap-2">
                             <button

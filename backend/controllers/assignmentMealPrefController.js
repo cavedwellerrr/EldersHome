@@ -1,20 +1,14 @@
-// controllers/assignmentMealPrefController.js
+
 import mongoose from "mongoose";
 import ElderMealPreference from "../models/elder_meal_preference.js";
 import Meal from "../models/meal_model.js";
 
-/**
- * GET /api/assign/meals/categories
- * Single source of truth for categories (kept in sync with your schema)
- */
+
 export const listMealCategories = async (_req, res) => {
     return res.json({ success: true, categories: ["Breakfast", "Lunch", "Dinner", "Snack", "Other"] });
 };
 
-/**
- * GET /api/assign/meals/options?category=Breakfast&q=
- * Filter meals by category and optional name search
- */
+
 export const listMealsByCategory = async (req, res) => {
     try {
         const { category, q } = req.query;
@@ -30,10 +24,7 @@ export const listMealsByCategory = async (req, res) => {
     }
 };
 
-/**
- * GET /api/assign/meals/:elderId
- * Get current preferences for an elder (populated)
- */
+
 export const getElderMealPreferences = async (req, res) => {
     try {
         const { elderId } = req.params;
@@ -70,11 +61,7 @@ export const getElderMealPreferences = async (req, res) => {
     }
 };
 
-/**
- * PUT /api/assign/meals/:elderId
- * Body: { allergies, notes, selections: { breakfast: [], lunch: [], dinner: [], snacks: [] } }
- * Upsert + validate payload shape
- */
+
 export const upsertElderMealPreferences = async (req, res) => {
     try {
         const { elderId } = req.params;

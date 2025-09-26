@@ -119,7 +119,7 @@ export default function DoctorConsultations() {
   return (
     <div className="p-6 space-y-6">
       {/* Page Header */}
-      <h1 className="text-3xl font-bold text-orange-600">Doctor Dashboard</h1>
+      <h1 className="text-3xl font-bold text-orange-600">Consultations Overview</h1>
       <p className="text-gray-600">Manage and respond to consultation requests</p>
 
       {/* Consultations Table */}
@@ -192,7 +192,7 @@ export default function DoctorConsultations() {
         </div>
       </section>
 
-      {/* ✅ Approve Modal */}
+      {/*  Approve Modal */}
       {selectedConsultation && (
         <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
           <div className="bg-white rounded-xl p-6 w-[400px] shadow-xl">
@@ -248,7 +248,7 @@ export default function DoctorConsultations() {
         </div>
       )}
 
-      {/* ✅ Reject Modal */}
+      {/*  Reject Modal */}
       {rejectingConsultation && (
         <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
           <div className="bg-white rounded-xl p-6 w-[400px] shadow-xl">

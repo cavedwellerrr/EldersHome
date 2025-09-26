@@ -20,7 +20,7 @@ export const getRooms = async (req, res) => {
     }
 };
 
-/** POST /api/rooms */
+
 export const addRoom = async (req, res) => {
     try {
         const { room_id, floor, type, status } = req.body;
@@ -54,7 +54,7 @@ export const addRoom = async (req, res) => {
     }
 };
 
-/** DELETE /api/rooms/:id */
+
 export const deleteRoom = async (req, res) => {
     const { id } = req.params;
 
@@ -62,7 +62,7 @@ export const deleteRoom = async (req, res) => {
         return res.status(404).json({ success: false, message: "Invalid room ID" });
     }
 
-    // also it'll prevent deleting a room if its assigned to an elder
+    // prevent deleting a room if its assigned to an elder
 
     try {
         const room = await Room.findById(id);
@@ -84,7 +84,7 @@ export const deleteRoom = async (req, res) => {
     }
 };
 
-/** PUT /api/rooms/:id */
+
 export const updateRoom = async (req, res) => {
     const { id } = req.params;
     const payload = req.body;

@@ -1,12 +1,9 @@
-// controllers/assignmentRoomController.js
+
 import mongoose from "mongoose";
 import Room from "../models/room_model.js";
 import Elder from "../models/elder_model.js";
 
-/**
- * GET /api/assign/rooms/current/:elderId
- * Return current room (if any) for the elder
- */
+
 export const getCurrentRoomForElder = async (req, res) => {
     try {
         const { elderId } = req.params;
@@ -25,10 +22,7 @@ export const getCurrentRoomForElder = async (req, res) => {
     }
 };
 
-/**
- * GET /api/assign/rooms/available?floor=&type=&q=
- * List available rooms (status=available & elder=null) with optional filters
- */
+
 export const listAvailableRooms = async (req, res) => {
     try {
         const { floor, type, q } = req.query;
@@ -48,11 +42,7 @@ export const listAvailableRooms = async (req, res) => {
     }
 };
 
-/**
- * PUT /api/assign/rooms
- * Body: { elderId, room_id }
- * Enforces 1:1 mapping: unassign elder from any other room, then assign to the specified room (must be available).
- */
+
 export const assignRoomToElder = async (req, res) => {
     try {
         const { elderId, room_id } = req.body;
@@ -78,7 +68,7 @@ export const assignRoomToElder = async (req, res) => {
             return res.status(409).json({ success: false, message: "Room assigned to another elder" });
         }
 
-        // Unassign this elder from any other room
+        
         await Room.updateMany(
             { elder: elder._id, room_id: { $ne: room.room_id } },
             { $set: { elder: null, status: "available" } }
@@ -100,11 +90,7 @@ export const assignRoomToElder = async (req, res) => {
     }
 };
 
-/**
- * PUT /api/assign/rooms/unassign
- * Body: { elderId }
- * Unassigns the elder from whichever room they are in (if any).
- */
+
 export const unassignRoomFromElder = async (req, res) => {
     try {
         const { elderId } = req.body;

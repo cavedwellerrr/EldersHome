@@ -7,7 +7,7 @@ const selectionsSchema = new Schema(
         lunch: [{ type: Schema.Types.ObjectId, ref: "Meal" }],
         dinner: [{ type: Schema.Types.ObjectId, ref: "Meal" }],
         snacks: [{ type: Schema.Types.ObjectId, ref: "Meal" }],
-        other: [{ type: Schema.Types.ObjectId, ref: "Meal" }],   // 👈 NEW field
+        other: [{ type: Schema.Types.ObjectId, ref: "Meal" }],   
     },
     { _id: false }
 );

@@ -26,33 +26,33 @@ const Register = () => {
         if (value.trim().length < 2) return "Name must be at least 2 characters";
         if (!/^[a-zA-Z\s]+$/.test(value)) return "Name can only contain letters and spaces";
         return "";
-      
+
       case 'address':
         if (!value.trim()) return "Address is required";
         if (value.trim().length < 5) return "Please enter a complete address";
         return "";
-      
+
       case 'email':
         if (!value.trim()) return "Email is required";
         const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
         if (!emailRegex.test(value)) return "Please enter a valid email address";
         return "";
-      
+
       case 'phone':
         if (!value.trim()) return "Phone number is required";
-        // Updated regex to allow numbers starting with 0
+
         const phoneRegex = /^\+?\d{10,15}$/;
         const cleanPhone = value.replace(/[\s\-\(\)]/g, '');
         if (!phoneRegex.test(cleanPhone)) return "Please enter a valid phone number";
         return "";
-      
+
       case 'username':
         if (!value.trim()) return "Username is required";
         if (value.length < 3) return "Username must be at least 3 characters";
         if (value.length > 20) return "Username must be less than 20 characters";
         if (!/^[a-zA-Z0-9_]+$/.test(value)) return "Username can only contain letters, numbers, and underscores";
         return "";
-      
+
       case 'password':
         if (!value) return "Password is required";
         if (value.length < 6) return "Password must be at least 6 characters";
@@ -60,12 +60,12 @@ const Register = () => {
         if (!/(?=.*[A-Z])/.test(value)) return "Password must contain at least one uppercase letter";
         if (!/(?=.*\d)/.test(value)) return "Password must contain at least one number";
         return "";
-      
+
       case 'confirmPassword':
         if (!value) return "Please confirm your password";
         if (value !== password) return "Passwords don't match";
         return "";
-      
+
       default:
         return "";
     }
@@ -79,7 +79,7 @@ const Register = () => {
       case 'email': setEmail(value); break;
       case 'phone': setPhone(value); break;
       case 'username': setUsername(value); break;
-      case 'password': 
+      case 'password':
         setPassword(value);
         // Re-validate confirm password if it has been touched
         if (touched.confirmPassword && confirmPassword) {
@@ -123,7 +123,7 @@ const Register = () => {
     const fields = ['name', 'address', 'email', 'phone', 'username', 'password', 'confirmPassword'];
     const values = { name, address, email, phone, username, password, confirmPassword };
     const errors = {};
-    
+
     fields.forEach(field => {
       const error = validateField(field, values[field]);
       if (error) errors[field] = error;
@@ -131,13 +131,13 @@ const Register = () => {
 
     setFieldErrors(errors);
     setTouched(Object.fromEntries(fields.map(field => [field, true])));
-    
+
     return Object.keys(errors).length === 0;
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    
+
     if (!validateForm()) {
       setError("Please fix the errors below before submitting");
       return;
@@ -166,11 +166,11 @@ const Register = () => {
   const getInputClassName = (field) => {
     const baseClass = "w-full px-4 py-3 pr-12 border rounded-lg focus:ring-2 transition-colors bg-gray-50 focus:bg-white";
     const hasError = fieldErrors[field] && touched[field];
-    
+
     if (hasError) {
       return `${baseClass} border-red-300 focus:ring-red-500 focus:border-red-500`;
     }
-    
+
     return `${baseClass} border-gray-200 focus:ring-orange-500 focus:border-orange-500`;
   };
 
@@ -212,7 +212,7 @@ const Register = () => {
               {error}
             </div>
           )}
-          
+
           <form onSubmit={handleSubmit} className="space-y-5">
             <div className="grid grid-cols-1 gap-5">
               <div className="space-y-1">
@@ -414,11 +414,10 @@ const Register = () => {
             <button
               type="submit"
               disabled={isLoading}
-              className={`w-full bg-gradient-to-r from-orange-500 to-orange-600 text-white font-semibold py-3 px-6 rounded-lg focus:ring-4 focus:ring-orange-200 transition-all duration-200 shadow-lg transform ${
-                isLoading 
-                  ? 'opacity-50 cursor-not-allowed' 
+              className={`w-full bg-gradient-to-r from-orange-500 to-orange-600 text-white font-semibold py-3 px-6 rounded-lg focus:ring-4 focus:ring-orange-200 transition-all duration-200 shadow-lg transform ${isLoading
+                  ? 'opacity-50 cursor-not-allowed'
                   : 'hover:from-orange-600 hover:to-orange-700 hover:shadow-xl hover:-translate-y-0.5'
-              }`}
+                }`}
             >
               {isLoading ? (
                 <div className="flex items-center justify-center">
@@ -437,8 +436,8 @@ const Register = () => {
           <div className="mt-6 text-center">
             <p className="text-gray-600">
               Already have an account?{" "}
-              <Link 
-                to="/login" 
+              <Link
+                to="/login"
                 className="text-orange-600 hover:text-orange-700 font-semibold hover:underline transition-colors"
               >
                 Sign in here

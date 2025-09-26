@@ -257,7 +257,7 @@ const downloadAppointmentPDF = (appt) => {
   return (
     <div className="p-6 space-y-8">
       {/* Page Header */}
-      <h1 className="text-3xl font-bold text-orange-600">Caretaker Dashboard</h1>
+      <h1 className="text-3xl font-bold text-orange-600">Elder Consultations</h1>
       <p className="text-gray-600">Manage elders, appointments, and consultations</p>
 
       {/* Stats row */}

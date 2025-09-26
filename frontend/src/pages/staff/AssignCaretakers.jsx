@@ -23,7 +23,7 @@ const AssignCaretaker = () => {
         setLoading(true);
         setError("");
         const token = localStorage.getItem("token");
-        
+
         const [resElders, resCaretakers] = await Promise.all([
           axios.get(`${API_URL}/elders/active`, {
             headers: { Authorization: `Bearer ${token}` },
@@ -61,23 +61,23 @@ const AssignCaretaker = () => {
 
       const token = localStorage.getItem("token");
       const caretakerId = selectedCaretaker[elderId];
-      
+
       const res = await axios.post(
         `${API_URL}/caretakers/assign`,
         { caretakerId, elderId },
         { headers: { Authorization: `Bearer ${token}` } }
       );
-      
+
       setMessage(res.data.message);
-      
+
       // Remove assigned elder from list or refresh data
       setElders(elders.filter(elder => elder._id !== elderId));
-      
+
       // Clear selection for this elder
       const newSelection = { ...selectedCaretaker };
       delete newSelection[elderId];
       setSelectedCaretaker(newSelection);
-      
+
     } catch (err) {
       setError(err.response?.data?.message || "Error assigning caretaker");
     } finally {
@@ -128,8 +128,8 @@ const AssignCaretaker = () => {
                 </div>
               </div>
               <div>
-                <p className="font-medium text-gray-900">Administrator</p>
-                <p className="text-sm text-gray-500">Caretaker Manager</p>
+                <p className="font-medium text-gray-900">Operator</p>
+                <p className="text-sm text-gray-500">Administrator</p>
               </div>
             </div>
           </div>
@@ -299,9 +299,8 @@ const AssignCaretaker = () => {
                               <button
                                 onClick={() => handleAssign(elder._id)}
                                 disabled={!selectedCaretaker[elder._id] || (isAssigning && assigningElder === elder._id)}
-                                className={`btn btn-sm bg-green-500 hover:bg-green-600 text-white border-none ${
-                                  !selectedCaretaker[elder._id] ? 'opacity-50 cursor-not-allowed' : ''
-                                }`}
+                                className={`btn btn-sm bg-green-500 hover:bg-green-600 text-white border-none ${!selectedCaretaker[elder._id] ? 'opacity-50 cursor-not-allowed' : ''
+                                  }`}
                               >
                                 {isAssigning && assigningElder === elder._id ? (
                                   <div className="loading loading-spinner loading-xs"></div>
@@ -384,26 +383,24 @@ const AssignCaretaker = () => {
               </h2>
               <p className="text-gray-600 mt-1">Select the best caretaker for this elder</p>
             </div>
-            
+
             <div className="p-6 max-h-80 overflow-y-auto">
               <div className="grid gap-3">
                 {getAvailableCaretakers().map((caretaker) => (
                   <div
                     key={caretaker._id}
                     onClick={() => selectCaretakerInModal(caretaker)}
-                    className={`rounded-lg p-4 border-2 cursor-pointer transition-all ${
-                      selectedCaretakerDetails?._id === caretaker._id
-                        ? 'border-orange-500 bg-orange-50'
-                        : 'border-gray-200 hover:border-orange-300 bg-white hover:bg-orange-50'
-                    }`}
+                    className={`rounded-lg p-4 border-2 cursor-pointer transition-all ${selectedCaretakerDetails?._id === caretaker._id
+                      ? 'border-orange-500 bg-orange-50'
+                      : 'border-gray-200 hover:border-orange-300 bg-white hover:bg-orange-50'
+                      }`}
                   >
                     <div className="flex items-center space-x-4">
                       <div className="avatar placeholder">
-                        <div className={`rounded-full w-12 ${
-                          selectedCaretakerDetails?._id === caretaker._id 
-                            ? 'bg-orange-500 text-white' 
-                            : 'bg-gray-200 text-gray-700'
-                        }`}>
+                        <div className={`rounded-full w-12 ${selectedCaretakerDetails?._id === caretaker._id
+                          ? 'bg-orange-500 text-white'
+                          : 'bg-gray-200 text-gray-700'
+                          }`}>
                           <span className="font-bold">
                             {caretaker.name?.charAt(0).toUpperCase()}
                           </span>
@@ -427,7 +424,7 @@ const AssignCaretaker = () => {
                 ))}
               </div>
             </div>
-            
+
             <div className="p-6 bg-gray-50 rounded-b-2xl flex justify-end space-x-3">
               <button
                 onClick={() => setIsModalOpen(false)}
@@ -437,9 +434,8 @@ const AssignCaretaker = () => {
               </button>
               <button
                 onClick={confirmAssignment}
-                className={`btn bg-orange-500 hover:bg-orange-600 text-white border-none ${
-                  !selectedCaretakerDetails ? 'opacity-50 cursor-not-allowed' : ''
-                }`}
+                className={`btn bg-orange-500 hover:bg-orange-600 text-white border-none ${!selectedCaretakerDetails ? 'opacity-50 cursor-not-allowed' : ''
+                  }`}
                 disabled={!selectedCaretakerDetails}
               >
                 Confirm Assignment
