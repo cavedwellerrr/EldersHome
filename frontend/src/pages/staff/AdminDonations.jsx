@@ -117,6 +117,7 @@ const AdminDonations = () => {
     };
   }, [fetchAllData]);
 
+  //cash donations chart
   const CashDonationsChart = ({ donations }) => {
     const [range, setRange] = React.useState("month");
 
@@ -235,7 +236,7 @@ const AdminDonations = () => {
       labels,
       datasets: [
         {
-          label: "Cash Donations Received (LKR)",
+          label: "Cash Donations Received ",
           data: dataValues,
           backgroundColor: "rgba(249, 115, 22, 0.8)", // Orange-500 with opacity
           borderColor: "rgba(249, 115, 22, 1)", // Orange-500
@@ -350,6 +351,8 @@ const AdminDonations = () => {
       </div>
     );
   };
+
+  //status changes
   const handleStatusChange = async (id, newStatus) => {
     if (updating.has(id)) return;
 
@@ -379,6 +382,7 @@ const AdminDonations = () => {
     }
   };
 
+  //adding to donor list
   const handleAddToDonorList = async (id, checked) => {
     if (updating.has(id)) return;
 
@@ -416,6 +420,7 @@ const AdminDonations = () => {
     }
   };
 
+  //handling donation deletion
   const handleDeleteDonation = async (id) => {
     const donation = donations.find(d => d._id === id);
     const confirmMessage = donation?.donationType === 'cash'
@@ -452,6 +457,7 @@ const AdminDonations = () => {
     }
   };
 
+  //download csv
   const downloadDonorListCSV = () => {
     if (filteredDonors.length === 0) {
       toast.warn("No donors to export");
@@ -470,6 +476,7 @@ const AdminDonations = () => {
     saveAs(blob, "donor_list.csv");
   };
 
+  //download pdf
   const downloadDonorListPDF = () => {
     if (filteredDonors.length === 0) {
       toast.warn("No donors to export");
@@ -508,6 +515,7 @@ const AdminDonations = () => {
     }
   };
 
+  //delete donor
   const handleDeleteDonor = async (donorId) => {
     if (!window.confirm("Are you sure you want to remove this donor from the public list?")) return;
 
