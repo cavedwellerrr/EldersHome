@@ -4,6 +4,9 @@ import { ToastContainer, toast } from "react-toastify";
 import { saveAs } from "file-saver";
 import jsPDF from "jspdf";
 import "jspdf-autotable";
+import { Line, Bar } from "react-chartjs-2";
+import { Chart as ChartJS, CategoryScale, BarElement, LinearScale, PointElement, LineElement, Title, Tooltip, Legend } from "chart.js";
+ChartJS.register(CategoryScale, LinearScale, PointElement, BarElement, LineElement, Title, Tooltip, Legend);
 
 const AdminDonations = () => {
   const [donations, setDonations] = useState([]);
@@ -114,6 +117,239 @@ const AdminDonations = () => {
     };
   }, [fetchAllData]);
 
+  const CashDonationsChart = ({ donations }) => {
+    const [range, setRange] = React.useState("month");
+
+    const getCutoffDate = () => {
+      const now = new Date();
+      switch (range) {
+        case "month":
+          return new Date(now.getFullYear(), now.getMonth(), 1);
+        case "3months":
+          return new Date(now.getFullYear(), now.getMonth() - 2, 1);
+        case "6months":
+          return new Date(now.getFullYear(), now.getMonth() - 5, 1);
+        case "year":
+          return new Date(now.getFullYear() - 1, now.getMonth() + 1, 1);
+        case "all":
+        default:
+          return null;
+      }
+    };
+
+    const { labels, dataValues } = React.useMemo(() => {
+      const cutoff = getCutoffDate();
+
+      // Filter for cash donations that are received
+      const cashDonations = donations.filter(
+        (d) =>
+          d.donationType === "cash" &&
+          d.status === "received" &&
+          (!cutoff || new Date(d.createdAt) >= cutoff)
+      );
+
+      // Determine grouping method based on range
+      const shouldGroupByMonth = ["3months", "6months", "year"].includes(range);
+      const shouldGroupByDay = range === "month";
+
+      const grouped = cashDonations.reduce((acc, d) => {
+        let key;
+        if (shouldGroupByDay) {
+          // Group by day for current month
+          key = new Date(d.createdAt).toLocaleDateString();
+        } else if (shouldGroupByMonth) {
+          // Group by month (YYYY-MM format)
+          const date = new Date(d.createdAt);
+          key = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
+        } else {
+          // Group by individual date for "all" time
+          key = new Date(d.createdAt).toLocaleDateString();
+        }
+        acc[key] = (acc[key] || 0) + d.amount;
+        return acc;
+      }, {});
+
+      // Generate complete range of periods
+      let allPeriods = Object.keys(grouped);
+
+      if (shouldGroupByDay && cutoff) {
+        // Generate all days in current month
+        const now = new Date();
+        const periods = [];
+        const current = new Date(cutoff);
+
+        while (current <= now && current.getMonth() === cutoff.getMonth()) {
+          periods.push(current.toLocaleDateString());
+          current.setDate(current.getDate() + 1);
+        }
+
+        allPeriods = periods;
+      } else if (shouldGroupByMonth && cutoff) {
+        // Generate all months in range
+        const now = new Date();
+        const periods = [];
+        const current = new Date(cutoff);
+
+        while (current <= now) {
+          const periodKey = `${current.getFullYear()}-${String(current.getMonth() + 1).padStart(2, '0')}`;
+          periods.push(periodKey);
+          current.setMonth(current.getMonth() + 1);
+        }
+
+        allPeriods = periods;
+      }
+
+      const sortedPeriods = allPeriods.sort((a, b) => {
+        if (shouldGroupByDay || range === "all") {
+          return new Date(a) - new Date(b);
+        }
+        return a.localeCompare(b);
+      });
+
+      // Format labels for display
+      const formattedLabels = sortedPeriods.map(period => {
+        if (shouldGroupByDay) {
+          // Format as "Dec 15" for days
+          return new Date(period).toLocaleDateString('en-US', {
+            month: 'short',
+            day: 'numeric'
+          });
+        } else if (shouldGroupByMonth) {
+          // Format as "Dec 2024" for months
+          const [year, month] = period.split('-');
+          return new Date(year, month - 1).toLocaleDateString('en-US', {
+            month: 'short',
+            year: 'numeric'
+          });
+        }
+        return period;
+      });
+
+      return {
+        labels: formattedLabels,
+        dataValues: sortedPeriods.map((period) => grouped[period] || 0),
+      };
+    }, [donations, range]);
+
+    const data = {
+      labels,
+      datasets: [
+        {
+          label: "Cash Donations Received (LKR)",
+          data: dataValues,
+          backgroundColor: "rgba(249, 115, 22, 0.8)", // Orange-500 with opacity
+          borderColor: "rgba(249, 115, 22, 1)", // Orange-500
+          borderWidth: 2,
+          borderRadius: 4,
+          borderSkipped: false,
+        },
+      ],
+    };
+
+    const options = {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+        legend: {
+          position: "top",
+          labels: {
+            color: "#374151", // Gray-700
+            font: {
+              size: 14,
+              weight: "600"
+            },
+            usePointStyle: true,
+            pointStyle: 'rect'
+          }
+        },
+        title: {
+          display: false // We're using the custom title above
+        },
+        tooltip: {
+          backgroundColor: "rgba(31, 41, 55, 0.9)", // Gray-800 with opacity
+          titleColor: "#ffffff",
+          bodyColor: "#ffffff",
+          borderColor: "rgba(249, 115, 22, 1)",
+          borderWidth: 1,
+          cornerRadius: 8,
+          callbacks: {
+            label: function (context) {
+              return `Amount: $ ${Number(context.parsed.y).toLocaleString()}`;
+            }
+          }
+        }
+      },
+      scales: {
+        y: {
+          beginAtZero: true,
+          grid: {
+            color: "rgba(229, 231, 235, 0.8)", // Gray-200 with opacity
+            drawBorder: false,
+          },
+          ticks: {
+            color: "#6B7280", // Gray-500
+            font: {
+              size: 12
+            },
+            callback: function (value) {
+              return '$ ' + Number(value).toLocaleString();
+            }
+          }
+        },
+        x: {
+          grid: {
+            display: false,
+          },
+          ticks: {
+            color: "#6B7280", // Gray-500
+            font: {
+              size: 12
+            },
+            maxRotation: 45,
+          }
+        }
+      },
+      interaction: {
+        intersect: false,
+        mode: 'index'
+      }
+    };
+
+    return (
+      <div>
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-4">
+          <div>
+            <h3 className="text-lg font-semibold text-gray-800">Donation Trends</h3>
+            <p className="text-sm text-gray-600">Visualize your cash donation patterns</p>
+          </div>
+          <select
+            value={range}
+            onChange={(e) => setRange(e.target.value)}
+            className="select select-bordered bg-white border-orange-200 focus:border-orange-500 focus:outline-none text-gray-700 font-medium rounded-lg shadow-sm"
+          >
+            <option value="month">Current Month</option>
+            <option value="3months">Last 3 Months</option>
+            <option value="6months">Last 6 Months</option>
+            <option value="year">Last Year</option>
+            <option value="all">All Time</option>
+          </select>
+        </div>
+        <div style={{ height: '400px' }}>
+          <Bar data={data} options={options} />
+        </div>
+        {dataValues.every(val => val === 0) && (
+          <div className="text-center py-8">
+            <div className="w-16 h-16 bg-orange-100 rounded-full mx-auto mb-4 flex items-center justify-center">
+              <svg className="w-8 h-8 text-orange-500" fill="currentColor" viewBox="0 0 24 24">
+                <path d="M9 17H7v-7h2v7zm4 0h-2V7h2v10zm4 0h-2v-4h2v4z" />
+              </svg>
+            </div>
+            <p className="text-gray-500">No cash donations received in this period</p>
+          </div>
+        )}
+      </div>
+    );
+  };
   const handleStatusChange = async (id, newStatus) => {
     if (updating.has(id)) return;
 
@@ -410,6 +646,26 @@ const AdminDonations = () => {
           </div>
         </div>
 
+        {/* {Cash Donations Chart} */}
+        <div className="bg-white rounded-2xl shadow-xl border border-orange-100 overflow-hidden">
+          <div className="bg-gradient-to-r from-orange-500 to-orange-600 px-6 py-4">
+            <div className="flex justify-between items-center">
+              <div>
+                <h2 className="text-2xl font-bold text-white flex items-center gap-3">
+                  <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 24 24">
+                    <path d="M11.8 10.9c-2.27-.59-3-1.2-3-2.15 0-1.09 1.01-1.85 2.7-1.85 1.78 0 2.44.85 2.5 2.1h2.21c-.07-1.72-1.12-3.3-3.21-3.81V3h-3v2.16c-1.94.42-3.5 1.68-3.5 3.61 0 2.31 1.91 3.46 4.7 4.13 2.5.6 3 1.48 3 2.41 0 .69-.49 1.79-2.7 1.79-2.06 0-2.87-.92-2.98-2.1h-2.2c.12 2.19 1.76 3.42 3.68 3.83V21h3v-2.15c1.95-.37 3.5-1.5 3.5-3.55 0-2.84-2.43-3.81-4.7-4.4z" />
+                  </svg>
+                  Cash Donations Analytics
+                </h2>
+                <p className="text-orange-100 mt-1">Track received cash donations over time</p>
+              </div>
+            </div>
+          </div>
+          <div className="p-6">
+            <CashDonationsChart donations={donations} />
+          </div>
+        </div>
+
         {/* Donations Table */}
         <div className="bg-white rounded-2xl shadow-xl border border-orange-100 overflow-hidden">
           <div className="bg-gradient-to-r from-orange-500 to-orange-600 px-6 py-4">
@@ -543,8 +799,8 @@ const AdminDonations = () => {
                         }
                         disabled={updating.has(donation._id) || deleting.has(donation._id)}
                         className={`btn btn-sm bg-green-100 hover:bg-green-200 text-green-600 border-green-200 hover:border-green-300 rounded-lg transition-all duration-200 ${updating.has(donation._id) || deleting.has(donation._id)
-                            ? 'opacity-50 cursor-not-allowed'
-                            : ''
+                          ? 'opacity-50 cursor-not-allowed'
+                          : ''
                           }`}
                         title="Add to donor list"
                       >
