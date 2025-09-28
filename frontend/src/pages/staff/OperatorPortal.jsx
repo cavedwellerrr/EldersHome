@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { PieChart, Pie, Cell, LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, BarChart, Bar } from 'recharts';
-import { Users, UserCheck, UserX, TrendingUp, Calendar, Download, FileText, FileSpreadsheet } from 'lucide-react';
+import { Users, UserCheck, UserX, TrendingUp, Download, FileText, FileSpreadsheet } from 'lucide-react';
 
 const SimplifiedElderDashboard = () => {
   const [dashboardData, setDashboardData] = useState({
@@ -49,19 +49,17 @@ const SimplifiedElderDashboard = () => {
               { name: 'Other', value: 2, color: '#10B981' }
             ],
             activeAgeGroups: [
-              { ageGroup: '60-65', count: 28 },
-              { ageGroup: '66-70', count: 42 },
-              { ageGroup: '71-75', count: 38 },
-              { ageGroup: '76-80', count: 32 },
-              { ageGroup: '81-85', count: 12 },
+              { ageGroup: '45-55', count: 10 },
+              { ageGroup: '56-65', count: 28 },
+              { ageGroup: '66-75', count: 80 },
+              { ageGroup: '76-85', count: 44 },
               { ageGroup: '85+', count: 4 }
             ],
             disabledAgeGroups: [
-              { ageGroup: '60-65', count: 15 },
-              { ageGroup: '66-70', count: 22 },
-              { ageGroup: '71-75', count: 25 },
-              { ageGroup: '76-80', count: 18 },
-              { ageGroup: '81-85', count: 7 },
+              { ageGroup: '45-55', count: 5 },
+              { ageGroup: '56-65', count: 15 },
+              { ageGroup: '66-75', count: 47 },
+              { ageGroup: '76-85', count: 25 },
               { ageGroup: '85+', count: 2 }
             ],
             monthlyActiveRegistrations: [
@@ -212,7 +210,7 @@ const SimplifiedElderDashboard = () => {
   }));
 
   return (
-    <div className="min-h-screen bg-gray-50 p-6">
+    <div className="min-h-screen bg-orange-50 p-6">
       <div className="max-w-7xl mx-auto">
         {/* Header */}
         <div className="mb-8">

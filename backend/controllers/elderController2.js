@@ -289,7 +289,6 @@ export const deleteElder = async (req, res) => {
 
 export const getActiveDisabledStats = async (req, res) => {
   try {
-    // Get counts for active and disabled elders
     const activeElders = await Elder.find({
       status: ElderStatus.ACTIVE,
     });
@@ -297,7 +296,6 @@ export const getActiveDisabledStats = async (req, res) => {
       status: ElderStatus.DISABLED_PENDING_REVIEW,
     });
 
-    // Gender distribution for active elders
     const activeGenderDistribution = await Elder.aggregate([
       { $match: { status: ElderStatus.ACTIVE } },
       {
@@ -308,7 +306,6 @@ export const getActiveDisabledStats = async (req, res) => {
       },
     ]);
 
-    // Gender distribution for disabled elders
     const disabledGenderDistribution = await Elder.aggregate([
       { $match: { status: ElderStatus.DISABLED_PENDING_REVIEW } },
       {
@@ -326,12 +323,13 @@ export const getActiveDisabledStats = async (req, res) => {
         $addFields: {
           age: {
             $cond: [
-              { $ifNull: ["$dob", false] },
+              { $ne: ["$dob", null] },
               {
-                $dateDiff: {
-                  startDate: "$dob",
-                  endDate: new Date(),
-                  unit: "year",
+                $floor: {
+                  $divide: [
+                    { $subtract: [new Date(), "$dob"] },
+                    1000 * 60 * 60 * 24 * 365.25,
+                  ],
                 },
               },
               null,
@@ -344,38 +342,34 @@ export const getActiveDisabledStats = async (req, res) => {
           ageGroup: {
             $switch: {
               branches: [
-                { case: { $lt: ["$age", 60] }, then: "Under 60" },
                 {
                   case: {
-                    $and: [{ $gte: ["$age", 60] }, { $lt: ["$age", 66] }],
+                    $and: [{ $gte: ["$age", 45] }, { $lt: ["$age", 56] }],
                   },
-                  then: "60-65",
+                  then: "45-55",
                 },
                 {
                   case: {
-                    $and: [{ $gte: ["$age", 66] }, { $lt: ["$age", 71] }],
+                    $and: [{ $gte: ["$age", 56] }, { $lt: ["$age", 66] }],
                   },
-                  then: "66-70",
+                  then: "56-65",
                 },
                 {
                   case: {
-                    $and: [{ $gte: ["$age", 71] }, { $lt: ["$age", 76] }],
+                    $and: [{ $gte: ["$age", 66] }, { $lt: ["$age", 76] }],
                   },
-                  then: "71-75",
+                  then: "66-75",
                 },
                 {
                   case: {
-                    $and: [{ $gte: ["$age", 76] }, { $lt: ["$age", 81] }],
+                    $and: [{ $gte: ["$age", 76] }, { $lt: ["$age", 86] }],
                   },
-                  then: "76-80",
+                  then: "76-85",
                 },
                 {
-                  case: {
-                    $and: [{ $gte: ["$age", 81] }, { $lt: ["$age", 86] }],
-                  },
-                  then: "81-85",
+                  case: { $gte: ["$age", 86] },
+                  then: "85+",
                 },
-                { case: { $gte: ["$age", 86] }, then: "85+" },
               ],
               default: "Unknown",
             },
@@ -395,12 +389,13 @@ export const getActiveDisabledStats = async (req, res) => {
         $addFields: {
           age: {
             $cond: [
-              { $ifNull: ["$dob", false] },
+              { $ne: ["$dob", null] },
               {
-                $dateDiff: {
-                  startDate: "$dob",
-                  endDate: new Date(),
-                  unit: "year",
+                $floor: {
+                  $divide: [
+                    { $subtract: [new Date(), "$dob"] },
+                    1000 * 60 * 60 * 24 * 365.25,
+                  ],
                 },
               },
               null,
@@ -413,38 +408,34 @@ export const getActiveDisabledStats = async (req, res) => {
           ageGroup: {
             $switch: {
               branches: [
-                { case: { $lt: ["$age", 60] }, then: "Under 60" },
                 {
                   case: {
-                    $and: [{ $gte: ["$age", 60] }, { $lt: ["$age", 66] }],
+                    $and: [{ $gte: ["$age", 45] }, { $lt: ["$age", 56] }],
                   },
-                  then: "60-65",
+                  then: "45-55",
                 },
                 {
                   case: {
-                    $and: [{ $gte: ["$age", 66] }, { $lt: ["$age", 71] }],
+                    $and: [{ $gte: ["$age", 56] }, { $lt: ["$age", 66] }],
                   },
-                  then: "66-70",
+                  then: "56-65",
                 },
                 {
                   case: {
-                    $and: [{ $gte: ["$age", 71] }, { $lt: ["$age", 76] }],
+                    $and: [{ $gte: ["$age", 66] }, { $lt: ["$age", 76] }],
                   },
-                  then: "71-75",
+                  then: "66-75",
                 },
                 {
                   case: {
-                    $and: [{ $gte: ["$age", 76] }, { $lt: ["$age", 81] }],
+                    $and: [{ $gte: ["$age", 76] }, { $lt: ["$age", 86] }],
                   },
-                  then: "76-80",
+                  then: "76-85",
                 },
                 {
-                  case: {
-                    $and: [{ $gte: ["$age", 81] }, { $lt: ["$age", 86] }],
-                  },
-                  then: "81-85",
+                  case: { $gte: ["$age", 86] },
+                  then: "85+",
                 },
-                { case: { $gte: ["$age", 86] }, then: "85+" },
               ],
               default: "Unknown",
             },
@@ -489,7 +480,6 @@ export const getActiveDisabledStats = async (req, res) => {
       },
     ]);
 
-    // Monthly registration trends for disabled elders
     const monthlyDisabledRegistrations = await Elder.aggregate([
       {
         $match: {
@@ -514,7 +504,6 @@ export const getActiveDisabledStats = async (req, res) => {
       },
     ]);
 
-    // Format monthly data with all 12 months, filling zeros
     const monthNames = [
       "Jan",
       "Feb",
@@ -554,7 +543,6 @@ export const getActiveDisabledStats = async (req, res) => {
       monthlyDisabledRegistrations
     );
 
-    // Format data for frontend
     const genderColors = {
       Male: "#3B82F6",
       Female: "#EC4899",
@@ -575,12 +563,10 @@ export const getActiveDisabledStats = async (req, res) => {
 
     // Format age groups
     const ageGroupOrder = [
-      "Under 60",
-      "60-65",
-      "66-70",
-      "71-75",
-      "76-80",
-      "81-85",
+      "45-55",
+      "56-65",
+      "66-75",
+      "76-85",
       "85+",
       "Unknown",
     ];
@@ -634,13 +620,14 @@ export const downloadEldersCSV = async (req, res) => {
       )
       .lean();
 
-    // Format data for CSV
     const csvData = elders.map((elder) => ({
       "Full Name": elder.fullName,
       "Date of Birth": new Date(elder.dob).toLocaleDateString(),
-      Age: Math.floor(
-        (new Date() - new Date(elder.dob)) / (365.25 * 24 * 60 * 60 * 1000)
-      ),
+      Age: elder.dob
+        ? Math.floor(
+            (new Date() - new Date(elder.dob)) / (1000 * 60 * 60 * 24 * 365.25)
+          )
+        : "Unknown",
       Gender: elder.gender,
       Address: elder.address,
       "Medical Notes": elder.medicalNotes,
@@ -652,7 +639,6 @@ export const downloadEldersCSV = async (req, res) => {
       "Last Updated": new Date(elder.updatedAt).toLocaleDateString(),
     }));
 
-    const { Parser } = json2csv;
     const parser = new Parser();
     const csv = parser.parse(csvData);
 
@@ -681,10 +667,8 @@ export const downloadEldersPDF = async (req, res) => {
       )
       .lean();
 
-    // Create PDF document
     const doc = new PDFDocument({ margin: 50 });
 
-    // Set response headers
     res.setHeader("Content-Type", "application/pdf");
     res.setHeader(
       "Content-Disposition",
@@ -693,17 +677,14 @@ export const downloadEldersPDF = async (req, res) => {
       }.pdf`
     );
 
-    // Pipe PDF to response
     doc.pipe(res);
 
-    // Add title
     doc.fontSize(20).text("Elder Care Management Report", { align: "center" });
     doc.fontSize(12).text(`Generated on: ${new Date().toLocaleDateString()}`, {
       align: "center",
     });
     doc.moveDown(2);
 
-    // Add summary
     const activeCount = elders.filter(
       (e) => e.status === ElderStatus.ACTIVE
     ).length;
@@ -719,7 +700,6 @@ export const downloadEldersPDF = async (req, res) => {
       .text(`Disabled Elders: ${disabledCount}`)
       .moveDown();
 
-    // Add elder details
     doc.fontSize(14).text("Elder Details:", { underline: true });
     doc.moveDown(0.5);
 
@@ -728,9 +708,11 @@ export const downloadEldersPDF = async (req, res) => {
         doc.addPage();
       }
 
-      const age = Math.floor(
-        (new Date() - new Date(elder.dob)) / (365.25 * 24 * 60 * 60 * 1000)
-      );
+      const age = elder.dob
+        ? Math.floor(
+            (new Date() - new Date(elder.dob)) / (1000 * 60 * 60 * 24 * 365.25)
+          )
+        : "Unknown";
 
       doc
         .fontSize(11)
@@ -749,7 +731,6 @@ export const downloadEldersPDF = async (req, res) => {
         .moveDown(0.3);
     });
 
-    // Finalize PDF
     doc.end();
   } catch (error) {
     console.error("PDF download error:", error);
