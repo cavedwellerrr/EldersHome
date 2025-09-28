@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import { Heart, Users, Calendar, Stethoscope, Phone, Mail, MapPin, Star, Clock, Shield } from "lucide-react";
 import happyman from "../assets/smiling_oldman.jpg";
 import boardgames from "../assets/boardgames.jpeg";
@@ -8,8 +9,10 @@ import healthcare from "../assets/healthcare.jpeg";
 import spiritual2 from "../assets/spiritual2.jpg";
 import elderExercises from "../assets/elderExercises.jpg";
 import elderBoardgames from "../assets/elderBoardgames.jpg";
+import ChatBox from "./ChatBox.jsx";
 
 const Home = () => {
+  const navigate = useNavigate();
   const [isVisible, setIsVisible] = useState({});
 
   useEffect(() => {
@@ -315,8 +318,11 @@ const Home = () => {
               Experience the warmth and care that makes ElderCare the perfect place to call home
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
-              <button className="bg-orange-500 text-white px-8 py-4 rounded-lg font-semibold hover:bg-orange-600 transition-colors shadow-lg">
-                Schedule a Visit
+              <button
+                onClick={() => navigate("/chat")}
+                 className="bg-orange-500 text-white px-6 py-3 rounded-lg font-semibold hover:bg-orange-600"
+              >
+              Chat with us
               </button>
               <div className="flex items-center space-x-4 text-gray-300">
                 <Phone className="w-5 h-5" />
@@ -324,6 +330,7 @@ const Home = () => {
                 <Mail className="w-5 h-5" />
                 <span>info@ElderCare.lk</span>
               </div>
+              
             </div>
           </div>
         </div>

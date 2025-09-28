@@ -7,6 +7,7 @@ import AboutUs from "./pages/AboutUs";
 import Donations from "./pages/Donations";
 import Events from "./pages/Events";
 import DonationSuccess from "./pages/DonationSuccess";
+import ChatBox from "./pages/ChatBox";
 
 
 // Guardian pages
@@ -26,6 +27,7 @@ import DoctorDashboard from "./pages/staff/DoctorDashboard";
 import AdminDonations from "./pages/staff/AdminDonations";
 import AdminEvents from "./pages/staff/AdminEvents";
 import AdminEnrollments from "./pages/staff/AdminEnrollments";
+import StaffDashboard from "./pages/staff/StaffChatDashboard";
 
 //caretaker
 import CaretakerMeals from "./pages/staff/CaretakerMeals";
@@ -69,6 +71,7 @@ const App = () => {
           <Route path="/about" element={<AboutUs />} />
           <Route path="/donations" element={<Donations />} />
           <Route path="/events" element={<Events />} />
+          <Route path="/chat" element={<ChatBox />} />
           <Route path="/donations/success" element={<DonationSuccess/>}/>
 
 
@@ -95,6 +98,7 @@ const App = () => {
                     <Route path="events" element={<AdminEvents />} />
                     <Route path="enrollments" element={<AdminEnrollments />} /> 
                     {/* <Route path="donations" element={<AdminDonations />} /> */}
+                    <Route path="/staff-chat" element={<StaffDashboard />} />
                   </Routes>
                 </AdminLayout>
               </ProtectedRoute>
@@ -112,6 +116,8 @@ const App = () => {
                     <Route path="elder-requests" element={<OperatorDashboard />} />
                     <Route path="assign-caretaker" element={<AssignCaretakers />} />
                      <Route path="manage-rooms" element={<OperatorRooms />} />
+                     <Route path="/staff-chat" element={<StaffDashboard />} />
+
                   </Routes>
                 </OperatorLayout>
               </ProtectedRoute>
