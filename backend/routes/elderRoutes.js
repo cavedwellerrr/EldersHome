@@ -14,6 +14,9 @@ import {
   listActiveElders,
   listEldersByGuardian,
   deleteElder,
+  getActiveDisabledStats,
+  downloadEldersCSV,
+  downloadEldersPDF,
 } from "../controllers/elderController2.js";
 import multer from "multer";
 
@@ -78,4 +81,13 @@ router.get("/active", protectStaff, listActiveElders);
 
 router.get("/guardian/:guardianId", protect, listEldersByGuardian);
 
+router.get(
+  "/dashboard/active-disabled-stats",
+  protectStaff,
+  getActiveDisabledStats
+);
+
+// Download routes (protected by staff auth)
+router.get("/download/csv", protectStaff, downloadEldersCSV);
+router.get("/download/pdf", protectStaff, downloadEldersPDF);
 export default router;

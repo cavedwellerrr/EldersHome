@@ -44,6 +44,7 @@ import DoctorConsultations from "./pages/staff/DoctorConsultations";
 import AssignCaretakers from "./pages/staff/AssignCaretakers";
 import PendingPaymentsDashboard from "./pages/staff/PendingPaymentsDashboard";
 import OperatorRooms from "./pages/staff/OperatorRooms";
+import SimplifiedElderDashboard from "./pages/staff/OperatorPortal";
 
 import Navbar from "./components/Navbar";
 import ProtectedRoute from "./components/ProtectedRoute";
@@ -107,8 +108,8 @@ const App = () => {
               <ProtectedRoute allowedRoles={["operator"]}>
                 <OperatorLayout>
                   <Routes>
-                    <Route index element={<OperatorDashboard />} />
-                    <Route path="elder-requests" element={<PendingPaymentsDashboard />} />
+                    <Route index element={<SimplifiedElderDashboard />} />
+                    <Route path="elder-requests" element={<OperatorDashboard />} />
                     <Route path="assign-caretaker" element={<AssignCaretakers />} />
                      <Route path="manage-rooms" element={<OperatorRooms />} />
                   </Routes>

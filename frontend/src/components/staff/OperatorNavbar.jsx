@@ -31,9 +31,9 @@ const OperatorNavbar = () => {
             Operator Portal
           </Link>
           <Link
-            to="/staff/operator-dashboard"
+            to="/staff/operator-dashboard/elder-requests"
             className={`transition ${
-              isActive("/staff/operator-dashboard")
+              isActive("/staff/operator-dashboard/elder-requests")
                 ? "font-bold text-yellow-300"
                 : "hover:text-yellow-200"
             }`}

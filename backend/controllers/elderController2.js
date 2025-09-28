@@ -1,6 +1,8 @@
 import Elder, { ElderStatus } from "../models/elder_model.js";
 import Payment, { PaymentStatus } from "../models/payment_model.js";
 import nodemailer from "nodemailer";
+import json2csv from "json2csv";
+import PDFDocument from "pdfkit";
 
 // Guardian creates elder registration request
 export const createElderRequest = async (req, res) => {
@@ -281,6 +283,476 @@ export const deleteElder = async (req, res) => {
 
     res.json({ message: "Elder deleted successfully" });
   } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+export const getActiveDisabledStats = async (req, res) => {
+  try {
+    // Get counts for active and disabled elders
+    const activeElders = await Elder.find({
+      status: ElderStatus.ACTIVE,
+    });
+    const disabledElders = await Elder.find({
+      status: ElderStatus.DISABLED_PENDING_REVIEW,
+    });
+
+    // Gender distribution for active elders
+    const activeGenderDistribution = await Elder.aggregate([
+      { $match: { status: ElderStatus.ACTIVE } },
+      {
+        $group: {
+          _id: "$gender",
+          count: { $sum: 1 },
+        },
+      },
+    ]);
+
+    // Gender distribution for disabled elders
+    const disabledGenderDistribution = await Elder.aggregate([
+      { $match: { status: ElderStatus.DISABLED_PENDING_REVIEW } },
+      {
+        $group: {
+          _id: "$gender",
+          count: { $sum: 1 },
+        },
+      },
+    ]);
+
+    // Age groups for active elders
+    const activeAgeGroups = await Elder.aggregate([
+      { $match: { status: ElderStatus.ACTIVE } },
+      {
+        $addFields: {
+          age: {
+            $cond: [
+              { $ifNull: ["$dob", false] },
+              {
+                $dateDiff: {
+                  startDate: "$dob",
+                  endDate: new Date(),
+                  unit: "year",
+                },
+              },
+              null,
+            ],
+          },
+        },
+      },
+      {
+        $addFields: {
+          ageGroup: {
+            $switch: {
+              branches: [
+                { case: { $lt: ["$age", 60] }, then: "Under 60" },
+                {
+                  case: {
+                    $and: [{ $gte: ["$age", 60] }, { $lt: ["$age", 66] }],
+                  },
+                  then: "60-65",
+                },
+                {
+                  case: {
+                    $and: [{ $gte: ["$age", 66] }, { $lt: ["$age", 71] }],
+                  },
+                  then: "66-70",
+                },
+                {
+                  case: {
+                    $and: [{ $gte: ["$age", 71] }, { $lt: ["$age", 76] }],
+                  },
+                  then: "71-75",
+                },
+                {
+                  case: {
+                    $and: [{ $gte: ["$age", 76] }, { $lt: ["$age", 81] }],
+                  },
+                  then: "76-80",
+                },
+                {
+                  case: {
+                    $and: [{ $gte: ["$age", 81] }, { $lt: ["$age", 86] }],
+                  },
+                  then: "81-85",
+                },
+                { case: { $gte: ["$age", 86] }, then: "85+" },
+              ],
+              default: "Unknown",
+            },
+          },
+        },
+      },
+      {
+        $group: { _id: "$ageGroup", count: { $sum: 1 } },
+      },
+      { $sort: { _id: 1 } },
+    ]);
+
+    // Age groups for disabled elders
+    const disabledAgeGroups = await Elder.aggregate([
+      { $match: { status: ElderStatus.DISABLED_PENDING_REVIEW } },
+      {
+        $addFields: {
+          age: {
+            $cond: [
+              { $ifNull: ["$dob", false] },
+              {
+                $dateDiff: {
+                  startDate: "$dob",
+                  endDate: new Date(),
+                  unit: "year",
+                },
+              },
+              null,
+            ],
+          },
+        },
+      },
+      {
+        $addFields: {
+          ageGroup: {
+            $switch: {
+              branches: [
+                { case: { $lt: ["$age", 60] }, then: "Under 60" },
+                {
+                  case: {
+                    $and: [{ $gte: ["$age", 60] }, { $lt: ["$age", 66] }],
+                  },
+                  then: "60-65",
+                },
+                {
+                  case: {
+                    $and: [{ $gte: ["$age", 66] }, { $lt: ["$age", 71] }],
+                  },
+                  then: "66-70",
+                },
+                {
+                  case: {
+                    $and: [{ $gte: ["$age", 71] }, { $lt: ["$age", 76] }],
+                  },
+                  then: "71-75",
+                },
+                {
+                  case: {
+                    $and: [{ $gte: ["$age", 76] }, { $lt: ["$age", 81] }],
+                  },
+                  then: "76-80",
+                },
+                {
+                  case: {
+                    $and: [{ $gte: ["$age", 81] }, { $lt: ["$age", 86] }],
+                  },
+                  then: "81-85",
+                },
+                { case: { $gte: ["$age", 86] }, then: "85+" },
+              ],
+              default: "Unknown",
+            },
+          },
+        },
+      },
+      {
+        $group: { _id: "$ageGroup", count: { $sum: 1 } },
+      },
+      { $sort: { _id: 1 } },
+    ]);
+
+    // Monthly registration trends for active elders (last 12 months)
+    const currentDate = new Date();
+    const twelveMonthsAgo = new Date(
+      currentDate.getFullYear(),
+      currentDate.getMonth() - 11,
+      1
+    );
+
+    const monthlyActiveRegistrations = await Elder.aggregate([
+      {
+        $match: {
+          status: ElderStatus.ACTIVE,
+          createdAt: { $gte: twelveMonthsAgo },
+        },
+      },
+      {
+        $group: {
+          _id: {
+            year: { $year: "$createdAt" },
+            month: { $month: "$createdAt" },
+          },
+          count: { $sum: 1 },
+        },
+      },
+      {
+        $sort: {
+          "_id.year": 1,
+          "_id.month": 1,
+        },
+      },
+    ]);
+
+    // Monthly registration trends for disabled elders
+    const monthlyDisabledRegistrations = await Elder.aggregate([
+      {
+        $match: {
+          status: ElderStatus.DISABLED_PENDING_REVIEW,
+          createdAt: { $gte: twelveMonthsAgo },
+        },
+      },
+      {
+        $group: {
+          _id: {
+            year: { $year: "$createdAt" },
+            month: { $month: "$createdAt" },
+          },
+          count: { $sum: 1 },
+        },
+      },
+      {
+        $sort: {
+          "_id.year": 1,
+          "_id.month": 1,
+        },
+      },
+    ]);
+
+    // Format monthly data with all 12 months, filling zeros
+    const monthNames = [
+      "Jan",
+      "Feb",
+      "Mar",
+      "Apr",
+      "May",
+      "Jun",
+      "Jul",
+      "Aug",
+      "Sep",
+      "Oct",
+      "Nov",
+      "Dec",
+    ];
+
+    const formatMonthly = (aggData) => {
+      const result = [];
+      let date = new Date(twelveMonthsAgo);
+      for (let i = 0; i < 12; i++) {
+        const monthName = monthNames[date.getMonth()];
+        const year = date.getFullYear();
+        const month = date.getMonth() + 1;
+        const found = aggData.find(
+          (item) => item._id.year === year && item._id.month === month
+        );
+        result.push({
+          month: monthName,
+          count: found ? found.count : 0,
+        });
+        date.setMonth(date.getMonth() + 1);
+      }
+      return result;
+    };
+
+    const formattedActiveMonthly = formatMonthly(monthlyActiveRegistrations);
+    const formattedDisabledMonthly = formatMonthly(
+      monthlyDisabledRegistrations
+    );
+
+    // Format data for frontend
+    const genderColors = {
+      Male: "#3B82F6",
+      Female: "#EC4899",
+      Other: "#10B981",
+    };
+
+    const formattedActiveGender = activeGenderDistribution.map((item) => ({
+      name: item._id,
+      value: item.count,
+      color: genderColors[item._id] || "#6B7280",
+    }));
+
+    const formattedDisabledGender = disabledGenderDistribution.map((item) => ({
+      name: item._id,
+      value: item.count,
+      color: genderColors[item._id] || "#6B7280",
+    }));
+
+    // Format age groups
+    const ageGroupOrder = [
+      "Under 60",
+      "60-65",
+      "66-70",
+      "71-75",
+      "76-80",
+      "81-85",
+      "85+",
+      "Unknown",
+    ];
+
+    const formattedActiveAge = ageGroupOrder.map((group) => {
+      const found = activeAgeGroups.find((item) => item._id === group);
+      return {
+        ageGroup: group,
+        count: found ? found.count : 0,
+      };
+    });
+
+    const formattedDisabledAge = ageGroupOrder.map((group) => {
+      const found = disabledAgeGroups.find((item) => item._id === group);
+      return {
+        ageGroup: group,
+        count: found ? found.count : 0,
+      };
+    });
+
+    const dashboardData = {
+      totalActiveElders: activeElders.length,
+      totalDisabledElders: disabledElders.length,
+      activeGenderDistribution: formattedActiveGender,
+      disabledGenderDistribution: formattedDisabledGender,
+      activeAgeGroups: formattedActiveAge,
+      disabledAgeGroups: formattedDisabledAge,
+      monthlyActiveRegistrations: formattedActiveMonthly,
+      monthlyDisabledRegistrations: formattedDisabledMonthly,
+    };
+
+    res.json(dashboardData);
+  } catch (error) {
+    console.error("Dashboard stats error:", error);
+    res.status(500).json({ message: error.message });
+  }
+};
+
+// Download all elders data as CSV
+export const downloadEldersCSV = async (req, res) => {
+  try {
+    const elders = await Elder.find({})
+      .populate("guardian", "name email phoneNumber")
+      .populate("caretaker", "name")
+      .populate({
+        path: "caretaker",
+        populate: { path: "staff" },
+      })
+      .select(
+        "fullName dob gender address medicalNotes status isDisabled createdAt updatedAt"
+      )
+      .lean();
+
+    // Format data for CSV
+    const csvData = elders.map((elder) => ({
+      "Full Name": elder.fullName,
+      "Date of Birth": new Date(elder.dob).toLocaleDateString(),
+      Age: Math.floor(
+        (new Date() - new Date(elder.dob)) / (365.25 * 24 * 60 * 60 * 1000)
+      ),
+      Gender: elder.gender,
+      Address: elder.address,
+      "Medical Notes": elder.medicalNotes,
+      Status: elder.status,
+      "Guardian Name": elder.guardian?.name || "N/A",
+      "Guardian Email": elder.guardian?.email || "N/A",
+      "Caretaker Name": elder.caretaker?.staff?.name || "Not Assigned",
+      "Registration Date": new Date(elder.createdAt).toLocaleDateString(),
+      "Last Updated": new Date(elder.updatedAt).toLocaleDateString(),
+    }));
+
+    const { Parser } = json2csv;
+    const parser = new Parser();
+    const csv = parser.parse(csvData);
+
+    res.setHeader("Content-Type", "text/csv");
+    res.setHeader(
+      "Content-Disposition",
+      `attachment; filename=elders-data-${
+        new Date().toISOString().split("T")[0]
+      }.csv`
+    );
+    res.send(csv);
+  } catch (error) {
+    console.error("CSV download error:", error);
+    res.status(500).json({ message: error.message });
+  }
+};
+
+// Download all elders data as PDF
+export const downloadEldersPDF = async (req, res) => {
+  try {
+    const elders = await Elder.find({})
+      .populate("guardian", "name email phoneNumber")
+      .populate("caretaker", "name")
+      .select(
+        "fullName dob gender address medicalNotes status isDisabled createdAt"
+      )
+      .lean();
+
+    // Create PDF document
+    const doc = new PDFDocument({ margin: 50 });
+
+    // Set response headers
+    res.setHeader("Content-Type", "application/pdf");
+    res.setHeader(
+      "Content-Disposition",
+      `attachment; filename=elders-report-${
+        new Date().toISOString().split("T")[0]
+      }.pdf`
+    );
+
+    // Pipe PDF to response
+    doc.pipe(res);
+
+    // Add title
+    doc.fontSize(20).text("Elder Care Management Report", { align: "center" });
+    doc.fontSize(12).text(`Generated on: ${new Date().toLocaleDateString()}`, {
+      align: "center",
+    });
+    doc.moveDown(2);
+
+    // Add summary
+    const activeCount = elders.filter(
+      (e) => e.status === ElderStatus.ACTIVE
+    ).length;
+    const disabledCount = elders.filter(
+      (e) => e.status === ElderStatus.DISABLED_PENDING_REVIEW
+    ).length;
+
+    doc.fontSize(14).text("Summary:", { underline: true });
+    doc
+      .fontSize(12)
+      .text(`Total Elders: ${elders.length}`)
+      .text(`Active Elders: ${activeCount}`)
+      .text(`Disabled Elders: ${disabledCount}`)
+      .moveDown();
+
+    // Add elder details
+    doc.fontSize(14).text("Elder Details:", { underline: true });
+    doc.moveDown(0.5);
+
+    elders.forEach((elder, index) => {
+      if (index > 0 && index % 10 === 0) {
+        doc.addPage();
+      }
+
+      const age = Math.floor(
+        (new Date() - new Date(elder.dob)) / (365.25 * 24 * 60 * 60 * 1000)
+      );
+
+      doc
+        .fontSize(11)
+        .text(`${index + 1}. ${elder.fullName}`, { continued: true })
+        .text(`  (Age: ${age}, Gender: ${elder.gender})`)
+        .text(`   Status: ${elder.status}`)
+        .text(
+          `   Guardian: ${elder.guardian?.name || "N/A"} (${
+            elder.guardian?.email || "N/A"
+          })`
+        )
+        .text(`   Address: ${elder.address}`)
+        .text(
+          `   Registered: ${new Date(elder.createdAt).toLocaleDateString()}`
+        )
+        .moveDown(0.3);
+    });
+
+    // Finalize PDF
+    doc.end();
+  } catch (error) {
+    console.error("PDF download error:", error);
     res.status(500).json({ message: error.message });
   }
 };
