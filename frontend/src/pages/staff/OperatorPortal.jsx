@@ -419,18 +419,12 @@ const SimplifiedElderDashboard = () => {
 
       {/* Chat Popup Modal */}
       {showChat && (
-          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-            <div className="bg-white w-4/5 max-w-4xl h-4/5 rounded-lg overflow-hidden relative">
-              <button
-                onClick={() => setShowChat(false)}
-                className="absolute top-4 right-4 bg-red-500 text-white px-4 py-2 rounded-lg hover:bg-red-600 z-10"
-              >
-                Close
-              </button>
-              <StaffChatDashboard />
-            </div>
-          </div>
-        )}
+  <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+    <div className="bg-white w-4/5 max-w-4xl h-4/5 rounded-lg overflow-hidden relative">
+      <StaffChatDashboard onClose={() => setShowChat(false)} />
+    </div>
+  </div>
+)}
     </div>
   );
 };
