@@ -98,7 +98,7 @@ const App = () => {
                     <Route path="events" element={<AdminEvents />} />
                     <Route path="enrollments" element={<AdminEnrollments />} /> 
                     {/* <Route path="donations" element={<AdminDonations />} /> */}
-                    <Route path="/staff-chat" element={<StaffDashboard />} />
+                    
                   </Routes>
                 </AdminLayout>
               </ProtectedRoute>
@@ -116,7 +116,7 @@ const App = () => {
                     <Route path="elder-requests" element={<OperatorDashboard />} />
                     <Route path="assign-caretaker" element={<AssignCaretakers />} />
                      <Route path="manage-rooms" element={<OperatorRooms />} />
-                     <Route path="/staff-chat" element={<StaffDashboard />} />
+                     
 
                   </Routes>
                 </OperatorLayout>

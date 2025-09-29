@@ -1,3 +1,4 @@
+// index.js
 import express from "express";
 import cors from "cors";
 import "dotenv/config";
@@ -7,35 +8,28 @@ import http from "http";
 import { Server } from "socket.io";
 import chat from "./models/chat.js";
 
-//guardian routes
+// Guardian routes
 import guardianRoutes from "./routes/guardianRoutes.js";
-
-//staff routes
+// Staff routes
 import staffRoutes from "./routes/staff_route.js";
-
-//elder route
+// Elder route
 import elderRoutes from "./routes/elderRoutes.js";
 import path from "path";
 import { fileURLToPath } from "url";
-import { protect } from "./middleware/authGuardianMiddleware.js";
-
-//caretaker routes
+// Caretaker routes
 import caretakerRoutes from "./routes/caretakerRoutes.js";
 import caretakerElderRoutes from "./routes/caretaker_elder_routes.js";
 import mealRoutes from "./routes/mealRoutes.js";
 import roomRoutes from "./routes/roomRoutes.js";
 import assignmentRoutes from "./routes/assignment_routes.js";
-
-//donation routes
+// Donation routes
 import donationsRoutes from "./routes/donationsRoute.js";
 import donorListRoutes from "./routes/donorListRoutes.js";
 import inventoryRoutes from "./routes/inventoryRoutes.js";
-
-//event routes
+// Event routes
 import eventRoutes from "./routes/event.route.js";
 import eventEnrollmentRoutes from "./routes/eventEnrollments.route.js";
-
-//health routes
+// Health routes
 import consultationRoutes from "./routes/consultationRoutes.js";
 import doctorRoutes from "./routes/doctorRoutes.js";
 import appointmentRoutes from "./routes/appointmentRoutes.js";
@@ -55,9 +49,11 @@ const io = new Server(server, {
 });
 
 const activeSupportUsers = new Map();
+const activeDashboards = new Set();
+const supportRequests = []; // Store recent support requests (limit to 100)
 
 connectDB();
-app.use(cors({ credentials: true, origin: "http://localhost:5173" })); // replace with frontend URL
+app.use(cors({ credentials: true, origin: "http://localhost:5173" }));
 app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
 app.use(cookieParser());
@@ -66,45 +62,46 @@ app.use("/uploads", express.static(path.join(__dirname, "uploads")));
 
 // Routes
 app.use("/api/guardians", guardianRoutes);
-
-//staff routes
 app.use("/api/staff", staffRoutes);
 app.use("/api/elders", elderRoutes);
 app.use("/api/caretakers", caretakerRoutes);
-
-//donation routes
 app.use("/api/donations", donationsRoutes);
 app.use("/api/donors", donorListRoutes);
 app.use("/api/inventory", inventoryRoutes);
-
-//meal routes
-app.use("/api/meals", mealRoutes); //meal
-app.use("/api/rooms", roomRoutes); //rooms
-
+app.use("/api/meals", mealRoutes);
+app.use("/api/rooms", roomRoutes);
 app.use("/api/caretaker/elders", caretakerElderRoutes);
-app.use("/api/assign", assignmentRoutes); //to asiign meal and rooms
-
-//Consultation Routes
+app.use("/api/assign", assignmentRoutes);
 app.use("/api/consultations", consultationRoutes);
-
-//event routes
 app.use("/api/events", eventRoutes);
 app.use("/api/event-enrollments", eventEnrollmentRoutes);
-
-//doctor routes
 app.use("/api/doctors", doctorRoutes);
-
-//Appointments Route
 app.use("/api/appointments", appointmentRoutes);
 app.use("/api/prescriptions", prescriptionRoutes);
 
 io.on("connection", (socket) => {
-  console.log("🔌 New client connected:", socket.id);
+  console.log("New client connected:", socket.id);
 
   // --- User joins their room ---
   socket.on("joinChat", ({ userId }) => {
     socket.join(`user-${userId}`);
     console.log(`User ${userId} joined room user-${userId}`);
+  });
+
+  // --- Staff dashboard active ---
+  socket.on("staffDashboardActive", ({ componentId }) => {
+    activeDashboards.add(componentId);
+    console.log(`Staff dashboard active: ${componentId}`);
+    // Send all stored support requests to the new dashboard
+    supportRequests.forEach((request) => {
+      socket.emit(`supportRequest-${componentId}`, request);
+    });
+  });
+
+  // --- Staff dashboard inactive ---
+  socket.on("staffDashboardInactive", ({ componentId }) => {
+    activeDashboards.delete(componentId);
+    console.log(`Staff dashboard inactive: ${componentId}`);
   });
 
   // --- User message ---
@@ -121,26 +118,36 @@ io.on("connection", (socket) => {
       // Start support session
       if (lowerMsg.includes("support")) {
         reply = "Connecting you to customer support...";
-        activeSupportUsers.set(userId, true); // mark user as in support
-        io.emit("supportRequest", { userId, message }); // notify staff
+        activeSupportUsers.set(userId, true);
       }
 
-      // Forward all messages to staff if user is in support mode
+      // Forward messages to staff if user is in support mode
       if (activeSupportUsers.get(userId)) {
-        io.emit("supportRequest", { userId, message }); // send every message to staff
+        const requestData = { userId, message };
+        // Store the request
+        supportRequests.push(requestData);
+        if (supportRequests.length > 100) {
+          supportRequests.shift(); // Limit to 100 requests
+        }
+        // Emit to all active dashboards
+        activeDashboards.forEach((componentId) => {
+          io.emit(`supportRequest-${componentId}`, requestData);
+        });
+        // Emit global supportRequest for notifications
+        io.emit("supportRequest", requestData);
       }
 
       // Other bot responses
       if (!activeSupportUsers.get(userId)) {
         if (lowerMsg === "hi" || lowerMsg === "hello") {
           reply = "Hello 👋 Welcome to ElderCare Support! You can ask about:";
-          options = ["register", "booking", "support"];
+          options = ["register", "donation", "support"];
         } else if (lowerMsg.includes("register")) {
           reply =
             "To register, click on the 'Register' button in the top menu.";
-        } else if (lowerMsg.includes("booking")) {
+        } else if (lowerMsg.includes("donation")) {
           reply =
-            "To book an event, go to 'Events' → select event → click 'Book Now'.";
+            "To make a donation, go to 'Donations' → select donation type → click 'Make Donation Now'.";
         }
       }
 
@@ -164,31 +171,43 @@ io.on("connection", (socket) => {
   socket.on("staffMessage", async ({ userId, reply }) => {
     try {
       console.log(`Staff reply to ${userId}: ${reply}`);
-
-      // Save in DB
       await chat.create({ userId, sender: "staff", message: reply });
-
-      // Emit reply only to that user's room
       io.to(`user-${userId}`).emit("staffReply", { reply });
     } catch (error) {
       console.error("Error in staffMessage:", error);
     }
   });
 
-  //End support session
+  // --- Message viewed ---
+  socket.on("messageViewed", ({ userId }) => {
+    io.to(`user-${userId}`).emit("messageViewed");
+  });
+
+  // --- End support session ---
   socket.on("endSupport", ({ userId }) => {
     activeSupportUsers.delete(userId);
+    // Remove requests for this user
+    supportRequests.forEach((request, index) => {
+      if (request.userId === userId) {
+        supportRequests.splice(index, 1);
+      }
+    });
+    // Notify all dashboards
+    activeDashboards.forEach((componentId) => {
+      io.emit(`endSupport-${componentId}`, { userId });
+    });
     io.to(`user-${userId}`).emit("botReply", {
       reply:
         "Your support session has ended. You can continue chatting with the bot.",
     });
   });
 
-  // Disconnect
+  // --- Disconnect ---
   socket.on("disconnect", () => {
     console.log("❌ Client disconnected:", socket.id);
   });
 });
+
 app.get("/", (req, res) => res.send("API working"));
 
 server.listen(port, () => console.log(`Server started on port: ${port}`));
