@@ -34,10 +34,10 @@ export default function ChatBox({ userId = "guest", onClose }) {
     // Then join the chat with the new sessionId
     socket.emit("joinChat", { userId, sessionId });
 
-    socket.on("botReply", ({ reply, options }) => {
-      setMessages((prev) => [...prev, { sender: "bot", text: reply }]);
-      setMessageDelivered(true);
-    });
+    socket.on("botReply", ({ reply }) => {
+  setMessages((prev) => [...prev, { sender: "bot", text: reply }]);
+});
+
 
     socket.on("staffReply", ({ reply }) => {
       setMessages((prev) => [...prev, { sender: "staff", text: reply }]);
@@ -121,10 +121,13 @@ export default function ChatBox({ userId = "guest", onClose }) {
   };
 
   return (
+    
     <div className="chat-container fixed bottom-16 right-5 w-80 bg-white shadow-lg rounded-lg flex flex-col z-50 h-96">
       <div className="header bg-orange-500 text-white font-bold p-3 rounded-t-lg">
         ElderCare Chat
       </div>
+      
+
 
       <div className="messages flex-1 p-3 overflow-y-auto" style={{ height: 'calc(100% - 6rem - 4rem)' }}>
         {messages.map((msg, idx) => (

@@ -7,6 +7,7 @@ import connectDB from "./config/mongodb.js";
 import http from "http";
 import { Server } from "socket.io";
 import chat from "./models/chat.js";
+import botMessages from "./utils/botMessages.js";
 
 //guardian routes
 import guardianRoutes from "./routes/guardianRoutes.js";
@@ -175,14 +176,12 @@ io.on("connection", (socket) => {
       // Other bot responses
       if (!activeSupportUsers.has(userId)) {
         if (lowerMsg === "hi" || lowerMsg === "hello") {
-          reply = "Hello 👋 Welcome to ElderCare Support! You can ask about:";
+          reply = botMessages.welcome;
           options = ["register", "donation", "support"];
         } else if (lowerMsg.includes("register")) {
-          reply =
-            "To register, click on the 'Register' button in the top menu.";
+          reply = botMessages.elderRegistration;
         } else if (lowerMsg.includes("donation")) {
-          reply =
-            "To make a donation, go to 'Donations' → select donation type → click 'Make Donation Now'.";
+          reply = botMessages.donation;
         }
       }
 
