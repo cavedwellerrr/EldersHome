@@ -1,7 +1,7 @@
 import express from "express";
 import Prescription from "../models/prescription_model.js";
 import { protectStaff } from "../middleware/staffAuth.js";
-
+import Doctor from "../models/doctor_model.js";
 const router = express.Router();
 
 // Add new prescription
@@ -58,4 +58,47 @@ router.get("/caretaker/my", protectStaff, async (req, res) => {
     res.status(500).json({ message: err.message });
   }
 });
+// DELETE prescription by ID
+router.delete("/:id", protectStaff, async (req, res) => {
+  try {
+    const prescription = await Prescription.findByIdAndDelete(req.params.id);
+    if (!prescription) {
+      return res.status(404).json({ message: "Prescription not found" });
+    }
+    res.json({ message: "Prescription deleted successfully" });
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+});
+// Get prescriptions for logged-in doctor
+router.get("/doctor/my", protectStaff, async (req, res) => {
+  try {
+    if (req.staff.role !== "doctor") {
+      return res.status(403).json({ message: "Only doctors can view prescriptions" });
+    }
+
+    // find doctor profile linked to staff
+    const doctor = await Doctor.findOne({ staff: req.staff._id });
+    if (!doctor) {
+      return res.status(404).json({ message: "Doctor profile not found" });
+    }
+
+    // now fetch prescriptions by doctor._id
+    const prescriptions = await Prescription.find({ doctor: doctor._id })
+      .populate("elder", "fullName dob")
+      .populate({
+        path: "doctor",
+        populate: { path: "staff", select: "name email" },
+      })
+      .sort({ createdAt: -1 });
+
+    res.json(prescriptions);
+  } catch (err) {
+    console.error("Error fetching doctor prescriptions:", err);
+    res.status(500).json({ message: err.message });
+  }
+});
+
+
+
 export default router;

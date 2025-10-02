@@ -15,6 +15,7 @@ export default function DoctorAppointments() {
   const [drugs, setDrugs] = useState([{ name: "", dosage: "", frequency: "", duration: "" }]);
   const [notes, setNotes] = useState("");
   const [savedPrescription, setSavedPrescription] = useState(null);
+  const [prescriptions, setPrescriptions] = useState([]);
 
   const getToken = () =>
     localStorage.getItem("staffToken") ||
@@ -73,6 +74,37 @@ export default function DoctorAppointments() {
       toast.error("Failed to save prescription");
     }
   };
+const fetchPrescriptions = async () => {
+  try {
+    const token = getToken();
+    const res = await api.get("/prescriptions/doctor/my", {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    setPrescriptions(res.data || []);
+  } catch (e) {
+    toast.error("Failed to load prescriptions");
+  }
+};
+useEffect(() => {
+  fetchAppointments();
+  fetchPrescriptions();
+}, []);
+const handleDeletePrescription = async (id) => {
+  if (!window.confirm("Are you sure you want to delete this prescription?")) return;
+
+  try {
+    const token = getToken();
+    await api.delete(`/prescriptions/${id}`, {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    toast.success("Prescription deleted successfully!");
+    setPrescriptions((prev) => prev.filter((p) => p._id !== id));
+  } catch (err) {
+    toast.error(err?.response?.data?.message || "Failed to delete prescription");
+  }
+};
+
+
 
   //  Download PDF
   const downloadPrescriptionPDF = (prescription) => {
@@ -227,6 +259,53 @@ export default function DoctorAppointments() {
           </div>
         </div>
       )}
+      <section className="rounded-lg border shadow">
+  <div className="bg-orange-500 text-white p-3 rounded-t-lg font-semibold">
+    My Issued Prescriptions
+  </div>
+  <div className="p-4 overflow-x-auto">
+    {prescriptions.length > 0 ? (
+      <table className="min-w-full text-sm">
+        <thead className="bg-gray-100">
+          <tr>
+            <Th>Elder</Th>
+            <Th>Date</Th>
+            <Th>Notes</Th>
+            <Th>Medicines</Th>
+            <Th>Action</Th>
+          </tr>
+        </thead>
+        <tbody>
+          {prescriptions.map((p, idx) => (
+            <tr key={p._id} className={idx % 2 === 0 ? "bg-white" : "bg-gray-50"}>
+              <Td>{p.elder?.fullName || "—"}</Td>
+              <Td>{new Date(p.createdAt).toLocaleString()}</Td>
+              <Td>{p.notes || "—"}</Td>
+              <Td>
+                {p.drugs?.map((d, i) => (
+                  <div key={i}>
+                    {d.name} – {d.dosage}, {d.frequency} for {d.duration}
+                  </div>
+                ))}
+              </Td>
+              <Td>
+                <button
+                  onClick={() => handleDeletePrescription(p._id)}
+                  className="px-2 py-1 bg-red-500 text-white rounded-lg hover:bg-red-600"
+                >
+                  Delete
+                </button>
+              </Td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    ) : (
+      <p className="text-gray-500 text-center">No prescriptions found</p>
+    )}
+  </div>
+</section>
+
 
       <ToastContainer />
     </div>

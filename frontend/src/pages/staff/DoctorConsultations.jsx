@@ -4,10 +4,31 @@ import api from "../../api";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 
+// react-big-calendar imports
+import { Calendar, dateFnsLocalizer, Views } from "react-big-calendar";
+import { format, parse, startOfWeek, getDay } from "date-fns";
+import enUS from "date-fns/locale/en-US";
+import "react-big-calendar/lib/css/react-big-calendar.css";
+
+//  Setup localizer
+const locales = { "en-US": enUS };
+const localizer = dateFnsLocalizer({
+  format,
+  parse,
+  startOfWeek: () => startOfWeek(new Date(), { weekStartsOn: 1 }),
+  getDay,
+  locales,
+});
+
 export default function DoctorConsultations() {
   const [consultations, setConsultations] = useState([]);
+  const [appointments, setAppointments] = useState([]); // store doctor's approved appts
   const [loading, setLoading] = useState(true);
   const [err, setErr] = useState("");
+
+  //  Add calendar view state
+  const [currentView, setCurrentView] = useState(Views.MONTH);
+  const [currentDate, setCurrentDate] = useState(new Date());
 
   // Approve modal state
   const [selectedConsultation, setSelectedConsultation] = useState(null);
@@ -26,7 +47,7 @@ export default function DoctorConsultations() {
     localStorage.getItem("token") ||
     localStorage.getItem("authToken");
 
-  // ✅ Fetch pending consultations
+  //  Fetch pending consultations
   const fetchConsultations = async () => {
     try {
       setLoading(true);
@@ -42,11 +63,25 @@ export default function DoctorConsultations() {
     }
   };
 
+  //  Fetch logged doctor's appointments
+  const fetchAppointments = async () => {
+    try {
+      const token = getToken();
+      const res = await api.get("/appointments/my", {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      setAppointments(res.data || []);
+    } catch (e) {
+      console.error("Error fetching appointments", e);
+    }
+  };
+
   useEffect(() => {
     fetchConsultations();
+    fetchAppointments();
   }, []);
 
-  // ✅ Approve consultation → create appointment
+  //  Approve consultation → create appointment
   const handleApprove = async (e) => {
     e.preventDefault();
     if (!date || !time) {
@@ -58,7 +93,7 @@ export default function DoctorConsultations() {
       setSubmitting(true);
       const token = getToken();
 
-      // ✅ fetch doctor profile for logged-in staff
+      // fetch doctor profile for logged-in staff
       const resDoctor = await api.get("/doctors/my", {
         headers: { Authorization: `Bearer ${token}` },
       });
@@ -84,6 +119,7 @@ export default function DoctorConsultations() {
       setTime("");
       setNotes("");
       fetchConsultations();
+      fetchAppointments(); // refresh calendar
     } catch (e) {
       toast.error("Failed to approve consultation");
     } finally {
@@ -91,7 +127,7 @@ export default function DoctorConsultations() {
     }
   };
 
-  // ✅ Reject consultation with note
+  //  Reject consultation with note
   const handleRejectConfirm = async () => {
     if (!rejectNote.trim()) {
       toast.error("Please enter a reason for rejection");
@@ -116,10 +152,27 @@ export default function DoctorConsultations() {
     }
   };
 
+  //  Calendar event handlers
+  const handleViewChange = (view) => {
+    setCurrentView(view);
+  };
+
+  const handleNavigate = (newDate) => {
+    setCurrentDate(newDate);
+  };
+
+  //  Map appointments into calendar events
+  const events = appointments.map((a) => ({
+    title: `${a.elder?.fullName || "Elder"} (${a.status})`,
+    start: new Date(a.date),
+    end: new Date(new Date(a.date).getTime() + 30 * 60000), // assume 30 mins
+    status: a.status,
+  }));
+
   return (
     <div className="p-6 space-y-6">
       {/* Page Header */}
-      <h1 className="text-3xl font-bold text-orange-600">Doctor Consultations</h1>
+      <h1 className="text-3xl font-bold text-orange-600">Doctor Dashboard</h1>
       <p className="text-gray-600">Manage and respond to consultation requests</p>
 
       {/* Consultations Table */}
@@ -142,7 +195,6 @@ export default function DoctorConsultations() {
                   <tr>
                     <Th>Elder</Th>
                     <Th>Caretaker</Th>
-                    <Th>Doctor</Th>
                     <Th>Reason</Th>
                     <Th>Priority</Th>
                     <Th>Requested On</Th>
@@ -157,11 +209,6 @@ export default function DoctorConsultations() {
                     >
                       <Td>{c.elder?.fullName || "—"}</Td>
                       <Td>{c.caretaker?.staff?.name || "—"}</Td>
-                      <Td>
-                        {c.doctor?.staff?.name
-                          ? `${c.doctor.staff.name} (${c.doctor.specialization || "—"})`
-                          : "—"}
-                      </Td>
                       <Td>{c.reason}</Td>
                       <Td>{c.priority}</Td>
                       <Td>
@@ -192,7 +239,31 @@ export default function DoctorConsultations() {
         </div>
       </section>
 
-      {/* ✅ Approve Modal */}
+      {/*  Calendar Section with controlled view and date */}
+      <section className="rounded-lg border shadow p-4">
+        <h2 className="text-xl font-bold mb-3"> Appointment Calendar</h2>
+        <Calendar
+          localizer={localizer}
+          events={events}
+          startAccessor="start"
+          endAccessor="end"
+          style={{ height: 500 }}
+          views={[Views.MONTH, Views.WEEK, Views.DAY, Views.AGENDA]}
+          view={currentView}
+          date={currentDate}
+          onView={handleViewChange}
+          onNavigate={handleNavigate}
+          eventPropGetter={(event) => {
+            let bg = "#3b82f6"; // default blue
+            if (event.status?.toLowerCase() === "approved") bg = "#22c55e"; // green
+            else if (event.status?.toLowerCase() === "rejected") bg = "#ef4444"; // red
+            else if (event.status?.toLowerCase() === "pending") bg = "#f59e0b"; // yellow
+            return { style: { backgroundColor: bg, borderRadius: "6px", color: "white" } };
+          }}
+        />
+      </section>
+
+      {/* Approve Modal */}
       {selectedConsultation && (
         <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
           <div className="bg-white rounded-xl p-6 w-[400px] shadow-xl">
@@ -204,6 +275,7 @@ export default function DoctorConsultations() {
                   type="date"
                   value={date}
                   onChange={(e) => setDate(e.target.value)}
+                  min={new Date().toISOString().split("T")[0]}
                   className="w-full border rounded-lg p-2"
                   required
                 />
@@ -248,7 +320,7 @@ export default function DoctorConsultations() {
         </div>
       )}
 
-      {/* ✅ Reject Modal */}
+      {/* Reject Modal */}
       {rejectingConsultation && (
         <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
           <div className="bg-white rounded-xl p-6 w-[400px] shadow-xl">
