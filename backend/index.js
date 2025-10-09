@@ -17,6 +17,8 @@ import mealRoutes from "./routes/mealRoutes.js"
 import roomRoutes from "./routes/roomRoutes.js"
 import caretakerElderRoutes from "./routes/caretaker_elder_routes.js"
 import assignmentRoutes from "./routes/assignment_routes.js"
+import mealPreferenceRoutes from "./routes/mealPreference_routes.js"
+
 
 // Derive __dirname equivalent for ES Modules
 const __filename = fileURLToPath(import.meta.url);
@@ -42,6 +44,7 @@ app.use("/api/staff", staffRoutes);
 app.use("/api/elders", elderRoutes);
 app.use("/api/caretakers", caretakerRoutes);
 
+
 //donation routes
 app.use("/api/donations", donationsRoutes);
 app.use("/api/donors", donorListRoutes);
@@ -53,6 +56,7 @@ app.use("/api/rooms", roomRoutes);//rooms
 //caretaker-elder
 app.use("/api/caretaker/elders", caretakerElderRoutes);
 app.use("/api/assign", assignmentRoutes);//to asiign meal and rooms
+app.use("/api/meal-preferences", mealPreferenceRoutes);
 
 app.get("/", (req, res) => res.send("API working"));
 
