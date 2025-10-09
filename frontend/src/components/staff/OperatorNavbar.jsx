@@ -31,9 +31,9 @@ const OperatorNavbar = () => {
             Operator Portal
           </Link>
           <Link
-            to="/staff/operator-dashboard"
+            to="/staff/operator-dashboard/elder-requests"
             className={`transition ${
-              isActive("/staff/operator-dashboard")
+              isActive("/staff/operator-dashboard/elder-requests")
                 ? "font-bold text-yellow-300"
                 : "hover:text-yellow-200"
             }`}
@@ -52,7 +52,7 @@ const OperatorNavbar = () => {
           </Link>
           <Link
           to="/staff/operator-dashboard/manage-rooms"
-          className={`px-3 py-2 rounded ${isActive("/staff/operator-dashboard/rooms") ? "bg-yellow-500" : "hover:bg-yellow-500"
+          className={`transition ${isActive("/staff/operator-dashboard/rooms") ? "font-bold text-yellow-300" : "hover:text-yellow-200"
             }`}
         >
           Manage Rooms

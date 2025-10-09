@@ -7,7 +7,7 @@ import AboutUs from "./pages/AboutUs";
 import Donations from "./pages/Donations";
 import Events from "./pages/Events";
 import DonationSuccess from "./pages/DonationSuccess";
-
+import ChatBox from "./pages/ChatBox";
 
 // Guardian pages
 import Login from "./pages/guardian/Login";
@@ -27,6 +27,7 @@ import AdminDonations from "./pages/staff/AdminDonations";
 import AdminEvents from "./pages/staff/AdminEvents";
 import AdminEnrollments from "./pages/staff/AdminEnrollments";
 import AdminInventory from "./pages/staff/AdminInventory";
+import StaffDashboard from "./pages/staff/StaffChatDashboard";
 
 //caretaker
 import CaretakerMeals from "./pages/staff/CaretakerMeals";
@@ -45,6 +46,7 @@ import DoctorConsultations from "./pages/staff/DoctorConsultations";
 import AssignCaretakers from "./pages/staff/AssignCaretakers";
 import PendingPaymentsDashboard from "./pages/staff/PendingPaymentsDashboard";
 import OperatorRooms from "./pages/staff/OperatorRooms";
+import SimplifiedElderDashboard from "./pages/staff/OperatorPortal";
 
 import Navbar from "./components/Navbar";
 import ProtectedRoute from "./components/ProtectedRoute";
@@ -69,6 +71,7 @@ const App = () => {
           <Route path="/about" element={<AboutUs />} />
           <Route path="/donations" element={<Donations />} />
           <Route path="/events" element={<Events />} />
+          <Route path="/chat" element={<ChatBox />} />
           <Route path="/donations/success" element={<DonationSuccess/>}/>
 
 
@@ -109,10 +112,12 @@ const App = () => {
               <ProtectedRoute allowedRoles={["operator"]}>
                 <OperatorLayout>
                   <Routes>
-                    <Route index element={<OperatorDashboard />} />
-                    <Route path="elder-requests" element={<PendingPaymentsDashboard />} />
+                    <Route index element={<SimplifiedElderDashboard />} />
+                    <Route path="elder-requests" element={<OperatorDashboard />} />
                     <Route path="assign-caretaker" element={<AssignCaretakers />} />
                      <Route path="manage-rooms" element={<OperatorRooms />} />
+                     
+
                   </Routes>
                 </OperatorLayout>
               </ProtectedRoute>

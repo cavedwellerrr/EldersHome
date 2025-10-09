@@ -13,6 +13,10 @@ import {
   markPaymentSuccess,
   listActiveElders,
   listEldersByGuardian,
+  deleteElder,
+  getActiveDisabledStats,
+  downloadEldersCSV,
+  downloadEldersPDF,
 } from "../controllers/elderController2.js";
 import multer from "multer";
 
@@ -62,6 +66,9 @@ router.post(
   createElderRequest
 );
 
+// In your elder routes file
+router.delete("/:id", protect, deleteElder);
+
 // Operator routes
 router.get("/pending", protectStaff, listPendingReview);
 router.get("/pending-payments", protectStaff, listPendingPayments);
@@ -74,4 +81,13 @@ router.get("/active", protectStaff, listActiveElders);
 
 router.get("/guardian/:guardianId", protect, listEldersByGuardian);
 
+router.get(
+  "/dashboard/active-disabled-stats",
+  protectStaff,
+  getActiveDisabledStats
+);
+
+// Download routes (protected by staff auth)
+router.get("/download/csv", protectStaff, downloadEldersCSV);
+router.get("/download/pdf", protectStaff, downloadEldersPDF);
 export default router;

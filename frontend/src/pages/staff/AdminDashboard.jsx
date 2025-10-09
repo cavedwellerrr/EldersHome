@@ -1,23 +1,45 @@
+// AdminDashboard.jsx
 import React, { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import api from "../../api"; // Assuming you have your API instance
+import StaffChatDashboard from "./StaffChatDashboard"; // Adjust path if needed
+import { socket } from "../../utils/socket"; // Adjust path if needed
 
 const AdminDashboard = () => {
-  const name = localStorage.getItem("staffName"); // or staffName
+  const name = localStorage.getItem("staffName");
   const navigate = useNavigate();
   const [stats, setStats] = useState({
     totalStaff: 0,
     pendingDonations: 0,
     upcomingEvent: null,
-    loading: true
+    loading: true,
   });
+  const [showChat, setShowChat] = useState(false);
+  const [newMessages, setNewMessages] = useState(0);
+
+  useEffect(() => {
+    const handleSupportRequest = (data) => {
+      console.log("Received support request for notification:", data);
+      setNewMessages((prev) => prev + 1);
+    };
+
+    socket.on("supportRequest", handleSupportRequest);
+
+    return () => {
+      socket.off("supportRequest", handleSupportRequest);
+    };
+  }, []);
 
   const handleLogout = () => {
     localStorage.clear();
     navigate("/staff/login");
   };
 
-
+  const handleOpenChat = () => {
+    console.log("Opening chat popup, resetting notifications");
+    setShowChat(true);
+    setNewMessages(0);
+  };
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-orange-50 to-white">
@@ -36,8 +58,6 @@ const AdminDashboard = () => {
               </h1>
               <p className="text-gray-600 mt-2">Welcome back, {name}!</p>
             </div>
-
-
           </div>
         </div>
       </div>
@@ -48,9 +68,7 @@ const AdminDashboard = () => {
           <div className="flex items-center justify-between">
             <div>
               <h2 className="text-2xl font-bold mb-2">Good day, {name}!</h2>
-              <p className="text-orange-100 text-lg">
-                Let's see what's happening today.
-              </p>
+              <p className="text-orange-100 text-lg">Let's see what's happening today.</p>
             </div>
             <div className="hidden md:block">
               <div className="w-20 h-20 bg-white bg-opacity-20 rounded-full flex items-center justify-center">
@@ -61,8 +79,6 @@ const AdminDashboard = () => {
             </div>
           </div>
         </div>
-
-
 
         {/* Quick Actions */}
         <div className="bg-white rounded-2xl shadow-xl border border-orange-100 overflow-hidden">
@@ -145,10 +161,40 @@ const AdminDashboard = () => {
                   </div>
                 </div>
               </Link>
+              <button
+              onClick={handleOpenChat}
+              className="group bg-purple-50 hover:bg-purple-100 border border-purple-200 rounded-xl p-4 transition-all duration-200 hover:shadow-md relative"
+            >
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 bg-purple-500 rounded-lg flex items-center justify-center group-hover:scale-110 transition-transform duration-200">
+                  <svg className="w-5 h-5 text-white" fill="currentColor" viewBox="0 0 24 24">
+                    <path d="M20 2H4c-1.1 0-2 .9-2 2v16c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm-2 4h-4v2h4V6zm-4 4h4v2h-4v-2zm4 4h-4v2h4v-2zm-6-8H6v8h6V6zm-8 10h8v2H4v-2z" />
+                  </svg>
+                </div>
+                <div>
+                  <p className="font-semibold text-gray-900">Chat Support</p>
+                  <p className="text-sm text-gray-600">Handle support requests</p>
+                </div>
+              </div>
+              {newMessages > 0 && (
+                <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs px-2 py-1 rounded-full">
+                  {newMessages}
+                </span>
+              )}
+            </button>
             </div>
           </div>
         </div>
       </div>
+
+      {/* Chat Popup Modal */}
+      {showChat && (
+  <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+    <div className="bg-white w-4/5 max-w-4xl h-4/5 rounded-lg overflow-hidden relative">
+      <StaffChatDashboard onClose={() => setShowChat(false)} />
+    </div>
+  </div>
+)}
     </div>
   );
 };
