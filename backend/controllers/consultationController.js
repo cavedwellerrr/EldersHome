@@ -106,29 +106,7 @@ export const updateConsultation = async (req, res) => {
 };
 
 //get Consultss for caretaker
-// 
-export const getMyConsultations = async (req, res) => {
-  try {
-    const consultations = await Consultation.find()
-      .populate("elder", "fullName guardian dob")
-      .populate({
-        path: "doctor",
-        populate: { path: "staff", select: "name email" },
-      })
-      .populate({
-        path: "caretaker",
-        populate: { path: "staff", select: "name email" },
-      })
-      .sort({ createdAt: -1 });
 
-    res.json(consultations);
-  } catch (err) {
-    console.error("Error fetching consultations:", err);
-    res
-      .status(500)
-      .json({ message: "Error fetching consultations" });
-  }
-};
 
 
 

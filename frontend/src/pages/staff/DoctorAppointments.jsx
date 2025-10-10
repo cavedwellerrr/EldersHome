@@ -3,6 +3,7 @@ import api from "../../api";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import { jsPDF } from "jspdf";
+import QRCode from "qrcode";
 
 export default function DoctorAppointments() {
   const [appointments, setAppointments] = useState([]);
@@ -12,7 +13,9 @@ export default function DoctorAppointments() {
   // Prescription modal state
   const [showModal, setShowModal] = useState(false);
   const [selectedAppt, setSelectedAppt] = useState(null);
-  const [drugs, setDrugs] = useState([{ name: "", dosage: "", frequency: "", duration: "" }]);
+const [drugs, setDrugs] = useState([
+  { name: "", dosage: "", frequency: "", duration: "", form: "" },
+]);
   const [notes, setNotes] = useState("");
   const [savedPrescription, setSavedPrescription] = useState(null);
   const [prescriptions, setPrescriptions] = useState([]);
@@ -46,34 +49,73 @@ export default function DoctorAppointments() {
   }, []);
 
   //  Save Prescription
-  const handleSavePrescription = async () => {
-    try {
-      const token = getToken();
-      const payload = {
-        elder: selectedAppt.elder?._id || selectedAppt.elder,
-        doctor: selectedAppt.doctor?._id || selectedAppt.doctor,
-        caretaker: selectedAppt.caretaker?._id || selectedAppt.caretaker,
-        drugs,
-        notes,
-      };
-      console.log("Saving prescription:", payload);
+//  Save Prescription
+const handleSavePrescription = async () => {
+  // 🩺 Validation loop
+  for (let i = 0; i < drugs.length; i++) {
+    const drug = drugs[i];
 
-      const res = await api.post("/prescriptions", payload, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-
-      // Link prescription to appointment
-      await api.patch(`/appointments/${selectedAppt._id}`, { prescription: res.data._id }, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-
-      setSavedPrescription(res.data);
-      toast.success("Prescription saved successfully");
-    } catch (e) {
-      console.error("Save failed:", e.response?.data || e.message);
-      toast.error("Failed to save prescription");
+    //  Check if form is selected
+    if (!drug.form || drug.form.trim() === "") {
+      toast.error(`Please select a form for medicine #${i + 1}`);
+      return;
     }
-  };
+
+    // Frequency check: number between 1-4
+    const freq = Number(drug.frequency);
+    if (isNaN(freq) || freq < 1 || freq > 4) {
+      toast.error(`Frequency for medicine #${i + 1} must be a number between 1 and 4`);
+      return;
+    }
+
+    // Duration check: number between 1-10
+    const dur = Number(drug.duration);
+    if (isNaN(dur) || dur < 1 || dur > 10) {
+      toast.error(`Duration for medicine #${i + 1} must be a number between 1 and 10 days`);
+      return;
+    }
+
+    //  Optional safety check: total doses
+    if (freq * dur > 30) {
+      toast.error(
+        `Total doses for medicine #${i + 1} seem high (${freq} × ${dur} = ${freq * dur}). Please check.`
+      );
+      return;
+    }
+  }
+
+  try {
+    const token = getToken();
+    const payload = {
+      elder: selectedAppt.elder?._id || selectedAppt.elder,
+      doctor: selectedAppt.doctor?._id || selectedAppt.doctor,
+      caretaker: selectedAppt.caretaker?._id || selectedAppt.caretaker,
+      drugs, // includes name, dosage, frequency, duration, form
+      notes,
+    };
+    console.log("Saving prescription:", payload);
+
+    //  Save prescription
+    const res = await api.post("/prescriptions", payload, {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+
+    //  Link prescription to appointment
+    await api.patch(
+      `/appointments/${selectedAppt._id}`,
+      { prescription: res.data._id },
+      { headers: { Authorization: `Bearer ${token}` } }
+    );
+
+    setSavedPrescription(res.data);
+    toast.success("Prescription saved successfully");
+  } catch (e) {
+    console.error("Save failed:", e.response?.data || e.message);
+    toast.error("Failed to save prescription");
+  }
+};
+
+
 const fetchPrescriptions = async () => {
   try {
     const token = getToken();
@@ -105,38 +147,123 @@ const handleDeletePrescription = async (id) => {
 };
 
 
+const downloadPrescriptionPDF = (prescription) => {
+  const ORANGE = "#F97316";
+  const doc = new jsPDF({ unit: "pt", format: "a4" });
+  const width = doc.internal.pageSize.getWidth();
+  const margin = 40;
+  let y = 40;
 
-  //  Download PDF
-  const downloadPrescriptionPDF = (prescription) => {
-    const doc = new jsPDF();
+  // Header bar
+  doc.setFillColor(ORANGE);
+  doc.rect(0, 0, width, 80, "F");
 
-    doc.setFontSize(18);
-    doc.text("Prescription", 14, 20);
+  // Title
+  doc.setFontSize(20);
+  doc.setTextColor("#ffffff");
+  doc.setFont("helvetica", "bold");
+  doc.text("Elders Care Home", margin, 30);
+  doc.text("Prescription", margin, 50);
 
-    doc.setFontSize(12);
-    doc.text(`Elder: ${selectedAppt.elder?.fullName || "—"}`, 14, 40);
-    doc.text(`Caretaker: ${prescription.caretaker?.name || "—"}`, 14, 50); 
- doc.text(`Doctor: ${prescription.doctor?.staff?.name || "—"}`, 14, 60);
-  doc.text(`Specialization: ${prescription.doctor?.specialization || "—"}`, 14, 70);
-    doc.text(`Date: ${new Date().toLocaleDateString()}`, 14, 80);
+  // Subtitle
+  doc.setFontSize(10);
+  doc.setFont("helvetica", "normal");
+  doc.text("Doctor-issued digital prescription", margin, 68);
 
-    let y = 90;
-    doc.text("Medicines:", 14, y);
-    y += 10;
+  y = 110;
+  doc.setTextColor("#000");
 
-    (prescription.drugs || []).forEach((drug, i) => {
-      doc.text(`${i + 1}. ${drug.name} - ${drug.dosage}, ${drug.frequency} for ${drug.duration}`, 14, y);
-      y += 10;
+  // Elder Details
+  doc.setFontSize(12);
+  doc.setFont("helvetica", "bold");
+  doc.text("Elder Details", margin, y);
+  doc.setFont("helvetica", "normal");
+  doc.text(`Name: ${prescription.elder?.fullName || "—"}`, margin, y + 18);
+
+  y += 38;
+  doc.setFont("helvetica", "bold");
+  doc.text("Caretaker Details", margin, y);
+  doc.setFont("helvetica", "normal");
+  doc.text(`Name: ${prescription.caretaker?.name || "—"}`, margin, y + 18);
+
+  y += 38;
+  doc.setFont("helvetica", "bold");
+  doc.text("Doctor Details", margin, y);
+  doc.setFont("helvetica", "normal");
+  doc.text(`Name: ${prescription.doctor?.staff?.name || "—"}`, margin, y + 18);
+  doc.text(`Specialization: ${prescription.doctor?.specialization || "—"}`, margin, y + 36);
+
+  // Date
+  y += 56;
+  doc.setFont("helvetica", "bold");
+  doc.text("Date & Time", margin, y);
+  doc.setFont("helvetica", "normal");
+  const now = new Date();
+  doc.text(`${now.toLocaleDateString()} ${now.toLocaleTimeString()}`, margin, y + 18);
+
+  // Divider
+  y += 36;
+  doc.setDrawColor(ORANGE);
+  doc.setLineWidth(1);
+  doc.line(margin, y, width - margin, y);
+
+  // Medicines section
+  y += 24;
+  doc.setFont("helvetica", "bold");
+  doc.setFontSize(14);
+  doc.setTextColor(ORANGE);
+  doc.text("Medicines", margin, y);
+
+  y += 20;
+  doc.setFont("helvetica", "normal");
+  doc.setFontSize(11);
+  doc.setTextColor("#000");
+
+  const drugs = prescription.drugs || [];
+  if (drugs.length === 0) {
+    doc.text("No medicines prescribed.", margin, y);
+    y += 20;
+  } else {
+    drugs.forEach((drug, i) => {
+      const text = `${i + 1}. ${drug.name || "—"} (${drug.form || "—"}) - ${drug.dosage || "—"}, ${drug.frequency || "—"} times/day for ${drug.duration || "—"} days`;
+      doc.text(text, margin, y);
+      y += 18;
     });
+  }
 
-    doc.text("Notes:", 14, y + 10);
-    doc.text(prescription.notes || "—", 14, y + 20);
+  // Notes
+  y += 20;
+  doc.setFont("helvetica", "bold");
+  doc.setTextColor(ORANGE);
+  doc.text("Notes", margin, y);
+  y += 16;
+  doc.setFont("helvetica", "normal");
+  doc.setTextColor("#000");
+  const wrappedNotes = doc.splitTextToSize(prescription.notes || "—", width - margin * 2);
+  doc.text(wrappedNotes, margin, y);
+  y += wrappedNotes.length * 14;
 
-    doc.text("____________________", 140, 250);
-    doc.text("Doctor's Signature", 145, 260);
+  // Signature line
+  y += 60;
+  doc.setDrawColor("#aaa");
+  doc.line(width - 250, y, width - margin, y);
+  doc.setFontSize(10);
+  doc.text("Doctor's Signature", width - 230, y + 14);
 
-    doc.save(`Prescription_${prescription._id}.pdf`);
-  };
+  // QR Code
+  const qrData = `Prescription ID: ${prescription._id || "N/A"}\nElder: ${prescription.elder?.fullName || "—"}\nOne-time use only\nIssued: ${new Date().toLocaleDateString()}`;
+  QRCode.toDataURL(qrData, { width: 100 }, (err, qrUrl) => {
+    if (!err) {
+      doc.addImage(qrUrl, "PNG", margin, y - 40, 80, 80);
+      // Footer
+      doc.setFontSize(8);
+      doc.setTextColor("#888");
+      doc.text("Generated by Elders Home System — For authorized medical use only", margin, 820);
+      doc.save(`Prescription_${prescription._id || Date.now()}.pdf`);
+    }
+  });
+};
+
 
   //  Mark appointment as completed
   const handleComplete = async (appointmentId) => {
@@ -216,18 +343,33 @@ const handleDeletePrescription = async (id) => {
       {/* Prescription Modal */}
       {showModal && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center">
-          <div className="bg-white rounded-lg shadow-lg p-6 w-[600px] max-h-[90vh] overflow-y-auto">
+          <div className="bg-white rounded-lg shadow-lg p-6 w-[1200px] max-h-[90vh] overflow-y-auto">
             <h2 className="text-xl font-bold mb-4">Add Prescription</h2>
 
             {drugs.map((drug, i) => (
               <div key={i} className="flex space-x-2 mb-2">
                 <input className="border p-2 w-1/4" placeholder="Name" value={drug.name}
                   onChange={(e) => handleDrugChange(i, "name", e.target.value)} />
-                <input className="border p-2 w-1/4" placeholder="Dosage" value={drug.dosage}
+                <input className="border p-2 w-1/4" placeholder="Dosage(in scale)" value={drug.dosage}
                   onChange={(e) => handleDrugChange(i, "dosage", e.target.value)} />
-                <input className="border p-2 w-1/4" placeholder="Frequency" value={drug.frequency}
+                  <select
+  className="border p-2 w-1/5"
+  value={drug.form}
+  onChange={(e) => handleDrugChange(i, "form", e.target.value)}
+>
+  <option value="">Select Form</option>
+  <option value="Tablet">Tablet</option>
+  <option value="Capsule">Capsule</option>
+  <option value="Syrup">Syrup</option>
+  <option value="Injection">Injection</option>
+  <option value="Cream">Cream</option>
+  <option value="Drops">Drops</option>
+  <option value="Other">Other</option>
+</select>
+
+                <input className="border p-2 w-1/4" placeholder="Frequency(times per day)" value={drug.frequency}
                   onChange={(e) => handleDrugChange(i, "frequency", e.target.value)} />
-                <input className="border p-2 w-1/4" placeholder="Duration" value={drug.duration}
+                <input className="border p-2 w-1/4" placeholder="Duration(days)" value={drug.duration}
                   onChange={(e) => handleDrugChange(i, "duration", e.target.value)} />
                 <button className="px-2 bg-red-500 text-white rounded" onClick={() => removeDrugRow(i)}>✕</button>
               </div>

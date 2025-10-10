@@ -10,6 +10,11 @@ const prescriptionSchema = new mongoose.Schema(
         name: { type: String, required: true },
         dosage: { type: String, required: true },
         frequency: { type: String, required: true },
+        form: {
+          type: String,
+          enum: ["Tablet", "Capsule", "Syrup", "Injection", "Cream", "Drops", "Other"],
+          required: true,
+        },
         duration: { type: String, required: true },
       },
     ],
