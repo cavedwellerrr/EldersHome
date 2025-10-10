@@ -357,7 +357,7 @@ export default function DoctorConsultations() {
   );
 }
 
-// ---------- SMALL COMPONENTS ----------
+// ---------- SMALL COMPONENTS 
 function Th({ children }) {
   return <th className="px-3 py-2 font-semibold text-left">{children}</th>;
 }
