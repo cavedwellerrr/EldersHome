@@ -189,7 +189,21 @@ const AdminInventory = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-orange-50 to-white">
-      <ToastContainer />
+      <ToastContainer
+  position="top-right"
+  autoClose={3000}
+  hideProgressBar={false}
+  newestOnTop={true}
+  closeOnClick
+  rtl={false}
+  pauseOnFocusLoss
+  draggable
+  pauseOnHover
+  theme="light"
+  toastClassName="!bg-white !shadow-xl !border !border-orange-100"
+  bodyClassName="!text-gray-800 !font-medium"
+  progressClassName="!bg-orange-500"
+/>
 
       {/* Header Section */}
       <div className="bg-white shadow-sm border-b border-orange-100">

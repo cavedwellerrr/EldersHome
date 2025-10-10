@@ -27,6 +27,7 @@ import caretakerElderRoutes from "./routes/caretaker_elder_routes.js";
 import mealRoutes from "./routes/mealRoutes.js";
 import roomRoutes from "./routes/roomRoutes.js";
 import assignmentRoutes from "./routes/assignment_routes.js";
+import mealPreferenceRoutes from "./routes/mealPreference_routes.js"
 
 //donation routes
 import donationsRoutes from "./routes/donationsRoute.js";
@@ -87,7 +88,7 @@ app.use("/api/rooms", roomRoutes); //rooms
 
 app.use("/api/caretaker/elders", caretakerElderRoutes);
 app.use("/api/assign", assignmentRoutes); //to asiign meal and rooms
-
+app.use("/api/meal-preferences", mealPreferenceRoutes);
 //Consultation Routes
 app.use("/api/consultations", consultationRoutes);
 
