@@ -335,7 +335,7 @@ export default function DoctorConsultations() {
           )}
           {date && time && checkTimeConflict(new Date(`${date}T${time}`)) && (
             <p className="text-xs text-red-500 mt-1">
-              ⚠️ This time conflicts with an existing appointment (30-min)
+              you can only select after 30 min of current time
             </p>
           )}
         </div>
