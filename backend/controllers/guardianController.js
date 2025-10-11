@@ -13,9 +13,27 @@ export const registerGuardian = async (req, res) => {
   const { name, address, email, phone, username, password } = req.body;
 
   try {
+    const emailRegex = /^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$/;
+    const phoneRegex = /^0\d{9}$/;
+
+    if (!name || name.trim().length < 3) {
+      return res
+        .status(400)
+        .json({ message: "Name must be at least 3 characters long" });
+    }
+
+    if (!email || !emailRegex.test(email)) {
+      return res.status(400).json({ message: "Invalid email format" });
+    }
+
+    if (!phone || !phoneRegex.test(phone)) {
+      return res.status(400).json({
+        message: "Phone number must start with 0 and contain exactly 10 digits",
+      });
+    }
     // Check if email, username, or phone already exists
-    const existing = await Guardian.findOne({ 
-      $or: [{ email }, { username }, { phone }] 
+    const existing = await Guardian.findOne({
+      $or: [{ email }, { username }, { phone }],
     });
     if (existing) {
       return res.status(400).json({ message: "Guardian already exists" });
@@ -137,6 +155,28 @@ export const updateProfile = async (req, res) => {
       return res.status(404).json({ message: "Guardian not found" });
     }
 
+    const emailRegex = /^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$/;
+    const phoneRegex = /^0\d{9}$/;
+
+    if (req.body.name && req.body.name.trim().length < 3) {
+      return res
+        .status(400)
+        .json({ message: "Name must be at least 3 characters long" });
+    }
+
+    if (req.body.email && !emailRegex.test(req.body.email)) {
+      return res.status(400).json({ message: "Invalid email format" });
+    }
+
+    if (req.body.phone && !phoneRegex.test(req.body.phone)) {
+      return res
+        .status(400)
+        .json({
+          message:
+            "Phone number must start with 0 and contain exactly 10 digits",
+        });
+    }
+
     // Update fields if provided
     guardian.name = req.body.name || guardian.name;
     guardian.email = req.body.email || guardian.email;
@@ -146,7 +186,7 @@ export const updateProfile = async (req, res) => {
 
     // Update password if provided
     if (req.body.password) {
-      guardian.password = req.body.password; // make sure your pre-save hook hashes it
+      guardian.password = req.body.password;
     }
 
     const updatedGuardian = await guardian.save();
