@@ -435,8 +435,8 @@ export default function CaretakerConsultations() {
         rows={filteredAppointments.map((a) => [
           a.elder?.fullName || "—",
           a.doctor?.staff?.name || "—",
-          formatDate(a.date), // ✨ MODIFIED
-          <StatusBadge status={a.status} />,
+          formatDate(a.date),
+          <StatusBadge key={`status-${a._id}`} status={a.status} />, // <-- Badge here
           <button
             key={`dl-${a._id}`}
             onClick={() => downloadAppointmentPDF(a)}
@@ -510,7 +510,7 @@ export default function CaretakerConsultations() {
                       <ConsultationStatusBadge status={c.status} />
                     </Td>
                     <Td>{c.responseNotes || "—"}</Td>
-                    <Td>{formatDate(c.requestDate)}</Td> {/* ✨ MODIFIED */}
+                    <Td>{formatDate(c.requestDate)}</Td> {/*  MODIFIED */}
                     <Td>
                       <button
                         onClick={() => handleDelete(c._id, "consultations")}
@@ -547,7 +547,7 @@ export default function CaretakerConsultations() {
           p.elder?.fullName || "—",
           p.doctor?.staff?.name || "—",
           p.doctor?.specialization || "—",
-          formatDate(p.createdAt), // ✨ MODIFIED
+          formatDate(p.createdAt), //  MODIFIED
           p.notes || "—",
           <div key={p._id}>
             {p.drugs?.map((d, i) => (
@@ -592,14 +592,20 @@ export default function CaretakerConsultations() {
                   ))}
                 </select>
               </div>
+
               <div>
-                <label className="block text-sm">Reason</label>
+                <label className="block text-sm">Reason (minimum 20 words)</label>
                 <textarea
                   value={reason}
                   onChange={(e) => setReason(e.target.value)}
                   className="w-full border rounded-lg p-2"
+                  rows="4"
+                  placeholder="Please describe the reason for consultation in detail (at least 20 words)..."
                   required
                 />
+                <p className="text-xs text-gray-500 mt-1">
+                  Word count: {reason.trim().split(/\s+/).filter(word => word.length > 0).length} / 10 minimum
+                </p>
               </div>
               <div>
                 <label className="block text-sm">Priority</label>
@@ -764,4 +770,5 @@ function StatusBadge({ status }) {
       {status}
     </span>
   );
+  
 }
