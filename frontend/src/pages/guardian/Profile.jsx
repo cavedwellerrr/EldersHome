@@ -20,6 +20,7 @@ const Profile = () => {
   const [isUpdating, setIsUpdating] = useState(false);
   const [updateMessage, setUpdateMessage] = useState("");
   const [deletingElderId, setDeletingElderId] = useState(null);
+  const [appointments, setAppointments] = useState([]);
 
   useEffect(() => {
     if (!loading && !auth) {
@@ -86,6 +87,21 @@ const Profile = () => {
       });
     }
   };
+  //fetch appointments
+  useEffect(() => {
+    const fetchAppointments = async () => {
+      try {
+        if (auth?._id) {
+          const res = await api.get(`/appointments/guardian/${auth._id}`);
+          setAppointments(res.data);
+        }
+      } catch (err) {
+        console.error("Failed to fetch appointments:", err);
+      }
+    };
+    fetchAppointments();
+  }, [auth]);
+
 
   // Handle profile update
   const handleUpdateProfile = async (e) => {
@@ -101,15 +117,15 @@ const Profile = () => {
       }
 
       const response = await api.put('/guardians/updateProfile', updateData);
-      
+
       // Update auth context with new data
       setAuth(response.data);
-      
+
       setUpdateMessage("Profile updated successfully!");
       setTimeout(() => {
         closeEditModal();
       }, 1500);
-      
+
     } catch (error) {
       console.error("Failed to update profile:", error);
       setUpdateMessage(
@@ -134,10 +150,10 @@ const Profile = () => {
     try {
       // Make API call to delete elder
       await api.delete(`/elders/${elderId}`);
-      
+
       // Remove elder from local state
       setElders(prevElders => prevElders.filter(elder => elder._id !== elderId));
-      
+
     } catch (error) {
       console.error("Failed to delete elder:", error);
       alert("Failed to delete elder. Please try again.");
@@ -199,7 +215,7 @@ const Profile = () => {
     doc.setTextColor(0, 0, 0);
     doc.text(`Full Name: ${elder.fullName}`, 25, yPosition);
     yPosition += 7;
-    
+
     doc.text(`Status: ${formatStatus(elder.status)}`, 25, yPosition);
     yPosition += 7;
 
@@ -261,7 +277,7 @@ const Profile = () => {
       yPosition += 7;
       doc.text(`Phone: ${caretaker.phone}`, 25, yPosition);
       yPosition += 7;
-      
+
       if (caretaker.specialization) {
         doc.text(`Specialization: ${caretaker.specialization}`, 25, yPosition);
         yPosition += 7;
@@ -301,7 +317,7 @@ const Profile = () => {
       </div>
     </div>
   );
-  
+
   if (!auth) return null;
 
   const formatStatus = (status) => {
@@ -386,7 +402,7 @@ const Profile = () => {
       {/* Main Content */}
       <div className="max-w-7xl mx-auto px-4 py-8">
         <div className="grid lg:grid-cols-3 gap-8">
-          
+
           {/* Profile Information Card */}
           <div className="lg:col-span-1">
             <div className="bg-white rounded-2xl shadow-lg overflow-hidden">
@@ -403,7 +419,7 @@ const Profile = () => {
                 </h2>
                 <p className="text-orange-100">Guardian Account</p>
               </div>
-              
+
               <div className="p-6 space-y-4">
                 <div className="flex items-center space-x-3">
                   <div className="w-10 h-10 bg-orange-100 rounded-lg flex items-center justify-center">
@@ -452,7 +468,7 @@ const Profile = () => {
                     </svg>
                     Edit Profile
                   </button>
-                  
+
                   <Link
                     to="/elder-register"
                     className="btn btn-primary bg-orange-500 hover:bg-orange-600 border-orange-500 hover:border-orange-600 w-full text-white"
@@ -462,7 +478,7 @@ const Profile = () => {
                     </svg>
                     Request Elder Account
                   </Link>
-                  
+
                   <button
                     onClick={logout}
                     className="btn btn-outline btn-error w-full"
@@ -553,7 +569,7 @@ const Profile = () => {
                                     </svg>
                                     PDF
                                   </button>
-                                  
+
                                   {/* Delete Button - Only show for rejected elders */}
                                   {elder.status === "REJECTED" && (
                                     <button
@@ -595,7 +611,7 @@ const Profile = () => {
                                   </svg>
                                   Assigned Caretaker
                                 </h5>
-                                
+
                                 {elder.caretaker ? (
                                   <div className="flex items-center space-x-4 bg-green-50 p-3 rounded-lg border border-green-200">
                                     <div className="avatar placeholder">
@@ -632,6 +648,27 @@ const Profile = () => {
                               </div>
                             </div>
                           </div>
+                          {/* Appointments Section */}
+                          <div className="bg-white rounded-lg p-4 border border-orange-100 mt-4">
+                            <h5 className="font-semibold text-gray-900 mb-2">Doctor Appointments</h5>
+
+                            {appointments
+                              .filter(appt => appt.elder?._id === elder._id) // only this elder
+                              .length > 0 ? (
+                              appointments
+                                .filter(appt => appt.elder?._id === elder._id)
+                                .map(appt => (
+                                  <div key={appt._id} className="p-2 border-b border-gray-200 last:border-b-0">
+                                    <p><strong>Date:</strong> {new Date(appt.date).toLocaleString()}</p>
+                                    <p><strong>Doctor:</strong> {appt.doctor?.staff?.name || "N/A"}</p>
+                                    <p><strong>Status:</strong> {appt.status}</p>
+                                  </div>
+                                ))
+                            ) : (
+                              <p className="text-gray-500">No appointments yet</p>
+                            )}
+                          </div>
+
                         </div>
                       </div>
                     ))}

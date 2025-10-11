@@ -44,27 +44,8 @@ export const requestConsultation = async (req, res) => {
 };
 
 //  Doctor views pending consultations
-export const listPendingConsultations = async (req, res) => {
-  try {
-    const consultations = await Consultation.find({ status: "Pending" })
-      .populate("elder", "fullName dob guardian")
-      .populate({
-        path: "caretaker",
-        populate: { path: "staff", select: "name email" },
-      })
-      .populate({
-  path: "doctor",
-  populate: { path: "staff", select: "name email" },
-});
 
-    res.status(200).json(consultations);
-  } catch (error) {
-    console.error("Error listing consultations:", error);
-    res.status(500).json({ message: error.message });
-  }
-};
 
-//  Doctor updates consultation (Approve/Reject)
 //  Doctor updates consultation (Approve/Reject)
 export const updateConsultation = async (req, res) => {
   try {
@@ -124,57 +105,10 @@ export const updateConsultation = async (req, res) => {
   }
 };
 
-//get Consultss
-// 
-export const getMyConsultations = async (req, res) => {
-  try {
-    const consultations = await Consultation.find()
-      .populate("elder", "fullName guardian dob")
-      .populate({
-        path: "doctor",
-        populate: { path: "staff", select: "name email" },
-      })
-      .populate({
-        path: "caretaker",
-        populate: { path: "staff", select: "name email" },
-      })
-      .sort({ createdAt: -1 });
-
-    res.json(consultations);
-  } catch (err) {
-    console.error("Error fetching consultations:", err);
-    res
-      .status(500)
-      .json({ message: "Error fetching consultations" });
-  }
-};
+//get Consultss for caretaker
 
 
-export const getDoctorConsultations = async (req, res) => {
-  try {
-    if (!req.staff || req.staff.role !== "doctor") {
-      return res.status(403).json({ message: "Only doctors can view consultations" });
-    }
 
-    // find doctor profile linked to logged-in staff
-    const doctor = await Doctor.findOne({ staff: req.staff._id });
-    if (!doctor) return res.status(404).json({ message: "Doctor profile not found" });
-
-    // get consultations assigned to this doctor
-    const consultations = await Consultation.find({ doctor: doctor._id })
-      .populate("elder", "fullName dob guardian")
-      .populate({
-        path: "caretaker",
-        populate: { path: "staff", select: "name email" },
-      })
-      .sort({ createdAt: -1 });
-
-    res.json(consultations);
-  } catch (err) {
-    console.error("Error fetching doctor consultations:", err);
-    res.status(500).json({ message: "Error fetching consultations" });
-  }
-};
 
 // controllers/consultationController.js
 export const deleteConsultation = async (req, res) => {

@@ -1,19 +1,18 @@
 // frontend/src/pages/staff/CaretakerConsultations.jsx
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState, useRef, forwardRef } from "react";
 import api from "../../api";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
-import jsPDF from "jspdf"; //  added for PDF
-import { FaDownload } from "react-icons/fa"; //  added for download icon
+import jsPDF from "jspdf";
+import { FaDownload, FaTimes } from "react-icons/fa";
 
 export default function CaretakerConsultations() {
-  // ---------- STATE ----------
   const [elders, setElders] = useState([]);
   const [caretakerId, setCaretakerId] = useState("");
   const [consultations, setConsultations] = useState([]);
   const [appointments, setAppointments] = useState([]);
   const [doctors, setDoctors] = useState([]);
-  const [prescriptions, setPrescriptions] = useState([]); 
+  const [prescriptions, setPrescriptions] = useState([]);
 
   const [selectedElder, setSelectedElder] = useState(null);
   const [reason, setReason] = useState("");
@@ -22,15 +21,19 @@ export default function CaretakerConsultations() {
   const [submitting, setSubmitting] = useState(false);
 
   const [statusFilter, setStatusFilter] = useState("All");
-  const [search, setSearch] = useState("");
-  const [apptSearch, setApptSearch] = useState("");
+  const [searchElder, setSearchElder] = useState("");
+  const [searchAppt, setSearchAppt] = useState("");
+  const [searchPresc, setSearchPresc] = useState("");
   const [apptDate, setApptDate] = useState("");
+  const [prescDate, setPrescDate] = useState("");
   const [sortLatest, setSortLatest] = useState(true);
-
-  //  New state for consultations sort
   const [consultSortLatest, setConsultSortLatest] = useState(true);
 
-  // ---------- HELPERS ----------
+  const eldersRef = useRef(null);
+  const appointmentsRef = useRef(null);
+  const consultationsRef = useRef(null);
+  const prescriptionsRef = useRef(null);
+
   const getToken = () =>
     localStorage.getItem("staffToken") ||
     localStorage.getItem("token") ||
@@ -47,7 +50,27 @@ export default function CaretakerConsultations() {
     return age;
   };
 
-  // ---------- FETCH ----------
+  // ✨ --- NEW: Centralized date formatting function ---
+  const formatDate = (dateString) => {
+    if (!dateString) return "—";
+    const date = new Date(dateString);
+    if (isNaN(date.getTime())) return "—";
+
+    // Options to format the date for Sri Lanka's timezone and a readable format
+    const options = {
+      year: "numeric",
+      month: "short",
+      day: "numeric",
+      hour: "2-digit",
+      minute: "2-digit",
+      hour12: true,
+      timeZone: "Asia/Colombo",
+    };
+
+    return date.toLocaleString("en-US", options);
+  };
+
+  //  FETCH
   const fetchElders = async () => {
     try {
       const token = getToken();
@@ -96,17 +119,18 @@ export default function CaretakerConsultations() {
       toast.error("Failed to load appointments");
     }
   };
+
   const fetchPrescriptions = async () => {
-  try {
-    const token = getToken();
-    const res = await api.get("/prescriptions/caretaker/my", {
-      headers: { Authorization: `Bearer ${token}` },
-    });
-    setPrescriptions(res.data || []);
-  } catch {
-    toast.error("Failed to load prescriptions");
-  }
-};
+    try {
+      const token = getToken();
+      const res = await api.get("/prescriptions/caretaker/my", {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      setPrescriptions(res.data || []);
+    } catch {
+      toast.error("Failed to load prescriptions");
+    }
+  };
 
   useEffect(() => {
     fetchElders();
@@ -116,7 +140,7 @@ export default function CaretakerConsultations() {
     fetchPrescriptions();
   }, []);
 
-  // ---------- SUBMIT ----------
+  //  SUBMIT
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!reason || !doctorId) {
@@ -143,94 +167,118 @@ export default function CaretakerConsultations() {
       setSubmitting(false);
     }
   };
-  
-  //delete Appontmetn
-  const handleDeleteAppointment = async (id) => {
-  if (!window.confirm("Are you sure you want to delete this appointment?")) return;
 
-  try {
-    const token = getToken();
-    await api.delete(`/appointments/${id}`, {
-      headers: { Authorization: `Bearer ${token}` },
-    });
-    toast.success("Appointment deleted successfully!");
-    setAppointments((prev) => prev.filter((a) => a._id !== id)); // remove locally
-  } catch (err) {
-    console.error("DELETE /appointments/:id failed:", err?.response?.status, err?.response?.data);
-    toast.error(err?.response?.data?.message || "Failed to delete appointment");
-  }
-};
-
-
-  // ---------- DELETE ----------
-  const handleDelete = async (id) => {
-    if (!window.confirm("Are you sure you want to cancel this request?")) return;
+  //  DELETE
+  const handleDelete = async (id, type) => {
+    if (!window.confirm("Are you sure you want to delete this?")) return;
     try {
       const token = getToken();
-      await api.delete(`/consultations/${id}`, {
+      await api.delete(`/${type}/${id}`, {
         headers: { Authorization: `Bearer ${token}` },
       });
-      toast.success("Consultation deleted!");
-      setConsultations((prev) => prev.filter((c) => c._id !== id));
-    } catch (err) {
-      console.error("DELETE /consultations/:id failed:", err?.response?.status, err?.response?.data);
-      toast.error(err?.response?.data?.message || "Failed to delete consultation");
+      toast.success(`${type} deleted!`);
+      if (type === "appointments")
+        setAppointments((prev) => prev.filter((a) => a._id !== id));
+      if (type === "consultations")
+        setConsultations((prev) => prev.filter((c) => c._id !== id));
+    } catch {
+      toast.error(`Failed to delete ${type}`);
     }
   };
 
-  // ---------- PDF EXPORT (appointment slip) ----------
-const downloadAppointmentPDF = (appt) => {
-  const doc = new jsPDF();
+  // appointment download
+  const downloadAppointmentPDF = (appt) => {
+    const doc = new jsPDF();
 
-  // Header
-  doc.setFontSize(16);
-  doc.text("Elders Home", 105, 15, { align: "center" });
+    // Theme color (Tailwind bg-orange-500)
+    const orange = "#F97316";
 
-  // Title
-  doc.setFontSize(20);
-  doc.text("Appointment Slip", 105, 30, { align: "center" });
+    //  HEADER
+    doc.setFillColor(249, 115, 22); // orange-500 RGB(249,115,22)
+    doc.rect(0, 0, 210, 30, "F");
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(20);
+    doc.setTextColor(255, 255, 255);
+    doc.text("Elders Care Home", 14, 20);
 
-  // Draw a box around details
-  doc.rect(10, 40, 190, 80); // x, y, width, height
+    //  TITLE
+    doc.setFontSize(16);
+    doc.setTextColor(0, 0, 0);
+    doc.text("Appointment Slip", 105, 45, { align: "center" });
 
-  // Appointment Details
-  doc.setFontSize(12);
-  doc.text(`Elder: ${appt.elder?.fullName || "—"}`, 20, 55);
-  doc.text(`Doctor: ${appt.doctor?.staff?.name || "—"}`, 20, 65);
-  doc.text(`Specialization: ${appt.doctor?.specialization || "—"}`, 20, 75);
-  doc.text(`Date: ${new Date(appt.date).toLocaleString()}`, 20, 85);
+    //  CARD SECTION
+    doc.setDrawColor(249, 115, 22); // border orange
+    doc.setLineWidth(1);
+    doc.roundedRect(15, 55, 180, 90, 6, 6);
 
+    //  LABELS & VALUES
+    const labels = [
+      "Elder Name:",
+      "Doctor Name:",
+      "Specialization:",
+      "Appointment Date:",
+      "Status:",
+    ];
 
-  
+    const values = [
+      appt.elder?.fullName || "—",
+      appt.doctor?.staff?.name || "—",
+      appt.doctor?.specialization || "—",
+      formatDate(appt.date), // ✨ MODIFIED
+      appt.status || "—",
+    ];
 
-  // Footer note
-  doc.setFontSize(10);
+    let y = 72;
+    doc.setFontSize(12);
+    for (let i = 0; i < labels.length; i++) {
+      doc.setTextColor(60, 60, 60);
+      doc.setFont("helvetica", "bold");
+      doc.text(labels[i], 25, y);
 
+      doc.setFont("helvetica", "normal");
+      doc.setTextColor(30, 30, 30);
+      doc.text(values[i], 80, y);
+      y += 15;
+    }
 
-  doc.save(`Appointment_${appt._id}.pdf`);
-};
-
-
-  // ---------- FILTER & SORT ----------
-  const filteredConsultations = useMemo(() => {
-    let list =
-      statusFilter === "All"
-        ? [...consultations]
-        : consultations.filter((c) => c.status === statusFilter);
-
-    list.sort((a, b) =>
-      consultSortLatest
-        ? new Date(b.requestDate) - new Date(a.requestDate)
-        : new Date(a.requestDate) - new Date(b.requestDate)
+    //  FOOTER BAR
+    doc.setFillColor(249, 115, 22);
+    doc.rect(0, 160, 210, 20, "F");
+    doc.setFontSize(10);
+    doc.setTextColor(255, 255, 255);
+    doc.text(
+      "Please bring this slip on your appointment day and arrive 15 min before the consultation time. For inquiries, contact your Doctor.",
+      105,
+      172,
+      { align: "center" }
     );
 
-    return list;
-  }, [statusFilter, consultations, consultSortLatest]);
+    //  FOOTER CREDIT
+    doc.setFontSize(9);
+    doc.setTextColor(120);
+    doc.text("Generated by Elders Home System", 105, 190, {
+      align: "center",
+    });
+
+    // Save file
+    doc.save(`Appointment_${appt._id}.pdf`);
+  };
+
+  //  FILTERS
+  const filteredElders = useMemo(() => {
+    if (!searchElder.trim()) return elders;
+    const s = searchElder.toLowerCase();
+    return elders.filter(
+      (e) =>
+        e.fullName.toLowerCase().includes(s) ||
+        e.guardian?.name?.toLowerCase().includes(s)
+    );
+  }, [elders, searchElder]);
 
   const filteredAppointments = useMemo(() => {
     let list = [...appointments];
-    if (apptSearch.trim()) {
-      const s = apptSearch.toLowerCase();
+    if (searchAppt.trim()) {
+      const s = searchAppt.toLowerCase();
       list = list.filter(
         (a) =>
           a.elder?.fullName?.toLowerCase().includes(s) ||
@@ -238,10 +286,9 @@ const downloadAppointmentPDF = (appt) => {
       );
     }
     if (apptDate) {
-      list = list.filter((a) => {
-        const d = new Date(a.date).toISOString().slice(0, 10);
-        return d === apptDate;
-      });
+      list = list.filter(
+        (a) => new Date(a.date).toISOString().slice(0, 10) === apptDate
+      );
     }
     list.sort((a, b) =>
       sortLatest
@@ -249,173 +296,167 @@ const downloadAppointmentPDF = (appt) => {
         : new Date(a.date) - new Date(b.date)
     );
     return list;
-  }, [appointments, apptSearch, apptDate, sortLatest]);
+  }, [appointments, searchAppt, apptDate, sortLatest]);
 
-  
+  const filteredConsultations = useMemo(() => {
+    let list =
+      statusFilter === "All"
+        ? [...consultations]
+        : consultations.filter((c) => c.status === statusFilter);
+    list.sort((a, b) =>
+      consultSortLatest
+        ? new Date(b.requestDate) - new Date(a.requestDate)
+        : new Date(a.requestDate) - new Date(b.requestDate)
+    );
+    return list;
+  }, [consultations, statusFilter, consultSortLatest]);
+
+  const filteredPrescriptions = useMemo(() => {
+    let list = [...prescriptions];
+    if (searchPresc.trim()) {
+      const s = searchPresc.toLowerCase();
+      list = list.filter(
+        (p) =>
+          p.elder?.fullName?.toLowerCase().includes(s) ||
+          p.doctor?.staff?.name?.toLowerCase().includes(s)
+      );
+    }
+    if (prescDate) {
+      list = list.filter(
+        (p) => new Date(p.createdAt).toISOString().slice(0, 10) === prescDate
+      );
+    }
+    return list;
+  }, [prescriptions, searchPresc, prescDate]);
+
+  const nextAppointmentDate = useMemo(() => {
+    const now = new Date();
+    const upcomingAppointments = appointments
+      .filter(
+        (appt) =>
+          new Date(appt.date) > now &&
+          appt.status !== "Cancelled" &&
+          appt.status !== "Completed" // Exclude completed appointments
+      )
+      .sort((a, b) => new Date(a.date) - new Date(b.date));
+
+    if (upcomingAppointments.length > 0) {
+      return formatDate(upcomingAppointments[0].date); // ✨ MODIFIED
+    }
+
+    return "No upcoming";
+  }, [appointments]);
 
   // ---------- RENDER ----------
   return (
     <div className="p-6 space-y-8">
-      {/* Page Header */}
-      <h1 className="text-3xl font-bold text-orange-600">Elder Consultations</h1>
-      <p className="text-gray-600">Manage elders, appointments, and consultations</p>
+      <h1 className="text-3xl font-bold text-orange-600">
+        Consultations Dashboard
+      </h1>
+      <p className="text-gray-600">
+        Manage elders, appointments, consultations, and prescriptions
+      </p>
 
-      {/* Stats row */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-        <StatCard title="Total Elders" value={elders.length} icon="👴" />
-        <StatCard title="Appointments" value={appointments.length} icon="📅" />
-        <StatCard title="Consultations" value={consultations.length} icon="💬" />
+      {/* Stats */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-6 mt-6">
+        <StatCard
+          title="Total Elders"
+          value={elders.length}
+          icon="👴"
+          onClick={() => eldersRef.current?.scrollIntoView({ behavior: "smooth" })}
+        />
+        <StatCard
+          title="Appointments"
+          value={appointments.length}
+          icon="📅"
+          onClick={() =>
+            appointmentsRef.current?.scrollIntoView({ behavior: "smooth" })
+          }
+        />
+        <StatCard
+          title="Next Appointment"
+          value={nextAppointmentDate}
+          icon="🗓️"
+          onClick={() => appointmentsRef.current?.scrollIntoView({ behavior: "smooth" })}
+        />
+        <StatCard
+          title="Consultations"
+          value={consultations.length}
+          icon="💬"
+          onClick={() =>
+            consultationsRef.current?.scrollIntoView({ behavior: "smooth" })
+          }
+        />
         <StatCard
           title="Pending Requests"
           value={consultations.filter((c) => c.status === "Pending").length}
           icon="🕑"
+          onClick={() =>
+            consultationsRef.current?.scrollIntoView({ behavior: "smooth" })
+          }
         />
       </div>
 
-      {/* Elders Table */}
-      <section className="rounded-lg border shadow">
-        <div className="bg-orange-500 text-white p-3 rounded-t-lg font-semibold">
-          Assigned Elders
-        </div>
-        <div className="p-4 overflow-x-auto">
-          <input
-            type="text"
-            placeholder="Search elder or guardian..."
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            className="mb-3 p-2 border rounded-lg w-full md:w-1/3"
-          />
-          <table className="min-w-full text-sm">
-            <thead className="bg-gray-100">
-              <tr>
-                <Th>Name</Th>
-                <Th>Age</Th>
-                <Th>Guardian</Th>
-                <Th>Request a Consultation</Th>
-              </tr>
-            </thead>
-            <tbody>
-              {elders.map((e, idx) => (
-                <tr
-                  key={e._id}
-                  className={idx % 2 === 0 ? "bg-white" : "bg-gray-50"}
-                >
-                  <Td>{e.fullName}</Td>
-                  <Td>{calcAge(e.dob)}</Td>
-                  <Td>{e.guardian?.name || "—"}</Td>
-                  <Td>
-                    <button
-                      onClick={() => setSelectedElder(e)}
-                      className="px-3 py-1 rounded-lg bg-orange-500 text-white hover:bg-orange-600"
-                    >
-                      Request
-                    </button>
-                  </Td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      </section>
+      <TableSection
+        ref={eldersRef}
+        title="Assigned Elders"
+        searchValue={searchElder}
+        onSearchChange={setSearchElder}
+        columns={["Name", "Age", "Guardian", "Request a Consultation"]}
+        rows={filteredElders.map((e) => [
+          e.fullName,
+          calcAge(e.dob),
+          e.guardian?.name || "—",
+          <button
+            key={e._id}
+            onClick={() => setSelectedElder(e)}
+            className="px-3 py-1 rounded-lg bg-orange-500 text-white hover:bg-orange-600"
+          >
+            Request
+          </button>,
+        ])}
+      />
 
-      {/* Appointments Table */}
-      <section className="rounded-lg border shadow">
-        <div className="bg-orange-500 text-white p-3 rounded-t-lg font-semibold">
-          My Appointments
-        </div>
-        <div className="p-4">
-          <div className="flex flex-wrap gap-3 mb-4">
-            <input
-              type="text"
-              placeholder="Search by elder or doctor..."
-              value={apptSearch}
-              onChange={(e) => setApptSearch(e.target.value)}
-              className="p-2 border rounded-lg w-60"
-            />
-            <input
-              type="date"
-              value={apptDate}
-              onChange={(e) => setApptDate(e.target.value)}
-              className="p-2 border rounded-lg"
-            />
-            <button
-              onClick={() => setSortLatest(!sortLatest)}
-              className="px-4 py-2 bg-orange-500 text-white rounded-lg hover:bg-orange-600"
-            >
-              {sortLatest ? "Sort: Latest → Oldest" : "Sort: Oldest → Latest"}
-            </button>
-          </div>
-          <div className="overflow-x-auto">
-            <table className="min-w-full text-sm">
-              <thead className="bg-gray-100">
-                <tr>
-                  <Th>Elder</Th>
-                  <Th>Doctor</Th>
-                  <Th>Date</Th>
-                  <Th>Status</Th>
-                  <Th>Download Appointment</Th>
-                  <Th>Action</Th>
-                </tr>
-              </thead>
-              <tbody>
-                {filteredAppointments.map((a, idx) => (
-                  <tr
-                    key={a._id}
-                    className={idx % 2 === 0 ? "bg-white" : "bg-gray-50"}
-                  >
-                    <Td>{a.elder?.fullName || "—"}</Td>
-                    <Td>{a.doctor?.staff?.name || "—"}</Td>
-                    <Td>{new Date(a.date).toLocaleString()}</Td>
-                    <Td>
-                      <span
-                        className={`px-2 py-1 rounded-full text-xs font-semibold ${
-                          a.status === "pending"
-                            ? "bg-yellow-100 text-yellow-700"
-                            : a.status === "accepted"
-                            ? "bg-green-100 text-green-700"
-                            : a.status === "completed"
-                            ? "bg-blue-100 text-blue-700"
-                            : "bg-red-100 text-red-700"
-                        }`}
-                      >
-                        {a.status}
-                      </span>
-                    </Td>
-                    <Td>
-                      <button
-                        onClick={() => downloadAppointmentPDF(a)}
-                        className="text-blue-600 hover:text-blue-800"
-                        title="Download Appointment Slip"
-                      >
-                        <FaDownload />
-                      </button>
-                    </Td>
-                    <Td>
-                    <button
-                      onClick={() => handleDeleteAppointment(a._id)}
-                      className="px-2 py-1 bg-red-500 text-white rounded-lg hover:bg-red-600"
-                    >
-                      Delete
-                    </button>
-                  </Td>
-                    
-                  </tr>
-                ))}
-                {filteredAppointments.length === 0 && (
-                  <tr>
-                    <td colSpan={5} className="p-4 text-gray-500 text-center">
-                      No appointments found
-                    </td>
-                  </tr>
-                )}
-              </tbody>
-            </table>
-          </div>
-        </div>
-      </section>
+      <TableSection
+        ref={appointmentsRef}
+        title="My Appointments"
+        searchValue={searchAppt}
+        onSearchChange={setSearchAppt}
+        dateValue={apptDate}
+        onDateChange={setApptDate}
+        columns={[
+          "Elder",
+          "Doctor",
+          "Date",
+          "Consultation",
+          "Download",
+          "Action",
+        ]}
+        rows={filteredAppointments.map((a) => [
+          a.elder?.fullName || "—",
+          a.doctor?.staff?.name || "—",
+          formatDate(a.date),
+          <StatusBadge key={`status-${a._id}`} status={a.status} />, // <-- Badge here
+          <button
+            key={`dl-${a._id}`}
+            onClick={() => downloadAppointmentPDF(a)}
+            className="text-blue-600 hover:text-blue-800"
+            title="Download Appointment Slip"
+          >
+            <FaDownload />
+          </button>,
+          <button
+            key={`del-${a._id}`}
+            onClick={() => handleDelete(a._id, "appointments")}
+            className="px-2 py-1 bg-red-500 text-white rounded-lg hover:bg-red-600"
+          >
+            Delete
+          </button>,
+        ])}
+      />
 
       {/* Consultations Table */}
-      <section className="rounded-lg border shadow">
+      <div ref={consultationsRef} className="rounded-lg border shadow">
         <div className="bg-orange-500 text-white p-3 rounded-t-lg font-semibold">
           My Consultation Requests
         </div>
@@ -434,7 +475,6 @@ const downloadAppointmentPDF = (appt) => {
                 {f}
               </button>
             ))}
-            {/*  New Sort Toggle */}
             <button
               onClick={() => setConsultSortLatest(!consultSortLatest)}
               className="px-3 py-1 rounded-lg bg-orange-500 text-white hover:bg-orange-600 ml-auto"
@@ -466,22 +506,18 @@ const downloadAppointmentPDF = (appt) => {
                     <Td>{c.elder?.fullName || "—"}</Td>
                     <Td>{c.reason}</Td>
                     <Td>{c.priority}</Td>
-                    <Td>{c.status}</Td>
-                    <Td>{c.responseNotes || "—"}</Td>
                     <Td>
-                      {c.requestDate
-                        ? new Date(c.requestDate).toLocaleString()
-                        : "—"}
+                      <ConsultationStatusBadge status={c.status} />
                     </Td>
+                    <Td>{c.responseNotes || "—"}</Td>
+                    <Td>{formatDate(c.requestDate)}</Td> {/*  MODIFIED */}
                     <Td>
-                      { (
-                        <button
-                          onClick={() => handleDelete(c._id)}
-                          className="px-2 py-1 bg-red-500 text-white rounded-lg hover:bg-red-600"
-                        >
-                          Cancel
-                        </button>
-                      )}
+                      <button
+                        onClick={() => handleDelete(c._id, "consultations")}
+                        className="px-2 py-1 bg-red-500 text-white rounded-lg hover:bg-red-600"
+                      >
+                        Cancel
+                      </button>
                     </Td>
                   </tr>
                 ))}
@@ -489,61 +525,47 @@ const downloadAppointmentPDF = (appt) => {
             </table>
           </div>
         </div>
-      </section>
-       <section className="rounded-lg border shadow">
-  <div className="bg-orange-500 text-white p-3 rounded-t-lg font-semibold">
+      </div>
 
-    {/* Prescription table */}
-    My Elders' Prescriptions
-  </div>
-  <div className="p-4 overflow-x-auto">
-    {prescriptions.length > 0 ? (
-      <table className="min-w-full text-sm">
-        <thead className="bg-gray-100">
-          <tr>
-            <Th>Elder</Th>
-            <Th>Doctor</Th>
-            <Th>Specialization</Th>
-            <Th>Date</Th>
-            <Th>Notes</Th>
-            <Th>Medicines</Th>
-          </tr>
-        </thead>
-        <tbody>
-          {prescriptions.map((p, idx) => (
-            <tr
-              key={p._id}
-              className={idx % 2 === 0 ? "bg-white" : "bg-gray-50"}
-            >
-              <Td>{p.elder?.fullName || "—"}</Td>
-              <Td>{p.doctor?.staff?.name || "—"}</Td>
-              <Td>{p.doctor?.specialization || "—"}</Td>
-              <Td>{new Date(p.createdAt).toLocaleString()}</Td>
-              <Td>{p.notes || "—"}</Td>
-              <Td>
-                {p.drugs?.map((d, i) => (
-                  <div key={i}>
-                    {d.name} – {d.dosage}, {d.frequency} for {d.duration}
-                  </div>
-                ))}
-              </Td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
-    ) : (
-      <p className="text-gray-500 text-center">No prescriptions found</p>
-    )}
-  </div>
-</section>
-         
-      
+      {/* Prescriptions Table */}
+      <TableSection
+        ref={prescriptionsRef}
+        title="My Elders' Prescriptions"
+        searchValue={searchPresc}
+        onSearchChange={setSearchPresc}
+        dateValue={prescDate}
+        onDateChange={setPrescDate}
+        columns={[
+          "Elder",
+          "Doctor",
+          "Specialization",
+          "Date",
+          "Notes",
+          "Medicines",
+        ]}
+        rows={filteredPrescriptions.map((p) => [
+          p.elder?.fullName || "—",
+          p.doctor?.staff?.name || "—",
+          p.doctor?.specialization || "—",
+          formatDate(p.createdAt), //  MODIFIED
+          p.notes || "—",
+          <div key={p._id}>
+            {p.drugs?.map((d, i) => (
+              <div key={i}>
+                {d.name} – {d.dosage}, {d.frequency} for {d.duration}
+              </div>
+            ))}
+          </div>,
+        ])}
+      />
 
-      {/* Modal */}
+      {/* Consultation Modal */}
       {selectedElder && (
         <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
           <div className="bg-white rounded-xl p-6 w-[400px] shadow-xl">
-            <h2 className="text-lg font-semibold mb-4">Request Consultation</h2>
+            <h2 className="text-lg font-semibold mb-4">
+              Request Consultation
+            </h2>
             <form onSubmit={handleSubmit} className="space-y-3">
               <div>
                 <label className="block text-sm">Elder</label>
@@ -570,14 +592,20 @@ const downloadAppointmentPDF = (appt) => {
                   ))}
                 </select>
               </div>
+
               <div>
-                <label className="block text-sm">Reason</label>
+                <label className="block text-sm">Reason (minimum 20 words)</label>
                 <textarea
                   value={reason}
                   onChange={(e) => setReason(e.target.value)}
                   className="w-full border rounded-lg p-2"
+                  rows="4"
+                  placeholder="Please describe the reason for consultation in detail (at least 20 words)..."
                   required
                 />
+                <p className="text-xs text-gray-500 mt-1">
+                  Word count: {reason.trim().split(/\s+/).filter(word => word.length > 0).length} / 10 minimum
+                </p>
               </div>
               <div>
                 <label className="block text-sm">Priority</label>
@@ -615,22 +643,132 @@ const downloadAppointmentPDF = (appt) => {
     </div>
   );
 }
+function ConsultationStatusBadge({ status }) {
+  const colors = {
+    Pending: "bg-yellow-100 text-yellow-800 border-yellow-300",
+    Approved: "bg-green-100 text-green-800 border-green-300",
+    Rejected: "bg-red-100 text-red-800 border-red-300",
+  };
 
-// ---------- SMALL COMPONENTS ----------
-function StatCard({ title, value, icon }) {
   return (
-    <div className="p-4 bg-white rounded-lg shadow flex items-center justify-between">
+    <span
+      className={`px-3 py-1 rounded-full text-xs font-semibold border ${
+        colors[status] || "bg-gray-100 text-gray-800 border-gray-300"
+      }`}
+    >
+      {status}
+    </span>
+  );
+}
+
+//  other components
+function StatCard({ title, value, icon, onClick }) {
+  return (
+    <div
+      onClick={onClick}
+      className="p-4 bg-gradient-to-r from-orange-100 to-orange-50 rounded-2xl shadow-lg flex items-center justify-between transform hover:scale-105 transition-transform duration-300 cursor-pointer"
+    >
       <div>
-        <p className="text-sm text-gray-600">{title}</p>
-        <h3 className="text-xl font-bold">{value}</h3>
+        <p className="text-sm text-gray-500">{title}</p>
+        <h3 className="text-xl font-bold text-orange-600">{value}</h3>
       </div>
-      <span className="text-2xl">{icon}</span>
+      <div className="text-3xl">{icon}</div>
     </div>
   );
 }
-function Th({ children }) {
-  return <th className="px-3 py-2 font-semibold text-left">{children}</th>;
-}
-function Td({ children, className = "" }) {
-  return <td className={`px-3 py-2 ${className}`}>{children}</td>;
+
+const TableSection = forwardRef(function TableSection(
+  {
+    title,
+    searchValue,
+    onSearchChange,
+    dateValue,
+    onDateChange,
+    columns,
+    rows,
+  },
+  ref
+) {
+  return (
+    <div ref={ref} className="rounded-lg border shadow">
+      <div className="bg-orange-500 text-white p-3 rounded-t-lg font-semibold">
+        {title}
+      </div>
+      <div className="p-4 space-y-3">
+        <div className="flex flex-col sm:flex-row gap-2">
+          <input
+            type="text"
+            value={searchValue}
+            onChange={(e) => onSearchChange(e.target.value)}
+            placeholder="Search..."
+            className="border p-2 rounded-lg flex-1"
+          />
+          {dateValue !== undefined && (
+            <input
+              type="date"
+              value={dateValue}
+              onChange={(e) => onDateChange(e.target.value)}
+              className="border p-2 rounded-lg"
+            />
+          )}
+          <button
+            onClick={() => {
+              onSearchChange("");
+              if (onDateChange) onDateChange("");
+            }}
+            className="px-3 py-1 bg-red-500 text-white rounded-lg hover:bg-red-600"
+            title="Clear Filters"
+          >
+            <FaTimes />
+          </button>
+        </div>
+        <div className="overflow-x-auto">
+          <table className="min-w-full text-sm">
+            <thead className="bg-gray-100">
+              <tr>
+                {columns.map((c) => (
+                  <Th key={c}>{c}</Th>
+                ))}
+              </tr>
+            </thead>
+            <tbody>
+              {rows.map((r, i) => (
+                <tr key={i} className={i % 2 === 0 ? "bg-white" : "bg-gray-50"}>
+                  {r.map((v, j) => (
+                    <Td key={j}>{v}</Td>
+                  ))}
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  );
+});
+
+const Th = ({ children }) => (
+  <th className="px-4 py-2 text-left font-medium">{children}</th>
+);
+const Td = ({ children }) => <td className="px-4 py-2">{children}</td>;
+
+function StatusBadge({ status }) {
+  const colors = {
+    Pending: "bg-yellow-100 text-yellow-800 border-yellow-300",
+    Scheduled: "bg-blue-100 text-blue-800 border-blue-300",
+    Completed: "bg-green-100 text-green-800 border-green-300",
+    Cancelled: "bg-red-100 text-red-800 border-red-300",
+    Confirmed: "bg-purple-100 text-purple-800 border-purple-300",
+  };
+
+  return (
+    <span
+      className={`px-3 py-1 rounded-full text-xs font-semibold border ${
+        colors[status] || "bg-gray-100 text-gray-800 border-gray-300"
+      }`}
+    >
+      {status}
+    </span>
+  );
+  
 }

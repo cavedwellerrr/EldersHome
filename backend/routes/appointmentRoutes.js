@@ -108,6 +108,23 @@ router.delete("/:id", protectStaff, async (req, res) => {
   }
 });
 
+// Get appointments for a guardian
+router.get("/guardian/:guardianId", async (req, res) => {
+  try {
+    const appointments = await Appointment.find({ guardian: req.params.guardianId })
+      .populate("elder")          // populate elder details
+      .populate({                // populate doctor and staff info
+        path: "doctor",
+        populate: { path: "staff" } // if doctor has staff object inside
+      })
+      .populate("caretaker");    // populate caretaker details
+    res.json(appointments);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: "Server error" });
+  }
+});
+
 
 
 export default router;
