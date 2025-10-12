@@ -21,8 +21,9 @@ function CaretakerDashboard() {
     assignedElders: 0,
     totalMeals: 0,
     upcomingEvents: 0,
-    pendingTasks: 0
+    upcomingConsultations: 0
   });
+  const [todaySchedule, setTodaySchedule] = useState([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -39,12 +40,80 @@ function CaretakerDashboard() {
         // Load meals count
         const mealsRes = await api.get("/meals");
 
+        // Load upcoming events count
+        const eventsRes = await api.get("/events");
+        const currentDate = new Date();
+        const upcomingEventsCount = eventsRes.data?.data?.filter(event =>
+          new Date(event.start_time) > currentDate
+        ).length || 0;
+
+        // Load upcoming consultations count
+        const consultationsRes = await api.get("/consultations/my", {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        const upcomingConsultationsCount = consultationsRes.data?.filter(consultation =>
+          consultation.status === 'Pending' || consultation.status === 'Approved'
+        ).length || 0;
+
+        // Filter today's events and consultations for schedule
+        const today = new Date();
+        const todayStart = new Date(today.getFullYear(), today.getMonth(), today.getDate());
+        const todayEnd = new Date(today.getFullYear(), today.getMonth(), today.getDate() + 1);
+
+        const todayEvents = eventsRes.data?.data?.filter(event => {
+          const eventDate = new Date(event.start_time);
+          return eventDate >= todayStart && eventDate < todayEnd;
+        }) || [];
+
+        const todayConsultations = consultationsRes.data?.filter(consultation => {
+          // Show both pending and approved consultations for today
+          if (consultation.status !== 'Pending' && consultation.status !== 'Approved') return false;
+          const consultationDate = new Date(consultation.createdAt);
+          return consultationDate >= todayStart && consultationDate < todayEnd;
+        }) || [];
+
+        // Format schedule items
+        const scheduleItems = [
+          ...todayEvents.map(event => ({
+            title: event.title,
+            time: new Date(event.start_time).toLocaleTimeString('en-US', {
+              hour: '2-digit',
+              minute: '2-digit',
+              hour12: true
+            }),
+            type: 'event',
+            priority: 'medium',
+            description: event.description,
+            location: event.location
+          })),
+          ...todayConsultations.map(consultation => ({
+            title: 'Consultation',
+            time: new Date(consultation.createdAt).toLocaleTimeString('en-US', {
+              hour: '2-digit',
+              minute: '2-digit',
+              hour12: true
+            }),
+            type: 'consultation',
+            priority: consultation.status === 'Pending' ? 'high' : 'medium',
+            description: consultation.reason,
+            patient: consultation.elder?.fullName || 'Elder',
+            doctor: consultation.doctor?.staff?.name || 'Doctor',
+            status: consultation.status
+          }))
+        ].sort((a, b) => {
+          const timeA = new Date(`1970/01/01 ${a.time}`);
+          const timeB = new Date(`1970/01/01 ${b.time}`);
+          return timeA - timeB;
+        });
+
         setStats({
           assignedElders: eldersRes.data?.count || eldersRes.data?.elders?.length || 0,
           totalMeals: Array.isArray(mealsRes.data) ? mealsRes.data.length : mealsRes.data?.data?.length || mealsRes.data?.meals?.length || 0,
-          upcomingEvents: 0, // Placeholder for future implementation
-          pendingTasks: 0 // Placeholder for future implementation
+          upcomingEvents: upcomingEventsCount,
+          upcomingConsultations: upcomingConsultationsCount
         });
+
+        setTodaySchedule(scheduleItems);
       } catch (error) {
         console.error("Error loading dashboard data:", error);
       } finally {
@@ -86,30 +155,10 @@ function CaretakerDashboard() {
       icon: UserCheck,
       color: "purple",
       path: "/staff/caretaker-dashboard/consultations",
-      count: stats.pendingTasks
+      count: stats.upcomingConsultations
     }
   ];
 
-  const upcomingTasks = [
-    {
-      title: "Morning Medication Round",
-      time: "08:00 AM",
-      type: "medication",
-      priority: "high"
-    },
-    {
-      title: "Lunch Service",
-      time: "12:00 PM",
-      type: "meal",
-      priority: "medium"
-    },
-    {
-      title: "Evening Check-in",
-      time: "06:00 PM",
-      type: "check-in",
-      priority: "medium"
-    }
-  ];
 
   const StatCard = ({ title, value, icon: Icon, color, trend }) => (
     <div className="bg-white rounded-2xl shadow-lg border border-orange-100 p-6">
@@ -153,23 +202,65 @@ function CaretakerDashboard() {
     );
   };
 
-  const TaskItem = ({ task }) => (
-    <div className="flex items-center justify-between p-4 bg-white rounded-xl border border-orange-100 hover:shadow-md transition-all duration-200">
-      <div className="flex items-center space-x-3">
-        <div className={`w-3 h-3 rounded-full ${task.priority === 'high' ? 'bg-red-500' :
-          task.priority === 'medium' ? 'bg-orange-500' : 'bg-green-500'
-          }`}></div>
-        <div>
-          <h4 className="font-medium text-gray-900">{task.title}</h4>
-          <p className="text-sm text-gray-600">{task.type}</p>
+  const TaskItem = ({ task }) => {
+    // Different dot colors for events vs consultations
+    const getDotColor = () => {
+      if (task.type === 'consultation') {
+        return 'bg-orange-500';
+      } else if (task.type === 'event') {
+        return 'bg-blue-500';
+      }
+      return 'bg-gray-500';
+    };
+
+    // Different text colors for type label
+    const getTypeColor = () => {
+      if (task.type === 'consultation') {
+        return 'text-orange-600';
+      } else if (task.type === 'event') {
+        return 'text-blue-600';
+      }
+      return 'text-gray-600';
+    };
+
+    return (
+      <div className="flex items-center justify-between p-4 bg-white rounded-xl border border-orange-100 hover:shadow-md transition-all duration-200">
+        <div className="flex items-center space-x-3">
+          <div className={`w-3 h-3 rounded-full ${getDotColor()}`}></div>
+          <div className="flex-1">
+            <h4 className="font-medium text-gray-900">{task.title}</h4>
+            <p className={`text-sm font-medium capitalize ${getTypeColor()}`}>{task.type}</p>
+            {task.description && (
+              <p className="text-xs text-gray-500 mt-1">{task.description}</p>
+            )}
+            {task.location && (
+              <p className="text-xs text-blue-600 mt-1">📍 {task.location}</p>
+            )}
+            {task.patient && (
+              <p className="text-xs text-gray-700 mt-1">
+                <span className="font-medium">Patient:</span> {task.patient}
+              </p>
+            )}
+            {task.doctor && (
+              <p className="text-xs text-gray-700 mt-1">
+                <span className="font-medium">Doctor:</span> {task.doctor}
+              </p>
+            )}
+            {task.status && (
+              <p className={`text-xs mt-1 font-medium ${task.status === 'Pending' ? 'text-orange-600' : 'text-green-600'
+                }`}>
+                Status: {task.status}
+              </p>
+            )}
+          </div>
+        </div>
+        <div className="flex items-center space-x-2">
+          <Clock className="w-4 h-4 text-gray-400" />
+          <span className="text-sm font-medium text-gray-600">{task.time}</span>
         </div>
       </div>
-      <div className="flex items-center space-x-2">
-        <Clock className="w-4 h-4 text-gray-400" />
-        <span className="text-sm font-medium text-gray-600">{task.time}</span>
-      </div>
-    </div>
-  );
+    );
+  };
 
   if (loading) {
     return (
@@ -248,10 +339,10 @@ function CaretakerDashboard() {
                 color="blue"
               />
               <StatCard
-                title="Pending Tasks"
-                value={stats.pendingTasks}
-                icon={AlertCircle}
-                color="red"
+                title="Upcoming Consultations"
+                value={stats.upcomingConsultations}
+                icon={UserCheck}
+                color="purple"
               />
             </div>
           </div>
@@ -284,15 +375,17 @@ function CaretakerDashboard() {
               Today's Schedule
             </h2>
             <div className="space-y-3">
-              {upcomingTasks.map((task, index) => (
-                <TaskItem key={index} task={task} />
-              ))}
-            </div>
-            <div className="mt-6 text-center">
-              <button className="text-orange-600 hover:text-orange-700 font-medium text-sm flex items-center justify-center mx-auto">
-                View Full Schedule
-                <ArrowRight className="w-4 h-4 ml-1" />
-              </button>
+              {todaySchedule.length > 0 ? (
+                todaySchedule.map((task, index) => (
+                  <TaskItem key={index} task={task} />
+                ))
+              ) : (
+                <div className="text-center py-8">
+                  <Calendar className="w-12 h-12 text-gray-300 mx-auto mb-3" />
+                  <p className="text-gray-500 font-medium">No events or consultations scheduled for today</p>
+                  <p className="text-sm text-gray-400 mt-1">Check back tomorrow or schedule new activities</p>
+                </div>
+              )}
             </div>
           </div>
         </div>
