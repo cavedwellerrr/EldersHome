@@ -14,9 +14,9 @@ export const chatController = async (req, res) => {
   } else if (lowerMsg.includes("register")) {
     reply =
       "To register, click on the 'Register' button in the top menu and fill your details.";
-  } else if (lowerMsg.includes("booking")) {
+  } else if (lowerMsg.includes("donation")) {
     reply =
-      "To book an event, go to 'Events' → select your event → click 'Book Now'.";
+      "To make a donation, go to 'Donation' → select your donation method → click 'Donate Now'.";
   } else if (lowerMsg.includes("support")) {
     reply = "Okay, connecting you to customer support...";
     // Save user request for staff
