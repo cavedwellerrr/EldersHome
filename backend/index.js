@@ -27,7 +27,7 @@ import caretakerElderRoutes from "./routes/caretaker_elder_routes.js";
 import mealRoutes from "./routes/mealRoutes.js";
 import roomRoutes from "./routes/roomRoutes.js";
 import assignmentRoutes from "./routes/assignment_routes.js";
-import mealPreferenceRoutes from "./routes/mealPreference_routes.js"
+import mealPreferenceRoutes from "./routes/mealPreference_routes.js";
 
 //donation routes
 import donationsRoutes from "./routes/donationsRoute.js";
@@ -150,7 +150,7 @@ io.on("connection", (socket) => {
       console.log(`User ${userId}: ${message}`);
 
       let reply =
-        "Sorry, I didn’t understand. Try 'register', 'booking' or 'support'.";
+        "Sorry, I didn’t understand. Try 'register', 'donation' or 'support'.";
       let options = [];
 
       const lowerMsg = message.toLowerCase().trim();
@@ -197,7 +197,7 @@ io.on("connection", (socket) => {
     } catch (error) {
       console.error("Error in userMessage:", error);
       socket.emit("botReply", {
-        reply: "⚠️ Something went wrong. Try again later.",
+        reply: "Something went wrong. Try again later.",
       });
     }
   });
@@ -253,7 +253,7 @@ io.on("connection", (socket) => {
 
   // Disconnect
   socket.on("disconnect", () => {
-    console.log("❌ Client disconnected:", socket.id);
+    console.log("Client disconnected:", socket.id);
   });
 });
 app.get("/", (req, res) => res.send("API working"));

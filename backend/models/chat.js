@@ -1,7 +1,7 @@
 import mongoose from "mongoose";
 
 const chatSchema = new mongoose.Schema({
-  userId: { type: String, required: true }, // "guest" if not logged in
+  userId: { type: String, required: true },
   sender: { type: String, enum: ["user", "bot", "staff"], required: true },
   message: { type: String, required: true },
   status: { type: String, enum: ["open", "resolved"], default: "open" },

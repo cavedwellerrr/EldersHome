@@ -9,6 +9,28 @@ export const registerStaff = async (req, res) => {
     req.body;
 
   try {
+    const emailRegex = /^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$/;
+    const phoneRegex = /^0\d{9}$/;
+
+    if (!name || name.trim().length < 3) {
+      return res
+        .status(400)
+        .json({ message: "Name must be at least 3 characters long" });
+    }
+
+    if (!email || !emailRegex.test(email)) {
+      return res.status(400).json({ message: "Invalid email format" });
+    }
+
+    if (!phone || !phoneRegex.test(phone)) {
+      return res
+        .status(400)
+        .json({
+          message:
+            "Phone number must start with 0 and contain exactly 10 digits",
+        });
+    }
+
     // Check for duplicate username or email
     const staffExists = await Staff.findOne({
       $or: [{ username }, { email }],
@@ -152,6 +174,28 @@ export const updateStaff = async (req, res) => {
 
     const { name, username, email, phone, role, password, specialization } =
       req.body;
+
+    const emailRegex = /^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$/;
+    const phoneRegex = /^0\d{9}$/;
+
+    if (name && name.trim().length < 3) {
+      return res
+        .status(400)
+        .json({ message: "Name must be at least 3 characters long" });
+    }
+
+    if (email && !emailRegex.test(email)) {
+      return res.status(400).json({ message: "Invalid email format" });
+    }
+
+    if (phone && !phoneRegex.test(phone)) {
+      return res
+        .status(400)
+        .json({
+          message:
+            "Phone number must start with 0 and contain exactly 10 digits",
+        });
+    }
 
     if (username || email) {
       const existing = await Staff.findOne({

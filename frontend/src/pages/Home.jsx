@@ -131,9 +131,11 @@ const Home = () => {
                     Get Started
                   </button>
                 </a>
+                <a href="/login">
                 <button className="bg-transparent border-2 border-white text-white px-10 py-4 rounded-lg font-semibold hover:bg-white hover:text-gray-800 transition-all duration-300 shadow-xl text-lg">
                   Schedule a Visit
                 </button>
+                </a>
               </div>
               <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                 {stats.slice(0, 4).map((stat, index) => (
