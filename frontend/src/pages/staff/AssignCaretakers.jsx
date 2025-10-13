@@ -375,75 +375,95 @@ const AssignCaretaker = () => {
 
       {/* Assignment Modal */}
       {isModalOpen && selectedElderForAssign && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-2xl max-h-96 overflow-hidden">
-            <div className="p-6 border-b border-gray-200">
-              <h2 className="text-xl font-bold text-gray-900">
-                Assign Caretaker to {selectedElderForAssign.fullName}
-              </h2>
-              <p className="text-gray-600 mt-1">Select the best caretaker for this elder</p>
-            </div>
+  <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+    <div className="bg-white rounded-2xl shadow-2xl w-full max-w-2xl max-h-[90vh] flex flex-col overflow-hidden">
+      <div className="p-6 border-b border-gray-200">
+        <h2 className="text-xl font-bold text-gray-900">
+          Assign Caretaker to {selectedElderForAssign.fullName}
+        </h2>
+        <p className="text-gray-600 mt-1">Select the best caretaker for this elder</p>
+      </div>
 
-            <div className="p-6 max-h-80 overflow-y-auto">
-              <div className="grid gap-3">
-                {getAvailableCaretakers().map((caretaker) => (
+      <div className="p-6 flex-1 overflow-y-auto">
+        <div className="grid gap-3">
+          {getAvailableCaretakers().map((caretaker) => (
+            <div
+              key={caretaker._id}
+              onClick={() => selectCaretakerInModal(caretaker)}
+              className={`rounded-lg p-4 border-2 cursor-pointer transition-all ${
+                selectedCaretakerDetails?._id === caretaker._id
+                  ? 'border-orange-500 bg-orange-50'
+                  : 'border-gray-200 hover:border-orange-300 bg-white hover:bg-orange-50'
+              }`}
+            >
+              <div className="flex items-center space-x-4">
+                <div className="avatar placeholder">
                   <div
-                    key={caretaker._id}
-                    onClick={() => selectCaretakerInModal(caretaker)}
-                    className={`rounded-lg p-4 border-2 cursor-pointer transition-all ${selectedCaretakerDetails?._id === caretaker._id
-                      ? 'border-orange-500 bg-orange-50'
-                      : 'border-gray-200 hover:border-orange-300 bg-white hover:bg-orange-50'
-                      }`}
+                    className={`rounded-full w-12 ${
+                      selectedCaretakerDetails?._id === caretaker._id
+                        ? 'bg-orange-500 text-white'
+                        : 'bg-gray-200 text-gray-700'
+                    }`}
                   >
-                    <div className="flex items-center space-x-4">
-                      <div className="avatar placeholder">
-                        <div className={`rounded-full w-12 ${selectedCaretakerDetails?._id === caretaker._id
-                          ? 'bg-orange-500 text-white'
-                          : 'bg-gray-200 text-gray-700'
-                          }`}>
-                          <span className="font-bold">
-                            {caretaker.name?.charAt(0).toUpperCase()}
-                          </span>
-                        </div>
-                      </div>
-                      <div className="flex-1">
-                        <h4 className="font-semibold text-gray-900">{caretaker.name}</h4>
-                        <p className="text-sm text-gray-600">@{caretaker.username}</p>
-                        <p className="text-sm text-gray-600">{caretaker.specialization || 'General Care'}</p>
-                        <p className="text-sm text-gray-600">{caretaker.experience || 'Experienced'}</p>
-                      </div>
-                      {selectedCaretakerDetails?._id === caretaker._id && (
-                        <div className="text-orange-500">
-                          <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                          </svg>
-                        </div>
-                      )}
-                    </div>
+                    <span className="font-bold">
+                      {caretaker.name?.charAt(0).toUpperCase()}
+                    </span>
                   </div>
-                ))}
+                </div>
+                <div className="flex-1">
+                  <h4 className="font-semibold text-gray-900">{caretaker.name}</h4>
+                  <p className="text-sm text-gray-600">@{caretaker.username}</p>
+                  <p className="text-sm text-gray-600">
+                    {caretaker.specialization || 'General Care'}
+                  </p>
+                  <p className="text-sm text-gray-600">
+                    {caretaker.experience || 'Experienced'}
+                  </p>
+                </div>
+                {selectedCaretakerDetails?._id === caretaker._id && (
+                  <div className="text-orange-500">
+                    <svg
+                      className="w-6 h-6"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M5 13l4 4L19 7"
+                      />
+                    </svg>
+                  </div>
+                )}
               </div>
             </div>
-
-            <div className="p-6 bg-gray-50 rounded-b-2xl flex justify-end space-x-3">
-              <button
-                onClick={() => setIsModalOpen(false)}
-                className="btn btn-ghost text-gray-600"
-              >
-                Cancel
-              </button>
-              <button
-                onClick={confirmAssignment}
-                className={`btn bg-orange-500 hover:bg-orange-600 text-white border-none ${!selectedCaretakerDetails ? 'opacity-50 cursor-not-allowed' : ''
-                  }`}
-                disabled={!selectedCaretakerDetails}
-              >
-                Confirm Assignment
-              </button>
-            </div>
-          </div>
+          ))}
         </div>
-      )}
+      </div>
+
+      <div className="p-6 bg-gray-50 rounded-b-2xl flex justify-end space-x-3">
+        <button
+          onClick={() => setIsModalOpen(false)}
+          className="btn btn-ghost text-gray-600"
+        >
+          Cancel
+        </button>
+        <button
+          onClick={confirmAssignment}
+          className={`btn bg-orange-500 hover:bg-orange-600 text-white border-none ${
+            !selectedCaretakerDetails ? 'opacity-50 cursor-not-allowed' : ''
+          }`}
+          disabled={!selectedCaretakerDetails}
+        >
+          Confirm Assignment
+        </button>
+      </div>
+    </div>
+  </div>
+)}
+
 
       {/* Toast Notifications */}
       {message && (

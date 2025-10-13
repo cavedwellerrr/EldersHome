@@ -1,7 +1,7 @@
 import Elder, { ElderStatus } from "../models/elder_model.js";
 import Payment, { PaymentStatus } from "../models/payment_model.js";
 import nodemailer from "nodemailer";
-import {Parser} from "json2csv";
+import { Parser } from "json2csv";
 import PDFDocument from "pdfkit";
 
 // Guardian creates elder registration request
@@ -24,6 +24,14 @@ export const createElderRequest = async (req, res) => {
       return res
         .status(400)
         .json({ message: "All required fields must be provided" });
+    }
+
+    const nameRegex = /^[A-Za-z\s]{3,}$/;
+    if (!nameRegex.test(fullName)) {
+      return res.status(400).json({
+        message:
+          "Full name must be at least 3 characters long and contain only letters and spaces",
+      });
     }
 
     const elder = new Elder({
