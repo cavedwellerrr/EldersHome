@@ -53,7 +53,7 @@ export default function OperatorRooms() {
 
     useEffect(() => {
         fetchRooms();
-        // eslint-disable-next-line react-hooks/exhaustive-deps
+        
     }, []);
 
     const onSearch = (e) => {
@@ -89,7 +89,7 @@ export default function OperatorRooms() {
         }
     };
 
-    // client-side filter (snappy)
+    
     const viewRooms = useMemo(() => {
         let arr = allRooms;
         if (filters.floor) {
@@ -121,7 +121,7 @@ export default function OperatorRooms() {
         <div className="min-h-screen bg-[#FFF7F2] text-neutral-800">
             {/* Header */}
             <div className="mx-auto max-w-7xl px-4 pt-6 pb-4">
-                <div className="rounded-3xl border border-[#F4D7C8] bg-white/75 backdrop-blur shadow-sm px-5 py-4 flex items-end justify-between gap-3">
+                <div className="rounded-3xl border border-[#F4D7C8] bg-white/75 backdrop-blur shadow-md px-5 py-4 flex items-end justify-between gap-3">
                     <div>
                         <h1 className="text-2xl md:text-3xl font-semibold tracking-tight text-neutral-900">Rooms</h1>
                         <p className="text-sm text-neutral-600 mt-1">
@@ -129,11 +129,11 @@ export default function OperatorRooms() {
                         </p>
                     </div>
                     <button
-                        className="inline-flex items-center gap-2 rounded-xl bg-[#F29B77] text-white px-4 py-2.5 shadow hover:brightness-95"
+                        className="inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-orange-500 to-orange-600 text-white px-6 py-3 text-sm font-medium shadow-lg hover:shadow-xl hover:from-orange-500 hover:to-orange-400 active:scale-[.98] transition-all duration-200"
                         onClick={openAdd}
                     >
                         <Plus className="size-4" />
-                        Add Room
+                        Add New Room
                     </button>
                 </div>
             </div>
@@ -178,7 +178,7 @@ export default function OperatorRooms() {
                             ))}
                         </select>
 
-                        {/* search with icon */}
+                        
                         <label className="rounded-full border border-neutral-200 bg-white py-2.5 px-3 flex items-center gap-2 focus-within:ring-2 focus-within:ring-[#F29B77]">
                             <Search className="size-4 opacity-60" />
                             <input
@@ -206,7 +206,7 @@ export default function OperatorRooms() {
                 <div className="rounded-3xl border border-[#F4D7C8] bg-white/80 backdrop-blur shadow-sm overflow-hidden">
                     <div className="overflow-x-auto">
                         <table className="table">
-                            <thead className="bg-[#FFF2EA]">
+                            <thead className="bg-gradient-to-r from-gray-50 to-gray-100 border-b border-gray-200">
                                 <tr>
                                     <th className="text-xs uppercase tracking-wide text-neutral-600">#</th>
                                     <th className="text-xs uppercase tracking-wide text-neutral-600">Room ID</th>
@@ -308,7 +308,7 @@ export default function OperatorRooms() {
                 onConfirm={doDelete}
             />
 
-            {/* Themed toaster */}
+            {/* toast */}
             <Toaster
                 position="top-right"
                 toastOptions={{

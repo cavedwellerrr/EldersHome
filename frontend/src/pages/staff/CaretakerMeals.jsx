@@ -7,7 +7,7 @@ import MealCard from "../../components/wellness/MealCard.jsx";
 
 const CATEGORY_ORDER = ["breakfast", "lunch", "dinner", "snack", "special", "other", "uncategorized"];
 
-// Theme-matching chip with AssignedElders styling
+
 const Chip = ({ active, onClick, children, count }) => (
   <button
     onClick={onClick}
@@ -25,9 +25,9 @@ const Chip = ({ active, onClick, children, count }) => (
 
 const CaretakerMeals = () => {
   const [meals, setMeals] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [activeCat, setActiveCat] = useState("all");
-  const [search, setSearch] = useState("");
+  const [loading, setLoading] = useState(true); //loading state
+  const [activeCat, setActiveCat] = useState("all"); //active category filter
+  const [search, setSearch] = useState(""); //search term
 
   useEffect(() => {
     const fetchMeals = async () => {
@@ -45,7 +45,7 @@ const CaretakerMeals = () => {
     fetchMeals();
   }, []);
 
-  // group by category & sort desc by date
+  // group by category 
   const grouped = useMemo(() => {
     const acc = meals.reduce((map, m) => {
       const cat = (m.category || "uncategorized").toLowerCase();
@@ -53,13 +53,14 @@ const CaretakerMeals = () => {
       map[cat].push(m);
       return map;
     }, {});
+    //sort each category by date, newest 1st
     Object.keys(acc).forEach((k) => {
       acc[k].sort((a, b) => new Date(b.date || 0) - new Date(a.date || 0));
     });
     return acc;
   }, [meals]);
 
-  // ordered tabs
+  // ordered category tabs
   const tabs = useMemo(() => {
     const available = Object.keys(grouped);
     const ordered = CATEGORY_ORDER.filter((c) => available.includes(c));
@@ -81,7 +82,7 @@ const CaretakerMeals = () => {
     return list;
   }, [meals, grouped, activeCat, search]);
 
-  // Enhanced skeleton grid matching AssignedElders theme
+  
   const Skeleton = () => (
     <div className="bg-white rounded-2xl shadow-lg border border-orange-100 p-8">
       <div className="flex items-center justify-center space-x-3">
@@ -158,7 +159,7 @@ const CaretakerMeals = () => {
           </div>
         </div>
 
-        {/* Add Meal Button */}
+        {/* Add Meal Button -meal header*/}
         <MealHeader />
 
         {/* Loading State */}
@@ -219,19 +220,19 @@ const CaretakerMeals = () => {
         toastOptions={{
           className: "border rounded-xl shadow-lg text-sm font-medium tracking-tight",
           style: {
-            background: "#FFFFFF",   // white card
-            color: "#1F2937",        // gray-800 text
-            borderColor: "#FED7AA",  // orange-200 border
+            background: "#FFFFFF",   
+            color: "#1F2937",        
+            borderColor: "#FED7AA",  
           },
           success: {
             iconTheme: {
-              primary: "#F97316",    // orange-500
+              primary: "#F97316",   
               secondary: "#FFFFFF",
             },
           },
           error: {
             iconTheme: {
-              primary: "#EF4444",    // red-500
+              primary: "#EF4444",    
               secondary: "#FFFFFF",
             },
           },
