@@ -22,20 +22,20 @@ function MealPreferencesSummaryDownload() {
 
             const doc = new jsPDF();
 
-            // === Header block ===
-            doc.setFillColor(255, 243, 230); // light beige/orange
+            //Header block 
+            doc.setFillColor(255, 243, 230);
             doc.roundedRect(10, 10, 190, 25, 5, 5, "F");
 
             doc.setFont("helvetica", "bold");
             doc.setFontSize(18);
-            doc.setTextColor(200, 80, 40); // warm orange for header text
+            doc.setTextColor(200, 80, 40);
             doc.text("Elder Meal Preferences Summary", 16, 26);
 
             doc.setFontSize(10);
             doc.setTextColor(100, 100, 100);
             doc.text(`Generated: ${new Date().toLocaleString()}`, 16, 32);
 
-            // === Elder Profiles Table ===
+            // Elder Profiles Table 
             doc.autoTable({
                 startY: 50,
                 head: [
@@ -71,15 +71,15 @@ function MealPreferencesSummaryDownload() {
                 theme: "grid",
                 styles: { fontSize: 9, cellPadding: 3 },
                 headStyles: {
-                    fillColor: [255, 243, 230],   // beige/orange background
-                    textColor: [0, 0, 0],         // black text
+                    fillColor: [255, 243, 230],
+                    textColor: [0, 0, 0],
                     fontStyle: "bold",
                 },
                 alternateRowStyles: { fillColor: [255, 250, 245] },
                 margin: { left: 14, right: 14 },
             });
 
-            // === New page for Meals ===
+            // New page for Meals 
             doc.addPage();
             let tableY = 20;
             const categories = ["Breakfast", "Lunch", "Dinner", "Snack", "Other"];
@@ -90,7 +90,7 @@ function MealPreferencesSummaryDownload() {
                 );
                 if (categoryMeals.length > 0) {
                     doc.setFontSize(14);
-                    doc.setTextColor(200, 80, 40); // keep section titles orange
+                    doc.setTextColor(200, 80, 40);
                     doc.text(`${category} Meals`, 14, tableY);
 
                     const tableData = categoryMeals.map((meal) => [
@@ -106,8 +106,8 @@ function MealPreferencesSummaryDownload() {
                         body: tableData,
                         styles: { fontSize: 9, cellPadding: 3 },
                         headStyles: {
-                            fillColor: [255, 243, 230],  // beige/orange background
-                            textColor: [0, 0, 0],        // black text
+                            fillColor: [255, 243, 230],
+                            textColor: [0, 0, 0],
                             fontStyle: "bold",
                         },
                         alternateRowStyles: { fillColor: [255, 250, 245] },
@@ -118,7 +118,7 @@ function MealPreferencesSummaryDownload() {
                 }
             });
 
-            // === Footer ===
+            //  Footer
             doc.setFontSize(8);
             doc.setTextColor(120, 120, 120);
             doc.text(

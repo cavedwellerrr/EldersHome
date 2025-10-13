@@ -1,10 +1,10 @@
-// src/pages/staff/ElderProfile.jsx
+
 import { useEffect, useMemo, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { ArrowLeft, Home, Users, FileText, Utensils, AlertTriangle } from "lucide-react";
 import api from "../../api";
 
-// NEW: import extracted components
+
 import RoomAssignmentSection from "../../components/wellness/RoomAssignmentSection.jsx";
 import MealAssignmentSection from "../../components/wellness/MealAssignmentSection.jsx";
 
@@ -52,7 +52,7 @@ export default function ElderProfile() {
         reload();
     }, [id]);
 
-    // Initials for avatar
+
     const initials = useMemo(() => {
         const n = elder?.fullName?.trim() || "";
         const parts = n.split(/\s+/);
@@ -281,7 +281,7 @@ export default function ElderProfile() {
     );
 }
 
-/* ---------- Local-only helpers (unchanged) ---------- */
+
 function StatusBadge({ status }) {
     if (!status) return null;
 
