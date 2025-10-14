@@ -1,7 +1,7 @@
 import Inventory from "../models/inventory_model.js";
 import Donation from "../models/donations.js";
 
-// 🔹 Add or update inventory when donation status changes to received
+// Add or update inventory when donation status changes to received
 export const addDonationToInventory = async (donationId) => {
   try {
     const donation = await Donation.findById(donationId);
@@ -32,7 +32,7 @@ export const addDonationToInventory = async (donationId) => {
   }
 };
 
-// 🔹 Get all inventory items
+// Get all inventory items
 export const getInventory = async (req, res) => {
   try {
     const items = await Inventory.find().sort({ updatedAt: -1 });
@@ -43,7 +43,7 @@ export const getInventory = async (req, res) => {
   }
 };
 
-// 🔹 Update inventory manually (admin edit)
+// Update inventory manually (admin edit)
 export const updateInventoryItem = async (req, res) => {
   try {
     const { id } = req.params;
@@ -66,7 +66,7 @@ export const updateInventoryItem = async (req, res) => {
   }
 };
 
-// 🔹 Delete inventory item
+// Delete inventory item
 export const deleteInventoryItem = async (req, res) => {
   try {
     const { id } = req.params;

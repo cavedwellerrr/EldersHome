@@ -24,8 +24,6 @@ router.post("/", async (req, res) => {
   }
 });
 
-
-
 // Get prescriptions for an elder (optional)
 router.get("/elder/:elderId", async (req, res) => {
   try {
@@ -38,7 +36,7 @@ router.get("/elder/:elderId", async (req, res) => {
   }
 });
 
-//  Get prescriptions for logged-in caretaker
+// Get prescriptions for logged-in caretaker
 router.get("/caretaker/my", protectStaff, async (req, res) => {
   try {
     if (req.staff.role !== "caretaker") {
@@ -51,13 +49,14 @@ router.get("/caretaker/my", protectStaff, async (req, res) => {
         path: "doctor",
         populate: { path: "staff", select: "name email" },
       })
-      .sort({ createdAt: -1 }); // latest first
+      .sort({ createdAt: -1 });
 
     res.json(prescriptions);
   } catch (err) {
     res.status(500).json({ message: err.message });
   }
 });
+
 // DELETE prescription by ID
 router.delete("/:id", protectStaff, async (req, res) => {
   try {
@@ -70,6 +69,7 @@ router.delete("/:id", protectStaff, async (req, res) => {
     res.status(500).json({ message: err.message });
   }
 });
+
 // Get prescriptions for logged-in doctor
 router.get("/doctor/my", protectStaff, async (req, res) => {
   try {
@@ -77,19 +77,18 @@ router.get("/doctor/my", protectStaff, async (req, res) => {
       return res.status(403).json({ message: "Only doctors can view prescriptions" });
     }
 
-    // find doctor profile linked to staff
     const doctor = await Doctor.findOne({ staff: req.staff._id });
     if (!doctor) {
       return res.status(404).json({ message: "Doctor profile not found" });
     }
 
-    // now fetch prescriptions by doctor._id
     const prescriptions = await Prescription.find({ doctor: doctor._id })
       .populate("elder", "fullName dob")
       .populate({
         path: "doctor",
         populate: { path: "staff", select: "name email" },
       })
+      .populate("caretaker", "name email")
       .sort({ createdAt: -1 });
 
     res.json(prescriptions);
@@ -99,6 +98,55 @@ router.get("/doctor/my", protectStaff, async (req, res) => {
   }
 });
 
+// ✅ UPDATE PRESCRIPTION - FIXED VERSION
+router.patch("/:id", protectStaff, async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { drugs, notes } = req.body;
 
+    // Check if user is a doctor
+    if (req.staff.role !== "doctor") {
+      return res.status(403).json({ message: "Only doctors can edit prescriptions" });
+    }
+
+    // Find doctor profile
+    const doctor = await Doctor.findOne({ staff: req.staff._id });
+    if (!doctor) {
+      return res.status(404).json({ message: "Doctor profile not found" });
+    }
+
+    // Find the prescription
+    const prescription = await Prescription.findById(id);
+    if (!prescription) {
+      return res.status(404).json({ message: "Prescription not found" });
+    }
+
+    // Check if the logged-in doctor owns this prescription
+    if (prescription.doctor.toString() !== doctor._id.toString()) {
+      return res.status(403).json({ message: "Not authorized to edit this prescription" });
+    }
+
+    // Update the prescription
+    prescription.drugs = drugs;
+    prescription.notes = notes;
+    prescription.updatedAt = Date.now();
+
+    await prescription.save();
+
+    // Populate fields for response
+    const populated = await Prescription.findById(prescription._id)
+      .populate("elder", "fullName dob")
+      .populate({
+        path: "doctor",
+        populate: { path: "staff", select: "name email" },
+      })
+      .populate("caretaker", "name email");
+
+    res.json(populated);
+  } catch (error) {
+    console.error("Error updating prescription:", error);
+    res.status(500).json({ message: "Failed to update prescription" });
+  }
+});
 
 export default router;
