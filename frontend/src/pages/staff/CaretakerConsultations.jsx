@@ -50,7 +50,7 @@ export default function CaretakerConsultations() {
     return age;
   };
 
-  // ✨ --- NEW: Centralized date formatting function ---
+  //Centralized date formatting function ---
   const formatDate = (dateString) => {
     if (!dateString) return "—";
     const date = new Date(dateString);
@@ -224,7 +224,7 @@ export default function CaretakerConsultations() {
       appt.elder?.fullName || "—",
       appt.doctor?.staff?.name || "—",
       appt.doctor?.specialization || "—",
-      formatDate(appt.date), // ✨ MODIFIED
+      formatDate(appt.date), //MODIFIED
       appt.status || "—",
     ];
 
@@ -341,7 +341,7 @@ export default function CaretakerConsultations() {
       .sort((a, b) => new Date(a.date) - new Date(b.date));
 
     if (upcomingAppointments.length > 0) {
-      return formatDate(upcomingAppointments[0].date); // ✨ MODIFIED
+      return formatDate(upcomingAppointments[0].date); //MODIFIED
     }
 
     return "No upcoming";
@@ -466,11 +466,10 @@ export default function CaretakerConsultations() {
               <button
                 key={f}
                 onClick={() => setStatusFilter(f)}
-                className={`px-3 py-1 rounded-lg border ${
-                  statusFilter === f
-                    ? "bg-orange-500 text-white"
-                    : "bg-white hover:bg-gray-100"
-                }`}
+                className={`px-3 py-1 rounded-lg border ${statusFilter === f
+                  ? "bg-orange-500 text-white"
+                  : "bg-white hover:bg-gray-100"
+                  }`}
               >
                 {f}
               </button>
@@ -652,9 +651,8 @@ function ConsultationStatusBadge({ status }) {
 
   return (
     <span
-      className={`px-3 py-1 rounded-full text-xs font-semibold border ${
-        colors[status] || "bg-gray-100 text-gray-800 border-gray-300"
-      }`}
+      className={`px-3 py-1 rounded-full text-xs font-semibold border ${colors[status] || "bg-gray-100 text-gray-800 border-gray-300"
+        }`}
     >
       {status}
     </span>
@@ -763,12 +761,11 @@ function StatusBadge({ status }) {
 
   return (
     <span
-      className={`px-3 py-1 rounded-full text-xs font-semibold border ${
-        colors[status] || "bg-gray-100 text-gray-800 border-gray-300"
-      }`}
+      className={`px-3 py-1 rounded-full text-xs font-semibold border ${colors[status] || "bg-gray-100 text-gray-800 border-gray-300"
+        }`}
     >
       {status}
     </span>
   );
-  
+
 }

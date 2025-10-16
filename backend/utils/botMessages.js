@@ -19,9 +19,9 @@ const botMessages = {
 
   welcome: `
 \u{1F44B} Welcome to ElderCare Chat! You can ask about:  
-- Register  
-- Donation  
-- Support
+\n- Register  
+\n- Donation  
+\n- Support
   `,
 
   support: `

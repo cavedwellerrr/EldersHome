@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import api from "../../api"; // your axios instance
+import api from "../../api";
 
 const StaffLogin = () => {
   const [username, setUsername] = useState("");
@@ -23,9 +23,9 @@ const StaffLogin = () => {
       // Add these so AssignedElders can read them
       localStorage.setItem("staffToken", res.data.token);
       localStorage.setItem("staffRole", res.data.role);
-      localStorage.setItem("staffName", res.data.name || "");
+      localStorage.setItem("staffName", res.data.name || "");
 
-      // ✅ Redirect by role
+      // Redirect by role
       switch (res.data.role) {
         case "admin":
           navigate("/staff/admin-dashboard");

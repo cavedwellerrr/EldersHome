@@ -30,7 +30,7 @@ const CaretakerEvents = () => {
     if (m < 0 || (m === 0 && today.getDate() < d.getDate())) age--;
     return age;
   };
-// ✅ CSV Export
+// CSV Export
 const exportSummaryToCSV = () => {
   if (events.length === 0) return alert("No events to export!");
   const headers = ["Event Name", "Location", "Date & Time", "Enrolled Elders", "Total Count"];

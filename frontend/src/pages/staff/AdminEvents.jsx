@@ -17,7 +17,7 @@ const AdminEvents = () => {
 
   const navigate = useNavigate();
 
-  // ✅ Get min datetime for input (no past times allowed)
+  //  Get min datetime for input (no past times allowed)
   const getMinDateTime = () => {
     const now = new Date();
     now.setMinutes(now.getMinutes() - now.getTimezoneOffset()); // Fix timezone offset

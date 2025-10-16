@@ -66,7 +66,7 @@ router.post(
   createElderRequest
 );
 
-// In your elder routes file
+
 router.delete("/:id", protect, deleteElder);
 
 // Operator routes
